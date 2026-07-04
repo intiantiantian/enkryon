@@ -1,0 +1,17 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite
+*.db
+
+# VS Code
+.vscode/
+
+# Build files
+build/
+dist/
