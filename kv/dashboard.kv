@@ -1,0 +1,24 @@
+<DashboardScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 15
+
+        Label:
+            text: 'Dashboard'
+            font_size: '30sp'
+
+        Button:
+            text: 'Add Transaction'
+            on_release:
+                root.go_to_add_transaction()
+        
+        Button:
+            text: 'History'
+            on_release:
+                root.go_to_history()
+
+        Button:
+            text: 'Settings'
+            on_release:
+                root.go_to_settings()
