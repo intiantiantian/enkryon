@@ -1,14 +1,168 @@
 <AddTransactionScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 20
-        spacing: 15
+    ScrollView:
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            padding: 20
+            spacing: 15
 
-    Label:
-        text: 'Add Transaction'
-        font_size: '30sp'
+            MDCard:
+                size_hint_y: None
+                height: 50
 
-    Button:
-        text: 'Back to Dashboard'
-        on_release:
-            root.go_to_dashboard()
+                BoxLayout:
+                    orientation: 'horizontal'
+
+                    MDLabel:
+                        text: 'Header'
+
+                    MDIconButton:
+                        icon: 'close'
+                        on_release:
+                            root.go_to_dashboard()
+
+                    MDIconButton:
+                        icon: 'content-save'
+
+            MDCard:
+                size_hint_y: None
+                height: 50
+
+                ToggleButton:
+                    text: 'INCOME'
+                    group: 'transaction_type'
+
+                ToggleButton:
+                    text: 'EXPENSE'
+                    group: 'transaction_type'
+                    
+            MDCard:
+                size_hint_y: None
+                height: 350
+                orientation: 'vertical'
+
+                BoxLayout:
+
+                    Button:
+                        text: 'Account'
+
+                    MDLabel:
+                        size_hint_y: None
+                        height: 150
+                        id: amount_label
+                        text: '₱ 0'
+
+                GridLayout:
+                    cols: 4
+                    rows: 4
+                    size_hint_y: None
+                    height: 200
+
+                    MDRaisedButton:
+                        text: '7'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('7')
+
+                    MDRaisedButton:
+                        text: '8'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('8')
+                
+                    MDRaisedButton:
+                        text: '9'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('9')
+
+                    MDRaisedButton:
+                        text: 'delete'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.delete_last()
+
+                    MDRaisedButton:
+                        text: '4'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('4')
+
+                    MDRaisedButton:
+                        text: '5'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('5')
+                
+                    MDRaisedButton:
+                        text: '6'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('6')
+
+                    MDRaisedButton:
+                        text: 'clear'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.clear()
+
+                    MDRaisedButton:
+                        text: '1'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('1')
+
+                    MDRaisedButton:
+                        text: '2'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('2')
+                
+                    MDRaisedButton:
+                        text: '3'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('3')
+
+                    MDRaisedButton:
+                        text: '.'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.add_decimal()
+
+                    MDLabel:
+                        
+                    MDRaisedButton:
+                        text: '0'
+                        size_hint: (1, 1)
+                        on_release:
+                            root.press_number('0')
+
+            MDCard:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: 100
+
+
+                Button:
+                    text: 'Categories'
+
+                GridLayout:
+                    cols: 2
+                    size_hint_y: None
+                    height: 50
+
+                    Button:
+                        text: 'Date'
+
+                    Button:
+                        text: 'Time'
+
+            MDCard:
+                size_hint_y: None
+                height: 200
+
+                MDTextField:
+                    hint_text: 'Add notes'
+                    multiline: True

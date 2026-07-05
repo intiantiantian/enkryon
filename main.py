@@ -1,5 +1,4 @@
-from kivy.app import App
-from kivy.uix.label import Label
+from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 
 from screens.dashboard import DashboardScreen
@@ -9,7 +8,7 @@ from screens.settings import SettingsScreen
 
 from kivy.lang import Builder
 
-class MyFinance(App):
+class MyFinance(MDApp):
     def build(self):
 
         Builder.load_file('kv/dashboard.kv')
@@ -23,6 +22,9 @@ class MyFinance(App):
         screen_manager.add_widget(AddTransactionScreen(name='add_transaction'))
         screen_manager.add_widget(HistoryScreen(name='history'))
         screen_manager.add_widget(SettingsScreen(name='settings'))
+
+        self.theme_cls.theme_style = "Light"
+        self.theme_cls.primary_palette = "Green"
 
         return screen_manager
     

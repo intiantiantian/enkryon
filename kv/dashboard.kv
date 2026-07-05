@@ -1,24 +1,143 @@
 <DashboardScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 20
-        spacing: 15
+    ScrollView:
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            padding: 20
+            spacing: 15
 
-        Label:
-            text: 'Dashboard'
-            font_size: '30sp'
+            MDCard:
+                size_hint_y: None
+                height: 50
 
-        Button:
-            text: 'Add Transaction'
-            on_release:
-                root.go_to_add_transaction()
-        
-        Button:
-            text: 'History'
-            on_release:
-                root.go_to_history()
+                BoxLayout:
+                    orientation: 'horizontal'
+                        
+                    MDLabel:
+                        text: 'Header'
 
-        Button:
-            text: 'Settings'
-            on_release:
-                root.go_to_settings()
+                    MDIconButton:
+                        icon: 'cog'
+                        on_release:
+                            root.go_to_settings()
+
+            MDCard:
+                size_hint_y: None
+                height: 200
+
+                BoxLayout:
+                    orientation: 'horizontal'
+
+                    MDLabel:
+                        text: 'Message'
+
+                    BoxLayout:
+                        orientation: 'vertical'
+
+                        GridLayout:
+                            size_hint_y: None
+                            height: 50
+                            cols: 2
+                                
+                            Button:
+                                text: 'Account'
+
+                            MDIconButton:
+                                icon: 'eye'
+
+                        MDLabel:
+                            text: 'Current Balance'
+                        
+                        MDLabel:
+                            text: '₱0.00'
+            
+            GridLayout:
+                size_hint_y: None
+                height: 50
+                cols: 2
+                    
+                MDFillRoundFlatIconButton:
+                    icon: 'plus'
+                    text: 'Add Transaction'
+                    on_release:
+                        root.go_to_add_transaction()
+
+                MDFillRoundFlatIconButton:
+                    icon: 'plus'
+                    text: 'Add/Edit Account'
+                    
+            GridLayout:
+                size_hint_y: None
+                height: 150
+
+                cols: 2
+                rows: 2
+
+                MDCard:
+                    size_hint_y: None
+                    height: 50
+
+                    orientation: 'vertical'
+                    padding: 10
+
+                    MDLabel:
+                        text: 'Income:'
+
+                MDCard:
+                    size_hint_y: None
+                    height: 50
+
+                    orientation: 'vertical'
+                    padding: 10
+
+                    MDLabel:
+                        text: 'Expenses:'
+                
+                MDFlatButton:
+                    text: '₱0.00'
+
+                MDFlatButton:
+                    text: '₱0.00'
+
+            MDCard:
+                size_hint_y: None
+                height: 500
+
+                orientation: 'vertical'
+                padding: 10
+
+                MDRaisedButton:
+                    size_hint_y: None
+                    height: 50
+
+                    text: 'History'
+                    on_release:
+                        root.go_to_history()
+
+                GridLayout:
+                    size_hint_y: None
+                    height: 50
+
+                    cols: 3
+
+                    MDFlatButton:
+                        text: 'All'
+
+                    MDFlatButton:
+                        text: 'Income'
+
+                    MDFlatButton:
+                        text: 'Expenses'
+
+                ScrollView:
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y:None
+                        height: self.minimum_height
+
+                        MDFlatButton:
+                            size_hint_y: None
+                            height: 100
+                            text: 'Recent History'
