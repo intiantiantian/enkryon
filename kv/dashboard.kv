@@ -66,6 +66,8 @@
                 MDFillRoundFlatIconButton:
                     icon: 'plus'
                     text: 'Add/Edit Account'
+                    on_release:
+                        root.go_to_accounts()
                     
             GridLayout:
                 size_hint_y: None
@@ -133,9 +135,9 @@
                 ScrollView:
 
                     BoxLayout:
-                        orientation: 'vertical'
                         size_hint_y:None
                         height: self.minimum_height
+                        orientation: 'vertical'
 
                         MDFlatButton:
                             size_hint_y: None

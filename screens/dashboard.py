@@ -10,3 +10,6 @@ class DashboardScreen(Screen):
 
     def go_to_settings(self):
         self.manager.current = 'settings'
+
+    def go_to_accounts(self):
+        self.manager.current = 'accounts'

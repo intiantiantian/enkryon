@@ -1,0 +1,54 @@
+<AccountCard>
+    size_hint_y: None
+    height: 50
+
+    GridLayout:
+        cols: 3
+
+        MDLabel:
+            id: account_name
+
+        MDIconButton:
+            icon: 'pencil'
+
+        MDIconButton:
+            icon: 'delete'
+
+<AccountsScreen>
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        MDCard:
+            size_hint_y: None
+            height: 50
+
+            BoxLayout:
+                orientation: 'horizontal'
+
+                MDIconButton:
+                    icon: 'arrow-left'
+                    on_release:
+                        root.go_to_dashboard()
+
+                MDLabel:
+                    text: 'Accounts'
+                    halign: 'center'
+
+        ScrollView:
+            BoxLayout:
+                id: accounts_container
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+
+        MDTextField:
+            id: account_name_input
+            hint_text: 'Account Name'
+
+        MDFillRoundFlatButton:
+            size_hint_y: None
+            height: 60
+            text: '+ Add Account'
+            on_release:
+                root.add_account()
