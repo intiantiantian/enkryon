@@ -10,9 +10,13 @@
 
         MDIconButton:
             icon: 'pencil'
+            on_release:
+                root.edit_account()
 
         MDIconButton:
             icon: 'delete'
+            on_release:
+                root.delete_account()
 
 <AccountsScreen>
     BoxLayout:

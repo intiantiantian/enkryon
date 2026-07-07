@@ -9,3 +9,9 @@ class AccountCard(MDCard):
     def set_account(self, account):
         self.ids.account_name.text = account[1]
         self.account_id = account[0]
+
+    def edit_account(self):
+        self.screen.open_rename_dialog(self.account_id, self.ids.account_name.text)
+
+    def delete_account(self):
+        self.screen.confirm_delete_account(self.account_id)

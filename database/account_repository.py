@@ -14,11 +14,31 @@ def create_accounts_table():
     connection.commit()
     connection.close()
 
+def get_all_accounts():
+    connection = connect_database()
+    cursor = connection.cursor()
+    cursor.execute('SELECT * FROM accounts')
+    accounts = cursor.fetchall()
+    connection.close()
+    return accounts
+
 def insert_account(name):
     connection = connect_database()
     cursor = connection.cursor()
     try:
         cursor.execute('INSERT INTO accounts (name) VALUES (?)', (name,))
+        connection.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        connection.close()
+
+def update_account(account_id, name):
+    connection = connect_database()
+    cursor = connection.cursor()
+    try:
+        cursor.execute('UPDATE accounts SET name = ? WHERE id = ?', (name, account_id))
         connection.commit()
         return True
     except sqlite3.IntegrityError:
@@ -32,11 +52,3 @@ def delete_account(account_id):
     cursor.execute('DELETE FROM accounts WHERE id = ?', (account_id,))
     connection.commit()
     connection.close()
-
-def get_all_accounts():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('SELECT * FROM accounts')
-    accounts = cursor.fetchall()
-    connection.close()
-    return accounts
