@@ -6,6 +6,8 @@ from database.transaction_repository import insert_transaction
 from datetime import datetime
 
 from database.account_repository import get_all_accounts
+from database.category_group_repository import get_category_groups_by_type
+from database.category_repository import get_categories_by_group
 
 class AddTransactionScreen(Screen):
     
@@ -48,14 +50,25 @@ class AddTransactionScreen(Screen):
         return None
     
     def on_pre_enter(self):
-        self.selected_account_id = None
-        self.ids.account_button.text = 'Select Account'
-        self.set_current_date_time()
-        self.clear()
-        self.ids.notes_input.text = ''
-        self.ids.notes_input.hint_text = 'Add notes (optional)'
         self.ids.income_button.state = 'normal'
         self.ids.expense_button.state = 'normal'
+    
+        self.selected_account_id = None
+        self.ids.account_button.text = 'Select Account'
+
+        self.selected_group_id = None
+        self.ids.groups_button.text = 'No Transaction Type Selected'
+        self.ids.groups_button.disabled = True
+
+        self.selected_category_id = None
+        self.ids.categories_button.text = 'No Category Group Selected'
+        self.ids.categories_button.disabled = True
+
+        self.set_current_date_time()
+        self.clear()
+
+        self.ids.notes_input.text = ''
+        self.ids.notes_input.hint_text = 'Add notes (optional)'
 
     def open_account_menu(self):
         accounts = get_all_accounts()
@@ -96,6 +109,100 @@ class AddTransactionScreen(Screen):
         self.manager.current = 'accounts'
         self.account_menu.dismiss()
 
+    def update_groups_button(self):
+        self.selected_group_id = None
+        self.selected_category_id = None
+
+        self.ids.groups_button.disabled = False
+        self.ids.groups_button.text = 'Select Category Group'
+
+        self.ids.categories_button.disabled = True
+        self.ids.categories_button.text = 'No Category Group Selected'
+
+    def update_categories_button(self):
+        self.ids.categories_button.disabled = False
+        self.ids.categories_button.text = 'Select Category'
+        self.selected_category_id = None
+
+    def open_groups_menu(self):
+        groups = get_category_groups_by_type(self.get_transaction_type())
+        if not groups:
+            self.ids.groups_button.text = 'No Category Groups Created'
+            return
+
+        menu_items = []
+
+        for group in groups:
+            menu_items.append(
+                {
+                    "text": group[1],
+                    "on_release": lambda x=group: self.select_group(x[0], x[1])
+                }
+            )
+
+        menu_items.append(
+            {
+                "text": "Manage Category Groups",
+                "on_release": lambda: self.open_manage_category_screen()
+            }
+        )
+
+        self.groups_menu = MDDropdownMenu(
+            caller=self.ids.groups_button,
+            items=menu_items,
+        )
+
+        self.groups_menu.open()
+
+    def select_group(self, group_id, group_name):
+        self.update_categories_button()
+
+        self.ids.groups_button.text = group_name
+        self.selected_group_id = group_id
+        self.groups_menu.dismiss()
+
+    def open_categories_menu(self):
+        categories = get_categories_by_group(self.selected_group_id)
+        if not categories:
+            self.ids.categories_button.text = 'No Category Created'
+            return
+        
+        menu_items = []
+
+        for category in categories:
+            menu_items.append(
+                {
+                    "text": category[2],
+                    "on_release": lambda x=category: self.select_category(x[0], x[2])
+                }
+            )
+
+        menu_items.append(
+            {
+                "text": "Manage Categories",
+                "on_release": lambda: self.open_manage_category_screen()
+            }
+        )
+
+        self.categories_menu = MDDropdownMenu(
+            caller=self.ids.categories_button,
+            items=menu_items,
+        )
+
+        self.categories_menu.open()
+
+    def select_category(self, category_id, category_name):
+        self.ids.categories_button.text = category_name
+        self.selected_category_id = category_id
+        self.categories_menu.dismiss()
+
+    def open_manage_category_screen(self):
+        self.manager.current = 'categories'
+        if hasattr(self, "groups_menu"):
+            self.groups_menu.dismiss()
+        if hasattr(self, "categories_menu"):
+            self.categories_menu.dismiss()
+
     def set_current_date_time(self):
         now = datetime.now()
         self.ids.date_button.text = now.strftime('%Y-%m-%d')
@@ -123,7 +230,7 @@ class AddTransactionScreen(Screen):
         
         account = self.selected_account_id
         amount = float(self.amount)
-        category = 1
+        category = self.selected_category_id
         date = self.ids.date_button.text
         time = self.ids.time_button.text
         date_time = f"{date} {time}"
@@ -144,6 +251,10 @@ class AddTransactionScreen(Screen):
 
         if self.get_transaction_type() is None:
             print("Please select a transaction type.")
+            return False
+        
+        if self.selected_category_id is None:
+            print("Please select a category.")
             return False
 
         return True

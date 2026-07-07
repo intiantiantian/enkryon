@@ -35,11 +35,15 @@
                     id: income_button
                     text: 'INCOME'
                     group: 'transaction_type'
+                    on_release:
+                        root.update_groups_button()
 
                 ToggleButton:
                     id: expense_button
                     text: 'EXPENSE'
                     group: 'transaction_type'
+                    on_release:
+                        root.update_groups_button()
                     
             MDCard:
                 size_hint_y: None
@@ -150,13 +154,21 @@
                 size_hint_y: None
                 height: 100
 
-                Button:
-                    text: 'Categories'
-
                 GridLayout:
                     cols: 2
+                    rows: 2
                     size_hint_y: None
-                    height: 50
+                    height: 100
+
+                    MDFillRoundFlatButton:
+                        id: groups_button
+                        on_release:
+                            root.open_groups_menu()
+
+                    MDFillRoundFlatButton:
+                        id: categories_button
+                        on_release:
+                            root.open_categories_menu()
 
                     MDFillRoundFlatIconButton:
                         id: date_button
