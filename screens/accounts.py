@@ -16,6 +16,7 @@ class AccountsScreen(Screen):
         self.manager.current = 'add_transaction'
 
     def on_pre_enter(self):
+        self.rename_dialog = None
         self.load_accounts()
 
     def load_accounts(self):
@@ -43,6 +44,10 @@ class AccountsScreen(Screen):
             print(f"Account '{account_name}' already exists.")
 
     def open_rename_dialog(self, account_id, account_name):
+
+        if self.rename_dialog:
+            self.rename_dialog.dismiss()
+        
         self.rename_dialog = MDDialog(
             title="Rename Account",
             type="custom",
@@ -65,6 +70,7 @@ class AccountsScreen(Screen):
 
     def close_rename_dialog(self, *args):
         self.rename_dialog.dismiss()
+        self.rename_dialog = None
 
     def rename_account(self, account_id):
 

@@ -55,7 +55,7 @@
             GridLayout:
                 size_hint_y: None
                 height: 50
-                cols: 2
+                cols: 3
                     
                 MDFillRoundFlatIconButton:
                     icon: 'plus'
@@ -68,6 +68,12 @@
                     text: 'Add/Edit Account'
                     on_release:
                         root.go_to_accounts()
+
+                MDFillRoundFlatIconButton:
+                    icon: 'plus'
+                    text: 'Add/Edit Category'
+                    on_release:
+                        root.go_to_categories()
                     
             GridLayout:
                 size_hint_y: None

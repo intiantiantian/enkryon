@@ -29,7 +29,8 @@ def insert_account(name):
         cursor.execute('INSERT INTO accounts (name) VALUES (?)', (name,))
         connection.commit()
         return True
-    except sqlite3.IntegrityError:
+    except sqlite3.Error as e:
+        print(e)
         return False
     finally:
         connection.close()
@@ -41,7 +42,8 @@ def update_account(account_id, name):
         cursor.execute('UPDATE accounts SET name = ? WHERE id = ?', (name, account_id))
         connection.commit()
         return True
-    except sqlite3.IntegrityError:
+    except sqlite3.Error as e:
+        print(e)
         return False
     finally:
         connection.close()
@@ -49,6 +51,12 @@ def update_account(account_id, name):
 def delete_account(account_id):
     connection = connect_database()
     cursor = connection.cursor()
-    cursor.execute('DELETE FROM accounts WHERE id = ?', (account_id,))
-    connection.commit()
-    connection.close()
+    try:
+        cursor.execute('DELETE FROM accounts WHERE id = ?', (account_id,))
+        return True
+    except sqlite3.Error as e:
+        print(e)
+        return False
+    finally:
+        connection.commit()
+        connection.close()

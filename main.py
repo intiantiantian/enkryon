@@ -7,10 +7,12 @@ from screens.add_transaction import AddTransactionScreen
 from screens.history import HistoryScreen
 from screens.settings import SettingsScreen
 from screens.accounts import AccountsScreen
+from screens.categories import CategoriesScreen
 
 from database.transaction_repository import create_transactions_table
 from database.account_repository import create_accounts_table
-
+from database.category_group_repository import create_category_groups_table, insert_category_group
+from database.category_repository import create_categories_table, insert_category
 
 class MyFinance(MDApp):
     def build(self):
@@ -20,9 +22,12 @@ class MyFinance(MDApp):
         Builder.load_file('kv/history.kv')
         Builder.load_file('kv/settings.kv')
         Builder.load_file('kv/accounts.kv')
+        Builder.load_file('kv/categories.kv')
 
         create_transactions_table()
         create_accounts_table()
+        create_category_groups_table()
+        create_categories_table()
 
         screen_manager = ScreenManager()
 
@@ -31,9 +36,10 @@ class MyFinance(MDApp):
         screen_manager.add_widget(HistoryScreen(name='history'))
         screen_manager.add_widget(SettingsScreen(name='settings'))
         screen_manager.add_widget(AccountsScreen(name='accounts'))
+        screen_manager.add_widget(CategoriesScreen(name='categories'))
 
         self.theme_cls.theme_style = "Light"
-        self.theme_cls.primary_palette = "Green"
+        self.theme_cls.primary_palette = "Cyan"
 
         return screen_manager
     
