@@ -4,7 +4,7 @@ from kivymd.uix.button import MDFlatButton
 
 from widgets.transaction_card import TransactionCard
 
-from database.transaction_repository import get_all_transactions, update_transaction, delete_transaction
+from database.transaction_repository import get_transactions, update_transaction, delete_transaction
 
 class TransactionsScreen(Screen):
 
@@ -17,7 +17,7 @@ class TransactionsScreen(Screen):
     def load_transactions(self):
         self.ids.transactions_container.clear_widgets()
 
-        for transaction in get_all_transactions():
+        for transaction in get_transactions():
             card = TransactionCard()
             card.screen = self
             card.set_transaction(transaction)

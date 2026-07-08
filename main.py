@@ -11,8 +11,8 @@ from screens.transactions import TransactionsScreen
 
 from database.transaction_repository import create_transactions_table
 from database.account_repository import create_accounts_table
-from database.category_group_repository import create_category_groups_table, insert_category_group
-from database.category_repository import create_categories_table, insert_category
+from database.category_group_repository import create_category_groups_table
+from database.category_repository import create_categories_table
 
 class MyFinance(MDApp):
     def build(self):

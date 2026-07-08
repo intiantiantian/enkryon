@@ -7,15 +7,22 @@ from datetime import datetime
 from database.account_repository import get_all_accounts
 from database.category_group_repository import get_category_groups_by_type
 from database.category_repository import get_categories_by_group
-from database.transaction_repository import insert_transaction, get_transaction_by_id
+from database.transaction_repository import (
+    insert_transaction,
+    get_transaction_by_id,
+    update_transaction
+    )
 
 class AddTransactionScreen(Screen):
-    
-    def go_to_dashboard(self):
-        self.manager.current = 'dashboard'
-    
+
     amount = '0'
 
+    def go_to_dashboard(self):
+        self.reset_form()
+        self.manager.get_screen("dashboard").load_dashboard()
+
+        self.manager.current = 'dashboard'
+    
     def press_number(self, number):
         if self.amount == '0':
             self.amount = str(number)
@@ -52,9 +59,8 @@ class AddTransactionScreen(Screen):
     def on_pre_enter(self):
         if getattr(self, 'editing_transaction_id', None):
             return
-        
         self.reset_form()
-
+    
     def reset_form(self):
         self.ids.income_button.state = 'normal'
         self.ids.expense_button.state = 'normal'
@@ -75,7 +81,6 @@ class AddTransactionScreen(Screen):
 
         self.ids.notes_input.text = ''
         self.ids.notes_input.hint_text = 'Add notes (optional)'
-
 
     def open_account_menu(self):
         accounts = get_all_accounts()
@@ -240,10 +245,17 @@ class AddTransactionScreen(Screen):
         category = self.selected_category_id
         date = self.ids.date_button.text
         time = self.ids.time_button.text
-        date_time = f"{date} {time}"
+
+        dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
+        date_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+
         notes = self.ids.notes_input.text
 
-        insert_transaction(account, amount, category, date_time, notes)
+        if getattr(self, "editing_transaction_id", None):
+            update_transaction(account, amount, category, date_time, notes, self.editing_transaction_id)
+            self.editing_transaction_id = None
+        else:
+            insert_transaction(account, amount, category, date_time, notes)
         self.go_to_dashboard()
 
     def validate_form(self):
@@ -268,33 +280,47 @@ class AddTransactionScreen(Screen):
     
     def load_transaction(self, transaction_id):
         self.reset_form()
-        
+
         transaction = get_transaction_by_id(transaction_id)
+
+        (
+            transaction_id,
+            account_id,
+            amount,
+            category_id,
+            date_time,
+            notes,
+            account_name,
+            category_name,
+            group_id,
+            group_name,
+            transaction_type            
+        ) = transaction
 
         self.editing_transaction_id = transaction_id
     
-        if transaction[10] == 'income':
+        if transaction_type == 'income':
             self.ids.income_button.state = 'down'
         else:
             self.ids.expense_button.state = 'down'
 
         self.update_groups_button()
 
-        self.selected_account_id = transaction[1]
-        self.selected_group_id = transaction[8]
-        self.selected_category_id = transaction[3]
+        self.selected_account_id = account_id
+        self.selected_group_id = group_id
+        self.selected_category_id = category_id
 
-        self.ids.account_button.text = transaction[6]
-        self.ids.groups_button.text = transaction[9]
-        self.ids.categories_button.text = transaction[7]
+        self.ids.account_button.text = account_name
+        self.ids.groups_button.text = group_name
+        self.ids.categories_button.text = category_name
         self.ids.categories_button.disabled = False
 
-        self.amount = str(transaction[2])
+        self.amount = str(amount)
         self.update_amount_label()
 
-        self.ids.notes_input.text = transaction[5]
+        self.ids.notes_input.text = notes
 
-        dt = datetime.strptime(transaction[4], '%Y-%m-%d %I:%M %p')
+        dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
 
-        self.ids.date_button.text = dt.strftime('%Y-%m-%d')
-        self.ids.time_button.text = dt.strftime('%I:%M %p')
+        self.ids.date_button.text = dt.strftime("%Y-%m-%d")
+        self.ids.time_button.text = dt.strftime("%I:%M %p")

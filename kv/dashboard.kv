@@ -40,17 +40,21 @@
                             height: 50
                             cols: 2
                                 
-                            Button:
-                                text: 'Account'
+                            MDFillRoundFlatIconButton:
+                                id: account_button
+                                on_release:
+                                    root.open_account_menu()
 
                             MDIconButton:
-                                icon: 'eye'
+                                id: eye_button
+                                on_release:
+                                    root.toggle_balance()
 
                         MDLabel:
                             text: 'Current Balance'
                         
                         MDLabel:
-                            text: '₱0.00'
+                            id: balance_label
             
             GridLayout:
                 size_hint_y: None
@@ -103,10 +107,10 @@
                         text: 'Expenses:'
                 
                 MDFlatButton:
-                    text: '₱0.00'
+                    id: income_label
 
                 MDFlatButton:
-                    text: '₱0.00'
+                    id: expense_label
 
             MDCard:
                 size_hint_y: None
@@ -141,11 +145,7 @@
                 ScrollView:
 
                     BoxLayout:
+                        id: transactions_container
                         size_hint_y:None
                         height: self.minimum_height
                         orientation: 'vertical'
-
-                        MDFlatButton:
-                            size_hint_y: None
-                            height: 100
-                            text: 'Recent History'

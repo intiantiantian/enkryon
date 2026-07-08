@@ -1,5 +1,7 @@
 from kivymd.uix.card import MDCard
 
+from datetime import datetime
+
 class TransactionCard(MDCard):
 
     def __init__(self, **kwargs):
@@ -21,7 +23,9 @@ class TransactionCard(MDCard):
         else:
             self.ids.amount.text = f"- ₱{amount}"
 
-        self.ids.date_time.text = transaction[5]
+        dt = datetime.strptime(transaction[5], "%Y-%m-%d %H:%M:%S")
+        self.ids.date_time.text = dt.strftime("%Y-%m-%d %I:%M %p")
+
         self.ids.transaction_type.text = transaction[7].upper()
 
     def edit_transaction(self):
