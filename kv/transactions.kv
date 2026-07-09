@@ -2,8 +2,20 @@
     size_hint_y: None
     height: 100
 
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
+
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
+
     BoxLayout:
         orientation: 'horizontal'
+        padding: '10dp'
 
         GridLayout:
             cols: 3

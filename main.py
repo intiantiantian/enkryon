@@ -38,9 +38,6 @@ class MyFinance(MDApp):
         screen_manager.add_widget(CategoriesScreen(name='categories'))
         screen_manager.add_widget(TransactionsScreen(name='transactions'))
 
-        self.theme_cls.theme_style = "Light"
-        self.theme_cls.primary_palette = "Cyan"
-
         return screen_manager
     
 if __name__ == '__main__':

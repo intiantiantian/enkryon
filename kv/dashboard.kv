@@ -1,151 +1,323 @@
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
+<OutlinedCard@MDCard>:
+    radius: [10]
+
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
+
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
+
 <DashboardScreen>:
-    ScrollView:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
         BoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             size_hint_y: None
-            height: self.minimum_height
-            padding: 20
-            spacing: 15
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
 
-            MDCard:
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    
+            MDLabel:
+                text: 'Dashboard'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
+
+            MDIconButton:
+                icon: 'cog'
+                on_release: root.go_to_settings()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
+
+        Widget:
+            size_hint_y: None
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size    
+
+        ScrollView:
+
+            BoxLayout:
+                orientation: 'vertical'
                 size_hint_y: None
-                height: 50
+                height: self.minimum_height
+                spacing: '10dp'
+                padding: '10dp'
 
                 BoxLayout:
-                    orientation: 'horizontal'
-                        
-                    MDLabel:
-                        text: 'Header'
+                    size_hint_y: None
+                    spacing: '10dp'
+                    height: '200dp'
 
-                    MDIconButton:
-                        icon: 'cog'
-                        on_release:
-                            root.go_to_settings()
+                    OutlinedCard:
+                        radius: [12]
+                        elevation: 1
+                        padding: '10dp'
+                        size_hint_x: .35
+                        MDLabel:
+                            halign: 'center'
+                            text: 'Welcome!'
+                            font_size: '26sp'
 
-            MDCard:
-                size_hint_y: None
-                height: 200
-
-                BoxLayout:
-                    orientation: 'horizontal'
-
-                    MDLabel:
-                        text: 'Message'
-
-                    BoxLayout:
+                    OutlinedCard:
+                        radius: [12]
+                        elevation: 1
+                        padding: '5dp'
+                        spacing: '10dp'
+                        size_hint_x: .65
                         orientation: 'vertical'
-
-                        GridLayout:
+                        BoxLayout:
                             size_hint_y: None
-                            height: 50
-                            cols: 2
+                            height: '48dp'
                                 
-                            MDFillRoundFlatIconButton:
-                                id: account_button
+                            OutlinedCard:
+                                id: account_selector
+                                ripple_behavior: True
+                                md_bg_color: get_color_from_hex('#D5F4BE')
+                                radius: [10]
+                                size_hint_x: 1
                                 on_release:
                                     root.open_account_menu()
 
+                                MDLabel:
+                                    halign: 'center'
+                                    id: account_label
+                                    theme_text_color: 'Custom'
+                                    text_color: get_color_from_hex('#1B5E20')
+
                             MDIconButton:
                                 id: eye_button
+                                theme_icon_color: 'Custom'
+                                icon_color: get_color_from_hex('#1B5E20')
                                 on_release:
                                     root.toggle_balance()
 
-                        MDLabel:
-                            text: 'Current Balance'
-                        
-                        MDLabel:
-                            id: balance_label
-            
-            GridLayout:
-                size_hint_y: None
-                height: 50
-                cols: 3
-                    
-                MDFillRoundFlatIconButton:
-                    icon: 'plus'
-                    text: 'Add Transaction'
-                    on_release:
-                        root.go_to_add_transaction()
+                        MDCard:
+                            orientation: 'vertical'
+                            padding: '24dp'
+                            spacing: '4dp'
 
-                MDFillRoundFlatIconButton:
-                    icon: 'plus'
-                    text: 'Add/Edit Account'
-                    on_release:
-                        root.go_to_accounts()
-
-                MDFillRoundFlatIconButton:
-                    icon: 'plus'
-                    text: 'Add/Edit Category'
-                    on_release:
-                        root.go_to_categories()
-                    
-            GridLayout:
-                size_hint_y: None
-                height: 150
-
-                cols: 2
-                rows: 2
-
-                MDCard:
-                    size_hint_y: None
-                    height: 50
-
-                    orientation: 'vertical'
-                    padding: 10
-
-                    MDLabel:
-                        text: 'Income:'
-
-                MDCard:
-                    size_hint_y: None
-                    height: 50
-
-                    orientation: 'vertical'
-                    padding: 10
-
-                    MDLabel:
-                        text: 'Expenses:'
+                            MDLabel:
+                                text: 'Current Balance'
+                                font_size: '20sp'
+                                halign: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#9E9E9E')
+                            
+                            MDLabel:
+                                id: balance_label
+                                font_size: '42sp'
+                                halign: 'right'
                 
-                MDFlatButton:
-                    id: income_label
-
-                MDFlatButton:
-                    id: expense_label
-
-            MDCard:
-                size_hint_y: None
-                height: 500
-
-                orientation: 'vertical'
-                padding: 10
-
-                MDRaisedButton:
+                BoxLayout:
+                    orientation: 'horizontal'
                     size_hint_y: None
-                    height: 50
+                    height: '56dp'
+                    spacing: '5dp'
+                        
+                    OutlinedCard:
+                        ripple_behavior: True
+                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        radius: [12]
+                        size_hint_x: 1
+                        on_release:
+                            root.go_to_add_transaction()
 
-                    text: 'Transactions'
-                    on_release:
-                        root.go_to_transactions()
+                        MDLabel:
+                            text: '+ Add Transaction'
+                            halign: 'center'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex('#1B5E20')
 
-                GridLayout:
+                    OutlinedCard:
+                        ripple_behavior: True
+                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        radius: [12]
+                        size_hint_x: 1
+                        on_release:
+                            root.go_to_accounts()
+
+                        MDLabel:
+                            text: '+ Add/Edit Account'
+                            halign: 'center'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex('#1B5E20')
+
+                    OutlinedCard:
+                        ripple_behavior: True
+                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        radius: [12]
+                        size_hint_x: 1
+                        on_release:
+                            root.go_to_categories()
+
+                        MDLabel:
+                            text: '+ Add/Edit Category'
+                            halign: 'center'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex('#1B5E20')
+
+                BoxLayout:
+                    orientation: 'horizontal'
                     size_hint_y: None
-                    height: 50
+                    height: '144dp'
+                    spacing: '10dp'
 
-                    cols: 3
+                    OutlinedCard:
+                        # go to income overview
+                        on_release: 
+                            root.go_to_transactions()
+                        radius: [12]
+                        elevation: 1
+                        padding: '5dp'
+                        spacing: '10dp'
+                        ripple_behavior: True
+                        orientation: 'vertical'
+ 
+                        MDCard:
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            radius: [10]
+                            size_hint_y: .35
 
-                    MDFlatButton:
-                        text: 'All'
+                            MDLabel:
+                                halign: 'center'
+                                text: 'INCOME'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#1B5E20')
 
-                    MDFlatButton:
-                        text: 'Income'
+                        MDLabel:
+                            id: income_label
+                            font_size: '32sp'
+                            halign: 'center'
+                            size_hint_y: .65
 
-                    MDFlatButton:
-                        text: 'Expenses'
+                    OutlinedCard:
+                        # go to expense overview
+                        on_release: 
+                            root.go_to_transactions()
+                        radius: [12]
+                        elevation: 1
+                        padding: '5dp'
+                        spacing: '10dp'
+                        ripple_behavior: True
+                        orientation: 'vertical'
 
-                ScrollView:
+                        MDCard:
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            radius: [10]
+                            size_hint_y: .35
+
+                            MDLabel:
+                                halign: 'center'
+                                text: 'EXPENSE'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#1B5E20')
+
+                        MDLabel:
+                            id: expense_label
+                            font_size: '32sp'
+                            halign: 'center'
+                            size_hint_y: .65
+
+                MDCard:
+                    orientation: 'vertical'
+                    spacing: '10dp'
+                    padding: '10dp'
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDLabel:
+                        text: 'Recent Transactions'
+                        font_size: '26sp'
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex('#9E9E9E')
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: '44dp'
+
+                        orientation: 'horizontal'
+                        spacing: '10dp'
+
+                        OutlinedCard:
+                            on_release:
+                                root.go_to_transactions()
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            radius: [10]
+
+                            MDLabel:
+                                halign: 'center'
+                                text: 'All'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#1B5E20')
+
+                        OutlinedCard:
+                            # go income toggled transactions
+                            on_release:
+                                root.go_to_transactions()
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            radius: [10]
+
+                            MDLabel:
+                                halign: 'center'
+                                text: 'INCOME'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#1B5E20')
+
+                        OutlinedCard:
+                            # go expense toggled transactions
+                            on_release:
+                                root.go_to_transactions()
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            radius: [10]
+
+                            MDLabel:
+                                halign: 'center'
+                                text: 'EXPENSE'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex('#1B5E20')
 
                     BoxLayout:
                         id: transactions_container
-                        size_hint_y:None
-                        height: self.minimum_height
                         orientation: 'vertical'
+                        padding: '10dp'
+                        spacing: '5dp'
+                        size_hint_y: None
+                        height: self.minimum_height

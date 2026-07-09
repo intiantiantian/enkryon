@@ -36,7 +36,7 @@ class DashboardScreen(Screen):
 
     def on_pre_enter(self):
         if self.selected_account_id is None:
-            self.ids.account_button.text = "All Accounts"
+            self.ids.account_label.text = "All Accounts"
 
         self.load_dashboard()
 
@@ -124,14 +124,14 @@ class DashboardScreen(Screen):
             )
 
         self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_button,
+            caller=self.ids.account_selector,
             items=menu_items,
         )
 
         self.account_menu.open()
 
     def select_account(self, account_id, account_name):
-        self.ids.account_button.text = account_name
+        self.ids.account_label.text = account_name
         self.selected_account_id = account_id
         self.account_menu.dismiss()
         self.load_dashboard()
