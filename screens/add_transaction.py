@@ -1,6 +1,8 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.utils import get_color_from_hex
+from kivy.factory import Factory
 
 from datetime import datetime
 
@@ -15,7 +17,21 @@ from database.transaction_repository import (
 
 class AddTransactionScreen(Screen):
 
+    KEYS = [
+        "1", "2", "3", "backspace",
+        "4", "5", "6", "C",
+        "7", "8", "9", ".",
+        "left-arrow", "0", "00", "right-arrow",
+    ]
+
+    ICON_KEYS = {
+        "backspace": "backspace",
+        "left-arrow": "chevron-left",
+        "right-arrow": "chevron-right",
+    }
+
     amount = '0'
+    transaction_type = None
 
     def go_to_dashboard(self):
         self.reset_form()
@@ -23,58 +39,84 @@ class AddTransactionScreen(Screen):
 
         self.manager.current = 'dashboard'
     
-    def press_number(self, number):
-        if self.amount == '0':
-            self.amount = str(number)
-        else:
-            self.amount += str(number)
-        self.update_amount_label()
+    def press_key(self, key):
+        key = str(key)
 
-    def add_decimal(self):
-        if '.' not in self.amount:
-            self.amount += '.'
-        self.update_amount_label()
-    
-    def delete_last(self):
-        if len(self.amount) > 1:
-            self.amount = self.amount[:-1]
-        else:
-            self.amount = '0'
-        self.update_amount_label()
-    
-    def clear(self):
-        self.amount = '0'
+        if key == "backspace":
+            if len(self.amount) > 1:
+                self.amount = self.amount[:-1]
+            else:
+                self.amount = "0"
+
+        elif key == "C":
+            self.amount = "0"
+
+        elif key == ".":
+            if "." not in self.amount:
+                self.amount += "."
+
+        else:  # Numbers ("0", "00", "1"...)
+            if self.amount == "0":
+                if key in ("0", "00"):
+                    return
+                self.amount = key
+            else:
+                self.amount += key
+
         self.update_amount_label()
 
     def update_amount_label(self):
         self.ids.amount_label.text = f'₱ {self.amount}'
-
-    def get_transaction_type(self):
-        if self.ids.income_button.state == 'down':
-            return 'income'
-        elif self.ids.expense_button.state == 'down':
-            return 'expense'
-        return None
     
     def on_pre_enter(self):
+        self.build_keypad()
+
+        self.ids.income_button.md_bg_color = ('#FFFFFF')
+        self.ids.expense_button.md_bg_color = ('#FFFFFF')
+
         if getattr(self, 'editing_transaction_id', None):
             return
         self.reset_form()
-    
+
+    def build_keypad(self):
+        self.ids.keypad_container.clear_widgets()
+
+        for key in self.KEYS:
+            button = Factory.KeypadButton()
+
+            if key in self.ICON_KEYS:
+                button.ids.label.opacity = 0
+                button.ids.icon.opacity = 1
+                button.ids.icon.icon = self.ICON_KEYS[key]
+            else:
+                button.ids.icon.opacity = 0
+                button.ids.label.opacity = 1
+                button.ids.label.text = key
+
+            button.bind(
+                on_release=lambda _, value=key: self.press_key(value)
+            )
+
+            self.ids.keypad_container.add_widget(button)
+
+    def clear(self):
+        self.amount = '0'
+        self.update_amount_label()
+
     def reset_form(self):
         self.ids.income_button.state = 'normal'
         self.ids.expense_button.state = 'normal'
     
         self.selected_account_id = None
-        self.ids.account_button.text = 'Select Account'
+        self.ids.account_label.text = 'Select Account'
 
         self.selected_group_id = None
-        self.ids.groups_button.text = 'No Transaction Type Selected'
-        self.ids.groups_button.disabled = True
+        self.ids.group_label.text = 'No Transaction Type Selected'
+        self.ids.group_selector.disabled = True
 
         self.selected_category_id = None
-        self.ids.categories_button.text = 'No Category Group Selected'
-        self.ids.categories_button.disabled = True
+        self.ids.category_label.text = 'No Category Group Selected'
+        self.ids.category_selector.disabled = True
 
         self.set_current_date_time()
         self.clear()
@@ -106,14 +148,14 @@ class AddTransactionScreen(Screen):
         )
 
         self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_button,
+            caller=self.ids.account_selector,
             items=menu_items,
         )
 
         self.account_menu.open()
 
     def select_account(self, account_id, account_name):
-        self.ids.account_button.text = account_name
+        self.ids.account_label.text = account_name
         self.selected_account_id = account_id
         self.account_menu.dismiss()
 
@@ -121,25 +163,37 @@ class AddTransactionScreen(Screen):
         self.manager.current = 'accounts'
         self.account_menu.dismiss()
 
-    def update_groups_button(self):
+    def update_groups_button(self, transaction_type):
+        self.transaction_type = transaction_type
         self.selected_group_id = None
         self.selected_category_id = None
 
-        self.ids.groups_button.disabled = False
-        self.ids.groups_button.text = 'Select Category Group'
+        active = get_color_from_hex('#D5F4BE')
+        inactive = get_color_from_hex("#FFFFFF")
 
-        self.ids.categories_button.disabled = True
-        self.ids.categories_button.text = 'No Category Group Selected'
+        self.ids.income_button.md_bg_color = (
+            active if self.transaction_type is 'income' else inactive
+        )
+
+        self.ids.expense_button.md_bg_color = (
+            active if self.transaction_type == 'expense' else inactive
+        )
+
+        self.ids.group_selector.disabled = False
+        self.ids.group_label.text = 'Select Category Group'
+
+        self.ids.category_selector.disabled = True
+        self.ids.category_label.text = 'No Category Group Selected'
 
     def update_categories_button(self):
-        self.ids.categories_button.disabled = False
-        self.ids.categories_button.text = 'Select Category'
+        self.ids.category_selector.disabled = False
+        self.ids.category_label.text = 'Select Category'
         self.selected_category_id = None
 
     def open_groups_menu(self):
-        groups = get_category_groups_by_type(self.get_transaction_type())
+        groups = get_category_groups_by_type(self.transaction_type)
         if not groups:
-            self.ids.groups_button.text = 'No Category Groups Created'
+            self.ids.group_label.text = 'No Category Groups Created'
             return
 
         menu_items = []
@@ -160,7 +214,7 @@ class AddTransactionScreen(Screen):
         )
 
         self.groups_menu = MDDropdownMenu(
-            caller=self.ids.groups_button,
+            caller=self.ids.group_selector,
             items=menu_items,
         )
 
@@ -169,14 +223,14 @@ class AddTransactionScreen(Screen):
     def select_group(self, group_id, group_name):
         self.update_categories_button()
 
-        self.ids.groups_button.text = group_name
+        self.ids.group_label.text = group_name
         self.selected_group_id = group_id
         self.groups_menu.dismiss()
 
     def open_categories_menu(self):
         categories = get_categories_by_group(self.selected_group_id)
         if not categories:
-            self.ids.categories_button.text = 'No Category Created'
+            self.ids.category_label.text = 'No Category Created'
             return
         
         menu_items = []
@@ -197,14 +251,14 @@ class AddTransactionScreen(Screen):
         )
 
         self.categories_menu = MDDropdownMenu(
-            caller=self.ids.categories_button,
+            caller=self.ids.category_selector,
             items=menu_items,
         )
 
         self.categories_menu.open()
 
     def select_category(self, category_id, category_name):
-        self.ids.categories_button.text = category_name
+        self.ids.category_label.text = category_name
         self.selected_category_id = category_id
         self.categories_menu.dismiss()
 
@@ -217,8 +271,8 @@ class AddTransactionScreen(Screen):
 
     def set_current_date_time(self):
         now = datetime.now()
-        self.ids.date_button.text = now.strftime('%Y-%m-%d')
-        self.ids.time_button.text = now.strftime('%I:%M %p')
+        self.ids.date_label.text = now.strftime('%Y-%m-%d')
+        self.ids.time_label.text = now.strftime('%I:%M %p')
 
     def open_date_picker(self):
         date_picker = MDDatePicker()
@@ -231,10 +285,10 @@ class AddTransactionScreen(Screen):
         time_picker.bind(on_save=self.set_time)
 
     def set_date(self, instance, value, date_range):
-        self.ids.date_button.text = value.strftime('%Y-%m-%d')
+        self.ids.date_label.text = value.strftime('%Y-%m-%d')
 
     def set_time(self, instance, value):
-        self.ids.time_button.text = value.strftime('%I:%M %p')
+        self.ids.time_label.text = value.strftime('%I:%M %p')
 
     def save_transaction(self):
         if not self.validate_form():
@@ -243,8 +297,8 @@ class AddTransactionScreen(Screen):
         account = self.selected_account_id
         amount = float(self.amount)
         category = self.selected_category_id
-        date = self.ids.date_button.text
-        time = self.ids.time_button.text
+        date = self.ids.date_label.text
+        time = self.ids.time_label.text
 
         dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
         date_time = dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -268,7 +322,7 @@ class AddTransactionScreen(Screen):
             print("Amount cannot be less than or equal to zero.")
             return False
 
-        if self.get_transaction_type() is None:
+        if self.transaction_type is None:
             print("Please select a transaction type.")
             return False
         
@@ -304,16 +358,16 @@ class AddTransactionScreen(Screen):
         else:
             self.ids.expense_button.state = 'down'
 
-        self.update_groups_button()
+        self.update_groups_button(self.transaction_type)
 
         self.selected_account_id = account_id
         self.selected_group_id = group_id
         self.selected_category_id = category_id
 
         self.ids.account_button.text = account_name
-        self.ids.groups_button.text = group_name
-        self.ids.categories_button.text = category_name
-        self.ids.categories_button.disabled = False
+        self.ids.group_label.text = group_name
+        self.ids.category_label.text = category_name
+        self.ids.category_selector.disabled = False
 
         self.amount = str(amount)
         self.update_amount_label()

@@ -1,58 +1,152 @@
 <AccountCard>
     size_hint_y: None
-    height: 50
+    height: self.minimum_height
 
-    GridLayout:
-        cols: 3
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
 
-        MDLabel:
-            id: account_name
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
 
-        MDIconButton:
-            icon: 'pencil'
-            on_release:
-                root.edit_account()
+    BoxLayout:
+        id: group_content
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height 
 
-        MDIconButton:
-            icon: 'delete'
-            on_release:
-                root.delete_account()
+        BoxLayout:
+            size_hint_y: None
+            height: '56dp'
+            padding: '10dp', 0
+            spacing: '10dp'
+
+            MDLabel:
+                id: account_name
+                text_size: self.size
+                valign: 'middle'
+
+            MDIconButton:
+                icon: "pencil"
+                on_release:
+                    root.edit_account()
+
+            MDIconButton:
+                icon: "delete"
+                on_release:
+                    root.delete_account()
 
 <AccountsScreen>
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
 
-        MDCard:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'horizontal'
             size_hint_y: None
-            height: 50
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
 
-            BoxLayout:
-                orientation: 'horizontal'
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
 
-                MDIconButton:
-                    icon: 'arrow-left'
-                    on_release:
-                        root.go_to_dashboard()
+            MDLabel:
+                text: 'Accounts'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
 
-                MDLabel:
-                    text: 'Accounts'
-                    halign: 'center'
+        Widget:
+            size_hint_y: None
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size        
 
         ScrollView:
+            size_hint_y: 1
+            
             BoxLayout:
                 id: accounts_container
                 size_hint_y: None
                 height: self.minimum_height
                 orientation: 'vertical'
+                padding: '10dp'
+                spacing: '10dp'
 
-        MDTextField:
-            id: account_name_input
-            hint_text: 'Account Name'
-
-        MDFillRoundFlatButton:
+        Widget:
             size_hint_y: None
-            height: 60
-            text: '+ Add Account'
-            on_release:
-                root.add_account()
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size   
+
+        BoxLayout:
+            padding: '10dp'
+            size_hint_y: None
+            height: self.minimum_height
+
+            OutlinedCard:
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp'
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: '10dp'
+
+                    MDTextField:
+                        id: group_name_input
+                        hint_text: 'Group Name'
+                        size_hint_x: 0.78
+
+                    OutlinedCard:
+                        md_bg_color: get_color_from_hex('#388E3C')
+                        radius: '24dp'
+                        padding: '10dp'
+                        size_hint_x: 0.22
+                        size_hint_y: None
+                        height: '42dp'
+                        pos_hint: {'center_y': .5}
+                        on_release:
+                            root.add_group()
+
+                        MDLabel:
+                            text: '+ Add New Account'
+                            theme_text_color: 'Custom'
+                            text_color: 1, 1, 1, 1                    

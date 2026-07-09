@@ -93,6 +93,18 @@
                 theme_text_color: 'Custom'
                 text_color: get_color_from_hex('#1B5E20')
 
+        Widget:
+            size_hint_y: None
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size        
+
         BoxLayout:
             size_hint_y: None
             height: '56dp'

@@ -1,191 +1,228 @@
 <AddTransactionScreen>:
-    ScrollView:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
         BoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             size_hint_y: None
-            height: self.minimum_height
-            padding: 20
-            spacing: 15
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
 
-            MDCard:
-                size_hint_y: None
-                height: 50
-
-                BoxLayout:
-                    orientation: 'horizontal'
-
-                    MDLabel:
-                        text: 'Header'
-
-                    MDIconButton:
-                        icon: 'close'
-                        on_release:
-                            root.go_to_dashboard()
-
-                    MDIconButton:
-                        icon: 'content-save'
-                        on_release:
-                            root.save_transaction()
-
-            MDCard:
-                size_hint_y: None
-                height: 50
-
-                ToggleButton:
-                    id: income_button
-                    text: 'INCOME'
-                    group: 'transaction_type'
-                    on_release:
-                        root.update_groups_button()
-
-                ToggleButton:
-                    id: expense_button
-                    text: 'EXPENSE'
-                    group: 'transaction_type'
-                    on_release:
-                        root.update_groups_button()
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
                     
-            MDCard:
-                size_hint_y: None
-                height: 350
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
+
+            MDLabel:
+                text: 'Add Transaction'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
+
+            MDIconButton:
+                icon: 'content-save'
+                on_release: root.save_transaction()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
+
+        Widget:
+            size_hint_y: None
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size        
+
+        ScrollView:
+
+            BoxLayout:
                 orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: 20
+                spacing: 15
 
                 BoxLayout:
-
-                    MDFillRoundFlatButton:
-                        id: account_button
-                        on_release:
-                            root.open_account_menu()
-
-                    MDLabel:
-                        size_hint_y: None
-                        height: 150
-                        id: amount_label
-                        text: '₱ 0'
-
-                GridLayout:
-                    cols: 4
-                    rows: 4
                     size_hint_y: None
-                    height: 200
+                    height: '56dp'
+                    padding: '10dp'
 
-                    MDRaisedButton:
-                        text: '7'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('7')
+                    orientation: 'horizontal'
+                    spacing: '10dp'
 
-                    MDRaisedButton:
-                        text: '8'
-                        size_hint: (1, 1)
+                    OutlinedCard:
+                        id: income_button
                         on_release:
-                            root.press_number('8')
-                
-                    MDRaisedButton:
-                        text: '9'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('9')
+                            root.update_groups_button('income')
+                        ripple_behavior: True
+                        md_bg_color: get_color_from_hex('#D5F4BE')
+                        radius: [10]
 
-                    MDRaisedButton:
-                        text: 'delete'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.delete_last()
+                        MDLabel:
+                            halign: 'center'
+                            text: 'INCOME'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex('#1B5E20')
 
-                    MDRaisedButton:
-                        text: '4'
-                        size_hint: (1, 1)
+                    OutlinedCard:
+                        id: expense_button
                         on_release:
-                            root.press_number('4')
+                            root.update_groups_button('expense')
+                        ripple_behavior: True
+                        md_bg_color: get_color_from_hex('#D5F4BE')
+                        radius: [10]
 
-                    MDRaisedButton:
-                        text: '5'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('5')
-                
-                    MDRaisedButton:
-                        text: '6'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('6')
-
-                    MDRaisedButton:
-                        text: 'clear'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.clear()
-
-                    MDRaisedButton:
-                        text: '1'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('1')
-
-                    MDRaisedButton:
-                        text: '2'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('2')
-                
-                    MDRaisedButton:
-                        text: '3'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('3')
-
-                    MDRaisedButton:
-                        text: '.'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.add_decimal()
-
-                    MDLabel:
+                        MDLabel:
+                            halign: 'center'
+                            text: 'EXPENSE'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex('#1B5E20')
                         
-                    MDRaisedButton:
-                        text: '0'
-                        size_hint: (1, 1)
-                        on_release:
-                            root.press_number('0')
+                OutlinedCard:
+                    size_hint_y: None
+                    height: "180dp"
+                    orientation: "horizontal"
+                    padding: "10dp"
 
-            MDCard:
-                orientation: 'vertical'
-                size_hint_y: None
-                height: 100
+                    AnchorLayout:
+                        anchor_x: "center"
+                        anchor_y: "top"
+                        size_hint_x: 0.4
+
+                        OutlinedCard:
+                            id: account_selector
+                            size_hint: 1, None
+                            height: "64dp"
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            on_release: root.open_account_menu()
+
+                            MDLabel:
+                                id: account_label
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                text_color: get_color_from_hex('#1B5E20')
+
+                    MDLabel:
+                        id: amount_label
+                        halign: "right"
+                        valign: "middle"
+                        text_size: self.size
+                        font_size: "32sp"
+                        text: "₱ 0"
 
                 GridLayout:
-                    cols: 2
-                    rows: 2
+                    id: keypad_container
+                    cols: 4
+                    spacing: "8dp"
                     size_hint_y: None
-                    height: 100
+                    height: self.minimum_height
 
-                    MDFillRoundFlatButton:
-                        id: groups_button
-                        on_release:
-                            root.open_groups_menu()
+                OutlinedCard:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: '20dp'
+                    spacing: '20dp'
 
-                    MDFillRoundFlatButton:
-                        id: categories_button
-                        on_release:
-                            root.open_categories_menu()
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: '64dp'
+                        spacing: '20dp'
 
-                    MDFillRoundFlatIconButton:
-                        id: date_button
-                        icon: 'calendar'
-                        on_release:
-                            root.open_date_picker()
+                        OutlinedCard:
+                            id: group_selector
+                            size_hint: 1, None
+                            height: "64dp"
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            on_release: root.open_groups_menu()
 
-                    MDFillRoundFlatIconButton:
-                        id: time_button
-                        icon: 'clock-outline'
-                        on_release:
-                            root.open_time_picker()
+                            MDLabel:
+                                id: group_label
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                text_color: get_color_from_hex('#1B5E20')
 
-            MDCard:
-                size_hint_y: None
-                height: 200
+                        OutlinedCard:
+                            id: category_selector
+                            size_hint: 1, None
+                            height: "64dp"
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            on_release: root.open_categories_menu()
 
-                MDTextField:
-                    id: notes_input
-                    multiline: True
+                            MDLabel:
+                                id: category_label
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                text_color: get_color_from_hex('#1B5E20')
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: '64dp'
+                        spacing: '20dp'
+
+                        OutlinedCard:
+                            id: date_selector
+                            size_hint: 1, None
+                            height: "64dp"
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            on_release: root.open_date_picker()
+
+                            MDLabel:
+                                id: date_label
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                text_color: get_color_from_hex('#1B5E20')
+
+                        OutlinedCard:
+                            id: time_selector
+                            size_hint: 1, None
+                            height: "64dp"
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            on_release: root.open_time_picker()
+
+                            MDLabel:
+                                id: time_label
+                                halign: "center"
+                                theme_text_color: "Custom"
+                                text_color: get_color_from_hex('#1B5E20')
+
+                OutlinedCard:
+                    size_hint_y: None
+                    height: notes_input.height + dp(40)
+                    padding: "20dp"
+
+                    MDTextField:
+                        id: notes_input
+                        multiline: True
+                        size_hint_y: None
+                        height: max(dp(56), self.minimum_height)

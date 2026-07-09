@@ -17,6 +17,7 @@ from database.category_repository import create_categories_table
 class MyFinance(MDApp):
     def build(self):
 
+        Builder.load_file('kv/widgets.kv')
         Builder.load_file('kv/dashboard.kv')
         Builder.load_file('kv/add_transaction.kv')
         Builder.load_file('kv/settings.kv')

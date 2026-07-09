@@ -2,6 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton
+from kivy.utils import get_color_from_hex
 
 from widgets.category_group_card import CategoryGroupCard
 
@@ -20,8 +21,8 @@ class CategoriesScreen(Screen):
         self.delete_category_dialog = None
 
         self.current_transaction_type = 'income'
-        self.ids.income_button.state = 'down'
-        self.ids.expense_button.state = 'normal'
+        self.ids.income_button.md_bg_color = get_color_from_hex("#D5F4BE")
+        self.ids.expense_button.md_bg_color = get_color_from_hex("#FFFFFF")
 
         self.expanded_groups = set()
 
@@ -41,6 +42,18 @@ class CategoriesScreen(Screen):
 
     def set_transaction_type(self, transaction_type):
         self.current_transaction_type = transaction_type
+
+        active = get_color_from_hex('#D5F4BE')
+        inactive = get_color_from_hex("#FFFFFF")
+
+        self.ids.income_button.md_bg_color = (
+            active if transaction_type is 'income' else inactive
+        )
+
+        self.ids.expense_button.md_bg_color = (
+            active if transaction_type == 'expense' else inactive
+        )
+
         self.load_groups()
 
     def add_group(self):

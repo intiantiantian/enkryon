@@ -1,6 +1,5 @@
 from kivymd.uix.card import MDCard
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFillRoundFlatButton
+from kivy.factory import Factory
 
 from database.category_repository import get_categories_by_group
 
@@ -40,13 +39,10 @@ class CategoryGroupCard(MDCard):
             card.set_category(category)
             self.ids.categories_container.add_widget(card)
 
-        self.category_name_input = MDTextField(hint_text='Category Name')
-        self.add_category_button = MDFillRoundFlatButton(text='+ Add New Category')
-        self.add_category_button.bind(on_release=lambda x: self.add_category())
+        row = Factory.CategoryInputRow()
+        row.ids.add_button.bind(on_release=lambda *_: self.add_category(row.ids.category_input.text))
 
-        self.ids.categories_container.add_widget(self.category_name_input)
-        self.ids.categories_container.add_widget(self.add_category_button)
-
+        self.ids.categories_container.add_widget(row)
         self.ids.toggle_button.icon = 'chevron-up'
         self.screen.expanded_groups.add(self.group_id)
         self.expanded = True

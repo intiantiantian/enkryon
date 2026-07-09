@@ -2,6 +2,17 @@
     size_hint_y: None
     height: category_content.height
 
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
+
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
+
     BoxLayout:
         id: category_content
         orientation: 'vertical'
@@ -31,20 +42,35 @@
 
 <CategoryGroupCard>
     size_hint_y: None
-    height: group_content.height
+    height: self.minimum_height
+
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
+
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
 
     BoxLayout:
         id: group_content
         orientation: 'vertical'
         size_hint_y: None
-        height: self.minimum_height
+        height: self.minimum_height 
 
         BoxLayout:
             size_hint_y: None
-            height: self.minimum_height
+            height: '56dp'
+            padding: '10dp', 0
+            spacing: '10dp'
 
             MDLabel:
                 id: group_name
+                text_size: self.size
+                valign: 'middle'
 
             MDIconButton:
                 icon: "pencil"
@@ -67,45 +93,95 @@
             orientation: 'vertical'
             size_hint_y: None
             height: self.minimum_height
+            padding: '10dp'
+            spacing: '10dp'
             
 <CategoriesScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        spacing: 15
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
 
-        MDCard:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'horizontal'
             size_hint_y: None
-            height: 50
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
 
-            BoxLayout:
-                orientation: 'horizontal'
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
 
-                MDLabel:
-                    text: 'Header'
+            MDLabel:
+                text: 'Categories'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
 
-                MDIconButton:
-                    icon: 'close'
-                    on_release:
-                        root.go_to_dashboard()
-
-        MDCard:
+        Widget:
             size_hint_y: None
-            height: 50
+            height: "1dp"
 
-            ToggleButton:
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size        
+
+        BoxLayout:
+            size_hint_y: None
+            height: '56dp'
+            padding: '10dp'
+
+            orientation: 'horizontal'
+            spacing: '10dp'
+
+            OutlinedCard:
                 id: income_button
-                text: 'INCOME'
-                group: 'transaction_type'
                 on_release:
                     root.set_transaction_type('income')
+                ripple_behavior: True
+                md_bg_color: get_color_from_hex('#D5F4BE')
+                radius: [10]
 
-            ToggleButton:
+                MDLabel:
+                    halign: 'center'
+                    text: 'INCOME'
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#1B5E20')
+
+            OutlinedCard:
                 id: expense_button
-                text: 'EXPENSE'
-                group: 'transaction_type'
                 on_release:
                     root.set_transaction_type('expense')
+                ripple_behavior: True
+                md_bg_color: get_color_from_hex('#D5F4BE')
+                radius: [10]
+
+                MDLabel:
+                    halign: 'center'
+                    text: 'EXPENSE'
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#1B5E20')
             
         ScrollView:
             size_hint_y: 1
@@ -115,14 +191,54 @@
                 size_hint_y: None
                 height: self.minimum_height
                 orientation: 'vertical'
+                padding: '10dp'
+                spacing: '10dp'
 
-        MDTextField:
-            id: group_name_input
-            hint_text: 'Group Name'
-
-        MDFillRoundFlatButton:
+        Widget:
             size_hint_y: None
-            height: 60
-            text: '+ Add New Group'
-            on_release:
-                root.add_group()
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size    
+                        
+        BoxLayout:
+            padding: '10dp'
+            size_hint_y: None
+            height: self.minimum_height
+
+            OutlinedCard:
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp'
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: '10dp'
+
+                    MDTextField:
+                        id: group_name_input
+                        hint_text: 'Group Name'
+                        size_hint_x: 0.8
+
+                    OutlinedCard:
+                        md_bg_color: get_color_from_hex('#388E3C')
+                        radius: '24dp'
+                        padding: '10dp'
+                        size_hint_x: 0.2
+                        size_hint_y: None
+                        height: '42dp'
+                        pos_hint: {'center_y': .5}
+                        on_release:
+                            root.add_group()
+
+                        MDLabel:
+                            text: '+ Add New Group'
+                            theme_text_color: 'Custom'
+                            text_color: 1, 1, 1, 1                    
