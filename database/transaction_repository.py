@@ -14,23 +14,23 @@ def create_transactions_table():
             notes TEXT,
                    
             FOREIGN KEY (account_id) REFERENCES accounts(id),
-            FOREIGN KEY (category_id) REFERENCES categories(id)
+            FOREIGN KEY (category_id) REFERENCES categories(category_id)
         )
     ''')
     connection.commit()
     connection.close()
 
-def insert_transaction(account, amount, category, date_time, notes):
+def insert_transaction(account_id, amount, category_id, date_time, notes):
     connection = connect_database()
     cursor = connection.cursor()
     cursor.execute('''
         INSERT INTO transactions (account_id, amount, category_id, date_time, notes)
         VALUES (?, ?, ?, ?, ?)
-    ''', (account, amount, category, date_time, notes))
+    ''', (account_id, amount, category_id, date_time, notes))
     connection.commit()
     connection.close()
 
-def get_transactions(limit=None, account_id=None):
+def get_transactions(limit=None, account_id=None, transaction_type=None):
     connection = connect_database()
     cursor = connection.cursor()
     query = '''SELECT transactions.id,
@@ -47,11 +47,19 @@ def get_transactions(limit=None, account_id=None):
                 INNER JOIN category_groups ON categories.group_id = category_groups.group_id
             '''
     
+    conditions = []
     params = []
 
     if account_id is not None:
-        query += 'WHERE transactions.account_id = ?'
+        conditions.append('transactions.account_id = ?')
         params.append(account_id)
+
+    if transaction_type is not None:
+        conditions.append('category_groups.transaction_type = ?')
+        params.append(transaction_type)
+
+    if conditions:
+        query += ' WHERE ' + " AND ".join(conditions)
 
     query += ' ORDER BY transactions.date_time DESC, transactions.id DESC'
     
@@ -88,14 +96,14 @@ def get_transaction_by_id(transaction_id):
     connection.close()
     return transaction
 
-def update_transaction(account, amount, category, date_time, notes, transaction_id):
+def update_transaction(account_id, amount, category_id, date_time, notes, transaction_id):
     connection = connect_database()
     cursor = connection.cursor()
     try:
         cursor.execute('''UPDATE transactions 
                         SET account_id = ?, amount = ?,
                        category_id = ?, date_time = ?, notes = ?
-                        WHERE id = ?''', (account, amount, category, date_time, notes, transaction_id))
+                        WHERE id = ?''', (account_id, amount, category_id, date_time, notes, transaction_id))
         connection.commit()
         return True
     except sqlite3.Error as e:
@@ -117,7 +125,7 @@ def delete_transaction(transaction_id):
     finally:
         connection.close()
 
-def get_total_income(account_id=None):
+def get_total_amount(transaction_type, account_id=None):
     connection = connect_database()
     cursor = connection.cursor()
     try:
@@ -125,36 +133,10 @@ def get_total_income(account_id=None):
                        FROM transactions
                        INNER JOIN categories ON transactions.category_id = categories.category_id
                        INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-                       WHERE transaction_type = 'income'
+                       WHERE transaction_type = ?
                 '''
         
-        params = []
-
-        if account_id is not None:
-            query += ' AND transactions.account_id = ?'
-            params.append(account_id)
-
-        cursor.execute(query, tuple(params))
-        amount = cursor.fetchone()[0]
-        return float(amount or 0)
-    except sqlite3.Error as e:
-        print(e)
-        return False
-    finally:
-        connection.close()
-
-def get_total_expense(account_id=None):
-    connection = connect_database()
-    cursor = connection.cursor()
-    try:
-        query = '''SELECT SUM(amount)
-                       FROM transactions
-                       INNER JOIN categories ON transactions.category_id = categories.category_id
-                       INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-                       WHERE transaction_type = 'expense'
-                '''
-        
-        params = []
+        params = [transaction_type]
 
         if account_id is not None:
             query += ' AND transactions.account_id = ?'
@@ -170,4 +152,4 @@ def get_total_expense(account_id=None):
         connection.close()
 
 def get_current_balance(account_id=None):
-    return get_total_income(account_id) - get_total_expense(account_id)
+    return get_total_amount('income', account_id) - get_total_amount('expense', account_id)

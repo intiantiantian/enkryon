@@ -57,23 +57,91 @@
 <TransactionsScreen>
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
 
-        MDCard:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'horizontal'
             size_hint_y: None
-            height: 50
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
 
-            BoxLayout:
-                orientation: 'horizontal'
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
 
-                MDIconButton:
-                    icon: 'arrow-left'
-                    on_release:
-                        root.go_to_dashboard()
+            MDLabel:
+                text: 'Transactions'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
+
+        BoxLayout:
+            size_hint_y: None
+            height: '56dp'
+            padding: '10dp'
+
+            orientation: 'horizontal'
+            spacing: '10dp'
+
+            OutlinedCard:
+                id: all_filter
+                on_release:
+                    root.set_transaction_filter(None)
+                ripple_behavior: True
+                md_bg_color: get_color_from_hex('#D5F4BE')
+                radius: [10]
 
                 MDLabel:
-                    text: 'Transactions'
                     halign: 'center'
+                    text: 'All'
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#1B5E20')
+
+            OutlinedCard:
+                id: income_filter
+                on_release:
+                    root.set_transaction_filter('income')
+                ripple_behavior: True
+                md_bg_color: get_color_from_hex('#D5F4BE')
+                radius: [10]
+
+                MDLabel:
+                    halign: 'center'
+                    text: 'INCOME'
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#1B5E20')
+
+            OutlinedCard:
+                id: expense_filter
+                on_release:
+                    root.set_transaction_filter('expense')
+                ripple_behavior: True
+                md_bg_color: get_color_from_hex('#D5F4BE')
+                radius: [10]
+
+                MDLabel:
+                    halign: 'center'
+                    text: 'EXPENSE'
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#1B5E20')
 
         ScrollView:
             BoxLayout:
@@ -81,3 +149,12 @@
                 orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
+                spacing: '5dp'
+                padding: '5dp'
+                canvas.before:
+                    Color:
+                        rgba: get_color_from_hex('#F8F7F4')
+
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size

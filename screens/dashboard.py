@@ -2,13 +2,13 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.utils import get_color_from_hex
 
 from database.account_repository import get_all_accounts
 from database.transaction_repository import (
     delete_transaction,
     get_transactions,
-    get_total_income,
-    get_total_expense,
+    get_total_amount,
     get_current_balance,
 )
 
@@ -18,6 +18,7 @@ class DashboardScreen(Screen):
 
     selected_account_id = None
     balance_visible = True
+    transaction_filter = None
 
     def go_to_add_transaction(self):
         self.manager.current = 'add_transaction'
@@ -35,6 +36,11 @@ class DashboardScreen(Screen):
         self.manager.current = 'transactions'
 
     def on_pre_enter(self):
+        self.ids.all_filter.md_bg_color = get_color_from_hex('#D5F4BE')
+        self.ids.income_filter.md_bg_color = get_color_from_hex("#FFFFFF")
+        self.ids.expense_filter.md_bg_color = get_color_from_hex("#FFFFFF")
+        self.transaction_filter = None
+
         if self.selected_account_id is None:
             self.ids.account_label.text = "All Accounts"
 
@@ -42,8 +48,8 @@ class DashboardScreen(Screen):
 
     def load_dashboard(self):
         balance = get_current_balance(self.selected_account_id)
-        income = get_total_income(self.selected_account_id)
-        expense = get_total_expense(self.selected_account_id)
+        income = get_total_amount('income', self.selected_account_id)
+        expense = get_total_amount('expense', self.selected_account_id)
 
         if self.balance_visible:
             self.ids.balance_label.text = f"₱ {balance:,.2f}"
@@ -61,13 +67,34 @@ class DashboardScreen(Screen):
     def load_recent_transactions(self):
         self.ids.transactions_container.clear_widgets()
 
-        transactions = get_transactions(limit=5, account_id=self.selected_account_id)
+        transactions = get_transactions(limit=5, account_id=self.selected_account_id,
+                                        transaction_type=self.transaction_filter)
 
         for transaction in transactions:
             card = TransactionCard()
             card.screen = self
             card.set_transaction(transaction)
             self.ids.transactions_container.add_widget(card)
+
+    def set_transaction_filter(self, transaction_type):
+        self.transaction_filter = transaction_type
+
+        active = get_color_from_hex('#D5F4BE')
+        inactive = get_color_from_hex("#FFFFFF")
+
+        self.ids.all_filter.md_bg_color = (
+            active if transaction_type is None else inactive
+        )
+
+        self.ids.income_filter.md_bg_color = (
+            active if transaction_type == 'income' else inactive
+        )
+
+        self.ids.expense_filter.md_bg_color = (
+            active if transaction_type == 'expense' else inactive
+        )
+        
+        self.load_recent_transactions()
 
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen('add_transaction')
