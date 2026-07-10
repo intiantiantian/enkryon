@@ -5,6 +5,8 @@ from kivymd.uix.button import MDFlatButton
 
 from widgets.account_card import AccountCard
 
+from utils.snackbar import show_snackbar
+
 from database.account_repository import get_all_accounts, insert_account, update_account, delete_account
 
 class AccountsScreen(Screen):
@@ -31,18 +33,18 @@ class AccountsScreen(Screen):
     def add_account(self):
         account_name = self.ids.account_name_input.text.strip()
         if not account_name:
-            print("Account name cannot be empty.")
+            show_snackbar(f"Account name cannot be empty.")
             return
         
         success = insert_account(account_name)
 
         if success:
-            print(f"Account '{account_name}' added successfully.")
+            show_snackbar(f"Account '{account_name}' added successfully.")
             self.ids.account_name_input.text = ''
             self.load_accounts()
         else:
-            print(f"Account '{account_name}' already exists.")
-
+            show_snackbar(f"Account '{account_name}' already exists.")
+            
     def open_rename_dialog(self, account_id, account_name):
 
         if self.rename_dialog:
@@ -76,22 +78,22 @@ class AccountsScreen(Screen):
 
         new_name = self.rename_dialog.content_cls.text.strip()
         if not new_name:
-            print("New account name cannot be empty.")
+            show_snackbar("New account name cannot be empty.")
             return
         
         success = update_account(account_id, new_name)
 
         if success:
-            print(f"Account renamed to '{new_name}' successfully.")
+            show_snackbar(f"Account renamed to '{new_name}' successfully.")
             self.close_rename_dialog()
             self.load_accounts()
         else:
-            print(f"Account name '{new_name}' already exists.")
+            show_snackbar(f"Account name '{new_name}' already exists.")
 
     def perform_delete_account(self, account_id):
         self.close_delete_dialog()
         delete_account(account_id)
-        print(f"Account with ID '{account_id}' deleted successfully.")
+        show_snackbar(f"Account deleted successfully.")
         self.load_accounts()
 
     def confirm_delete_account(self, account_id):

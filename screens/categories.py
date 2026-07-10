@@ -4,6 +4,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton
 from kivy.utils import get_color_from_hex
 
+from utils.snackbar import show_snackbar
 from widgets.category_group_card import CategoryGroupCard
 
 from database.category_group_repository import delete_category_group, get_category_groups_by_type, insert_category_group, update_category_group
@@ -59,17 +60,17 @@ class CategoriesScreen(Screen):
     def add_group(self):
         group_name = self.ids.group_name_input.text.strip()
         if not group_name:
-            print("Group name cannot be empty.")
+            show_snackbar("Group name cannot be empty.")
             return
         
         success = insert_category_group(group_name, self.current_transaction_type)
 
         if success:
-            print(f"Group '{group_name}' added successfully.")
+            show_snackbar(f"Group '{group_name}' added successfully.")
             self.ids.group_name_input.text = ''
             self.load_groups()
         else:
-            print(f"Group '{group_name}' already exists.")
+            show_snackbar(f"Group name '{group_name}' already exists.")
 
     def open_rename_dialog(self, group_id, group_name):
 
@@ -104,27 +105,27 @@ class CategoriesScreen(Screen):
 
         new_name = self.rename_dialog.content_cls.text.strip()
         if not new_name:
-            print("New group name cannot be empty.")
+            show_snackbar("New group name cannot be empty")
             return
         
         success = update_category_group(group_id, new_name)
 
         if success:
-            print(f"Group renamed to '{new_name}' successfully.")
+            show_snackbar(f"Group renamed to '{new_name}' successfully.")
             self.close_rename_dialog()
             self.load_groups()
         else:
-            print(f"Group name '{new_name}' already exists.")
+            show_snackbar(f"Group name '{new_name}' already exists.")
 
     def perform_delete_group(self, group_id):
         self.close_delete_dialog()
         success = delete_category_group(group_id)
 
         if success:
-            print(f"Group with ID '{group_id}' deleted successfully.")
+            show_snackbar(f"Group deleted successfully.")
             self.load_groups()
         else:
-            print('Unable to delete group.')
+            show_snackbar(f"Unable to delete group.")
 
     def confirm_delete_group(self, group_id):
         self.delete_dialog = MDDialog(
@@ -152,16 +153,16 @@ class CategoriesScreen(Screen):
         category_name = category_name.strip()
 
         if not category_name:
-            print('Category name cannot be empty.')
+            show_snackbar("Category name cannot be empty.")
             return
         
         success = insert_category(group_id, category_name)
 
         if success:
-            print(f"Category '{category_name}' added successfully.")
+            show_snackbar(f"Category '{category_name}' added successfully.")
             self.load_groups()
         else:
-            print(f"Category '{category_name}' already exists.")
+            show_snackbar(f"Category name '{category_name}' already exists.")
 
     def open_rename_category_dialog(self, category_id, category_name):
         if self.rename_category_dialog:
@@ -194,27 +195,27 @@ class CategoriesScreen(Screen):
     def rename_category(self, category_id):
         new_name = self.rename_category_dialog.content_cls.text.strip()
         if not new_name:
-            print("New category name cannot be empty.")
+            show_snackbar("New category name cannot be empty")
             return
         
         success = update_category(category_id, new_name)
 
         if success:
-            print(f"Category renamed to '{new_name}' successfully.")
+            show_snackbar(f"Category renamed to '{new_name}' successfully.")
             self.close_rename_category_dialog()
             self.load_groups()
         else:
-            print(f"Category name '{new_name}' already exists.")
+            show_snackbar(f"Category name '{new_name}' already exists.")
 
     def perform_delete_category(self, category_id):
         self.close_delete_category_dialog()
         success = delete_category(category_id)
 
         if success:
-            print(f"Category with ID '{category_id}' deleted successfully.")
+            show_snackbar("Category deleted successfully.")
             self.load_groups()
         else:
-            print('Unable to delete category.')
+            show_snackbar("Unable to delete category.")
 
     def confirm_delete_category(self, category_id):
         self.delete_category_dialog = MDDialog(

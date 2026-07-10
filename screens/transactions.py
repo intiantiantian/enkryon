@@ -5,6 +5,8 @@ from kivy.utils import get_color_from_hex
 
 from widgets.transaction_card import TransactionCard
 
+from utils.snackbar import show_snackbar
+
 from database.transaction_repository import get_transactions, delete_transaction
 
 class TransactionsScreen(Screen):
@@ -59,7 +61,6 @@ class TransactionsScreen(Screen):
     def perform_delete_transaction(self, transaction_id):
         self.close_delete_transaction_dialog()
         delete_transaction(transaction_id)
-        print(f"Transaction with ID '{transaction_id}' deleted successfully.")
         self.load_transactions()
 
     def confirm_delete_transaction(self, transaction_id):
@@ -81,3 +82,4 @@ class TransactionsScreen(Screen):
 
     def close_delete_transaction_dialog(self, *args):
         self.delete_transaction_dialog.dismiss()
+        show_snackbar("Transaction deleted successfully.")

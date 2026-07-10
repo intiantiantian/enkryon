@@ -14,6 +14,8 @@ from database.transaction_repository import (
 
 from widgets.transaction_card import TransactionCard
 
+from utils.snackbar import show_snackbar
+
 class DashboardScreen(Screen):
 
     selected_account_id = None
@@ -126,6 +128,7 @@ class DashboardScreen(Screen):
 
     def close_delete_transaction_dialog(self, *args):
         self.delete_transaction_dialog.dismiss()
+        show_snackbar("Transaction deleted successfully.")
 
     def open_account_menu(self):
         accounts = get_all_accounts()

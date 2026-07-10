@@ -1,6 +1,7 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex
 from kivy.factory import Factory
 
@@ -15,20 +16,17 @@ from database.transaction_repository import (
     update_transaction
     )
 
+from utils.snackbar import show_snackbar
+
 class AddTransactionScreen(Screen):
 
     KEYS = [
         "1", "2", "3", "backspace",
         "4", "5", "6", "C",
         "7", "8", "9", ".",
-        "left-arrow", "0", "00", "right-arrow",
+        "", "0", "00", "",
     ]
 
-    ICON_KEYS = {
-        "backspace": "backspace",
-        "left-arrow": "chevron-left",
-        "right-arrow": "chevron-right",
-    }
 
     amount = '0'
     transaction_type = None
@@ -71,11 +69,11 @@ class AddTransactionScreen(Screen):
     def on_pre_enter(self):
         self.build_keypad()
 
-        self.ids.income_button.md_bg_color = ('#FFFFFF')
-        self.ids.expense_button.md_bg_color = ('#FFFFFF')
-
         if getattr(self, 'editing_transaction_id', None):
             return
+        
+        self.ids.income_button.md_bg_color = ('#FFFFFF')
+        self.ids.expense_button.md_bg_color = ('#FFFFFF')
         self.reset_form()
 
     def build_keypad(self):
@@ -84,10 +82,13 @@ class AddTransactionScreen(Screen):
         for key in self.KEYS:
             button = Factory.KeypadButton()
 
-            if key in self.ICON_KEYS:
+            if key is "backspace":
                 button.ids.label.opacity = 0
                 button.ids.icon.opacity = 1
-                button.ids.icon.icon = self.ICON_KEYS[key]
+                button.ids.icon.icon = "backspace"
+            elif key == "":
+                self.ids.keypad_container.add_widget(Widget())
+                continue
             else:
                 button.ids.icon.opacity = 0
                 button.ids.label.opacity = 1
@@ -104,8 +105,8 @@ class AddTransactionScreen(Screen):
         self.update_amount_label()
 
     def reset_form(self):
-        self.ids.income_button.state = 'normal'
-        self.ids.expense_button.state = 'normal'
+        self.ids.income_button.md_bg_color = ('#FFFFFF')
+        self.ids.expense_button.md_bg_color = ('#FFFFFF')
     
         self.selected_account_id = None
         self.ids.account_label.text = 'Select Account'
@@ -127,7 +128,7 @@ class AddTransactionScreen(Screen):
     def open_account_menu(self):
         accounts = get_all_accounts()
         if not accounts:
-            self.ids.account_button.text = 'No Accounts'
+            self.ids.account_label.text = 'No Accounts'
             return
 
         menu_items = []
@@ -308,26 +309,28 @@ class AddTransactionScreen(Screen):
         if getattr(self, "editing_transaction_id", None):
             update_transaction(account, amount, category, date_time, notes, self.editing_transaction_id)
             self.editing_transaction_id = None
+            show_snackbar("Transaction updated successfully.")
         else:
             insert_transaction(account, amount, category, date_time, notes)
+            show_snackbar("Transaction added successfully.")
         self.go_to_dashboard()
 
     def validate_form(self):
 
         if self.selected_account_id is None:
-            print("Please select an account.")
+            show_snackbar("Please select an account.")
             return False
         
         if float(self.amount) <= 0:
-            print("Amount cannot be less than or equal to zero.")
+            show_snackbar("Amount cannot be less than or equal to zero.")
             return False
 
         if self.transaction_type is None:
-            print("Please select a transaction type.")
+            show_snackbar("Please select a transaction type.")
             return False
         
         if self.selected_category_id is None:
-            print("Please select a category.")
+            show_snackbar("Please select a category.")
             return False
 
         return True
@@ -353,18 +356,13 @@ class AddTransactionScreen(Screen):
 
         self.editing_transaction_id = transaction_id
     
-        if transaction_type == 'income':
-            self.ids.income_button.state = 'down'
-        else:
-            self.ids.expense_button.state = 'down'
-
-        self.update_groups_button(self.transaction_type)
+        self.set_transaction_type(transaction_type)
 
         self.selected_account_id = account_id
         self.selected_group_id = group_id
         self.selected_category_id = category_id
 
-        self.ids.account_button.text = account_name
+        self.ids.account_label.text = account_name
         self.ids.group_label.text = group_name
         self.ids.category_label.text = category_name
         self.ids.category_selector.disabled = False
@@ -376,5 +374,21 @@ class AddTransactionScreen(Screen):
 
         dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
 
-        self.ids.date_button.text = dt.strftime("%Y-%m-%d")
-        self.ids.time_button.text = dt.strftime("%I:%M %p")
+        self.ids.date_label.text = dt.strftime("%Y-%m-%d")
+        self.ids.time_label.text = dt.strftime("%I:%M %p")
+
+    def set_transaction_type(self, transaction_type):
+        self.transaction_type = transaction_type
+
+        active = get_color_from_hex('#D5F4BE')
+        inactive = get_color_from_hex('#FFFFFF')
+
+        self.ids.income_button.md_bg_color = (
+            active if transaction_type == 'income' else inactive
+        )
+
+        self.ids.expense_button.md_bg_color = (
+            active if transaction_type == 'expense' else inactive
+        )
+
+        self.update_groups_button(transaction_type)

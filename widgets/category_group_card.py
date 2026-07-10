@@ -47,8 +47,8 @@ class CategoryGroupCard(MDCard):
         self.screen.expanded_groups.add(self.group_id)
         self.expanded = True
 
-    def add_category(self):
+    def add_category(self, category_name):
         self.screen.add_category(
             self.group_id,
-            self.category_name_input.text
+            category_name
         )

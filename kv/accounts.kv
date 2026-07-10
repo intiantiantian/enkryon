@@ -131,8 +131,8 @@
                     spacing: '10dp'
 
                     MDTextField:
-                        id: group_name_input
-                        hint_text: 'Group Name'
+                        id: account_name_input
+                        hint_text: 'Account Name'
                         size_hint_x: 0.78
 
                     OutlinedCard:
@@ -144,7 +144,7 @@
                         height: '42dp'
                         pos_hint: {'center_y': .5}
                         on_release:
-                            root.add_group()
+                            root.add_account()
 
                         MDLabel:
                             text: '+ Add New Account'

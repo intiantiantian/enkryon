@@ -65,3 +65,21 @@
             theme_text_color: "Custom"
             text_color: get_color_from_hex("#1B5E20")
             opacity: 0
+
+<AppSnackbar>:
+    size_hint: None, None
+    width: Window.width * 0.8
+    height: "52dp"
+    radius: [12]
+
+    md_bg_color: get_color_from_hex("#1B5E20")
+
+    elevation: 2
+
+    opacity: 0
+
+    MDLabel:
+        id: text_label
+        halign: "center"
+        theme_text_color: "Custom"
+        text_color: 1,1,1,1
