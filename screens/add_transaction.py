@@ -1,9 +1,9 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex
 from kivy.factory import Factory
+from kivy.core.window import Window
 
 from datetime import datetime
 
@@ -17,6 +17,8 @@ from database.transaction_repository import (
     )
 
 from utils.snackbar import show_snackbar
+
+from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 
 class AddTransactionScreen(Screen):
 
@@ -82,7 +84,7 @@ class AddTransactionScreen(Screen):
         for key in self.KEYS:
             button = Factory.KeypadButton()
 
-            if key is "backspace":
+            if key == "backspace":
                 button.ids.label.opacity = 0
                 button.ids.icon.opacity = 1
                 button.ids.icon.icon = "backspace"
@@ -173,7 +175,7 @@ class AddTransactionScreen(Screen):
         inactive = get_color_from_hex("#FFFFFF")
 
         self.ids.income_button.md_bg_color = (
-            active if self.transaction_type is 'income' else inactive
+            active if self.transaction_type == 'income' else inactive
         )
 
         self.ids.expense_button.md_bg_color = (
@@ -276,20 +278,16 @@ class AddTransactionScreen(Screen):
         self.ids.time_label.text = now.strftime('%I:%M %p')
 
     def open_date_picker(self):
-        date_picker = MDDatePicker()
-        date_picker.open()
-        date_picker.bind(on_save=self.set_date)
+        DatePickerDialog(callback=self.set_date).open()
     
     def open_time_picker(self):
-        time_picker = MDTimePicker()
-        time_picker.open()
-        time_picker.bind(on_save=self.set_time)
+        TimePickerDialog(callback=self.set_time).open()
 
-    def set_date(self, instance, value, date_range):
-        self.ids.date_label.text = value.strftime('%Y-%m-%d')
+    def set_date(self, selected_date):
+        self.ids.date_label.text = selected_date.strftime("%Y-%m-%d")
 
-    def set_time(self, instance, value):
-        self.ids.time_label.text = value.strftime('%I:%M %p')
+    def set_time(self, selected_time):
+        self.ids.time_label.text = selected_time.strftime("%I:%M %p")
 
     def save_transaction(self):
         if not self.validate_form():
@@ -317,7 +315,7 @@ class AddTransactionScreen(Screen):
 
     def validate_form(self):
 
-        if self.selected_account_id is None:
+        if self.selected_account_id == None:
             show_snackbar("Please select an account.")
             return False
         
@@ -325,11 +323,11 @@ class AddTransactionScreen(Screen):
             show_snackbar("Amount cannot be less than or equal to zero.")
             return False
 
-        if self.transaction_type is None:
+        if self.transaction_type == None:
             show_snackbar("Please select a transaction type.")
             return False
         
-        if self.selected_category_id is None:
+        if self.selected_category_id == None:
             show_snackbar("Please select a category.")
             return False
 
