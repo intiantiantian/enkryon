@@ -7,7 +7,6 @@ from kivy.utils import get_color_from_hex
 from database.account_repository import get_all_accounts
 from database.transaction_repository import (
     delete_transaction,
-    get_transactions,
     get_total_amount,
     get_current_balance,
 )
@@ -16,6 +15,7 @@ from widgets.transaction_card import TransactionCard
 
 from utils.snackbar import show_snackbar
 
+from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
 class DashboardScreen(Screen):
 
     selected_account_id = None
@@ -64,19 +64,7 @@ class DashboardScreen(Screen):
             self.ids.expense_label.text = "₱ ******"
             self.ids.eye_button.icon = "eye-off"
 
-        self.load_recent_transactions()
-
-    def load_recent_transactions(self):
-        self.ids.transactions_container.clear_widgets()
-
-        transactions = get_transactions(limit=5, account_id=self.selected_account_id,
-                                        transaction_type=self.transaction_filter)
-
-        for transaction in transactions:
-            card = TransactionCard()
-            card.screen = self
-            card.set_transaction(transaction)
-            self.ids.transactions_container.add_widget(card)
+        load_transactions(self, limit=5)
 
     def set_transaction_filter(self, transaction_type):
         self.transaction_filter = transaction_type
@@ -96,18 +84,12 @@ class DashboardScreen(Screen):
             active if transaction_type == 'expense' else inactive
         )
         
-        self.load_recent_transactions()
+        load_transactions(self, limit=5)
 
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen('add_transaction')
         screen.load_transaction(transaction_id)
         self.manager.current = 'add_transaction'
-
-    def perform_delete_transaction(self, transaction_id):
-        self.close_delete_transaction_dialog()
-        delete_transaction(transaction_id)
-        print(f"Transaction with ID '{transaction_id}' deleted successfully.")
-        self.load_dashboard()
 
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(
@@ -116,19 +98,15 @@ class DashboardScreen(Screen):
             buttons=[
                 MDFlatButton(
                     text="CANCEL",
-                    on_release=self.close_delete_transaction_dialog
+                    on_release=lambda x: close_delete_transaction_dialog(dialog_screen=self.delete_transaction_dialog)
                 ),
                 MDFlatButton(
                     text="DELETE",
-                    on_release=lambda x: self.perform_delete_transaction(transaction_id)
+                    on_release=lambda x: perform_delete_transaction(self, transaction_id, dialog_screen=self.delete_transaction_dialog)
                 )
             ]
         )
         self.delete_transaction_dialog.open()
-
-    def close_delete_transaction_dialog(self, *args):
-        self.delete_transaction_dialog.dismiss()
-        show_snackbar("Transaction deleted successfully.")
 
     def open_account_menu(self):
         accounts = get_all_accounts()
