@@ -1,4 +1,5 @@
 from kivy.uix.modalview import ModalView
+from kivy.clock import Clock
 
 from calendar import monthrange
 from datetime import date, time
@@ -9,33 +10,15 @@ class DatePickerDialog(ModalView):
 
     def __init__(self, callback=None, **kwargs):
         super().__init__(**kwargs)
-
         self.callback = callback
-
         today = date.today()
-
         self.current_year = today.year
         self.current_month = today.month
         self.selected_day = today.day
 
     def on_open(self):
-
-        self.ids.previous.ids.icon.icon = "chevron-left"
-        self.ids.next.ids.icon.icon = "chevron-right"
-
-        self.ids.previous.bind(on_release=lambda *_: self.previous_month())
-        self.ids.next.bind(on_release=lambda *_: self.next_month())
-
         self.build_weekdays()
         self.build_calendar()
-
-        self.ids.cancel.bind(
-            on_release=lambda *_: self.dismiss()
-        )
-
-        self.ids.ok.bind(
-            on_release=lambda *_: self.confirm()
-        )
 
     def build_weekdays(self):
 
@@ -44,8 +27,7 @@ class DatePickerDialog(ModalView):
         for day in ("Mon","Tue","Wed","Thu","Fri","Sat","Sun"):
             card = Factory.CalendarDay()
             card.ripple_behavior = False
-            card.md_bg_color = (0,0,0,0)
-            card.ids.label.bold = True
+            card.md_bg_color = (0, 0, 0, 0)
             card.ids.label.text = day
             self.ids.weekday_grid.add_widget(card)
 
@@ -64,21 +46,30 @@ class DatePickerDialog(ModalView):
         )
 
         for _ in range(first_weekday):
-
-            self.ids.calendar_grid.add_widget(Factory.CalendarDay())
+            card = Factory.CalendarDay()
+            card.ripple_behavior = False
+            self.ids.calendar_grid.add_widget(card)
 
         for day in range(1, days + 1):
 
             card = Factory.CalendarDay()
             card.ids.label.text = str(day)
-            card.bind(
-                on_release=lambda _, d=day: self.select_day(d)
-            )
+            card.picker = self
             self.ids.calendar_grid.add_widget(card)
 
     def select_day(self, day):
-        self.selected_day = day
-        print(day)
+        self.selected_day = int(day.text)
+
+        selected = date(
+            self.current_year,
+            self.current_month,
+            self.selected_day
+        )
+
+        if self.callback:
+            self.callback(selected)
+
+        self.dismiss()
 
     def previous_month(self):
         self.current_month -= 1
@@ -94,126 +85,88 @@ class DatePickerDialog(ModalView):
             self.current_year += 1
         self.build_calendar()
 
-    def confirm(self):
-
-        selected = date(
-            self.current_year,
-            self.current_month,
-            self.selected_day
-        )
-
-        if self.callback:
-            self.callback(selected)
-
-        self.dismiss()
-
 class TimePickerDialog(ModalView):
 
-    def __init__(self, callback=None, **kwargs):
+    def __init__(self, callback=None, initial_time=None, **kwargs):
         super().__init__(**kwargs)
-
         self.callback = callback
-
-        self.hour = 12
-        self.minute = 0
-        self.is_pm = False
+        self.scroll_timer = None
+        if initial_time:
+            self.hour = initial_time.hour % 12 or 12
+            self.minute = initial_time.minute
+            self.is_pm = initial_time.hour >= 12
+        else:
+            self.hour = 12
+            self.minute = 0
+            self.is_pm = False
 
     def on_open(self):
+        self.ids.minute_picker.data = [
+            {'text': f'{i:02d}'}
+            for i in range(60)
+        ]
 
-        self.ids.hour.ids.up.ids.icon.icon = "chevron-up"
-        self.ids.hour.ids.down.ids.icon.icon = "chevron-down"
+        self.ids.hour_picker.data = [
+            {'text': f'{i:02d}'}
+            for i in range(1, 13)
+        ]
 
-        self.ids.minute.ids.up.ids.icon.icon = "chevron-up"
-        self.ids.minute.ids.down.ids.icon.icon = "chevron-down"
+        self.ids.ampm_picker.data = [
+            {'text': 'AM'},
+            {'text': 'PM'}
+        ]
+        
+        Clock.schedule_once(lambda dt: self.set_picker_position(), 0.1)
 
-        self.ids.ampm.ids.up.ids.icon.icon = "chevron-up"
-        self.ids.ampm.ids.down.ids.icon.icon = "chevron-down"
+    def set_picker_position(self):
 
-        self.ids.cancel.bind(
-            on_release=lambda *_: self.dismiss()
+        hour_index = self.hour - 1
+        self.ids.hour_picker.scroll_y = self.get_scroll_position(
+            hour_index,
+            len(self.ids.hour_picker.data)
         )
 
-        self.ids.ok.bind(
-            on_release=lambda *_: self.confirm()
+        minute_index = self.minute
+        self.ids.minute_picker.scroll_y = self.get_scroll_position(
+            minute_index,
+            len(self.ids.minute_picker.data)
         )
 
-        self.ids.hour.ids.up.bind(
-            on_release=lambda *_: self.hour_up()
+        ampm_index = 1 if not self.is_pm else 2
+        self.ids.ampm_picker.scroll_y = self.get_scroll_position(
+            ampm_index,
+            len(self.ids.ampm_picker.data)
         )
+    
+    def get_scroll_position(self, index, total):
+        if total <= 3:
+            return 1
+        return 1 - (index / (total - 1))
 
-        self.ids.hour.ids.down.bind(
-            on_release=lambda *_: self.hour_down()
-        )
+    def check_scroll(self, rv):
 
-        self.ids.minute.ids.up.bind(
-            on_release=lambda *_: self.minute_up()
-        )
+        if self.scroll_timer:
+            self.scroll_timer.cancel()
+            
+        self.scroll_timer = Clock.schedule_once(lambda dt: self.get_center_value(rv), .2)
 
-        self.ids.minute.ids.down.bind(
-            on_release=lambda *_: self.minute_down()
-        )
+    def get_center_value(self, rv):
 
-        self.ids.ampm.ids.up.bind(
-            on_release=lambda *_: self.toggle_ampm()
-        )
+        if rv == self.ids.ampm_picker:
+            index = round((1 - rv.scroll_y) * (len(rv.data)-1))
+        else:
+            index = round((1 - rv.scroll_y) * (len(rv.data)-3)) + 1
 
-        self.ids.ampm.ids.down.bind(
-            on_release=lambda *_: self.toggle_ampm()
-        )
+        value = rv.data[index]['text']
 
-        self.refresh()
+        if rv == self.ids.hour_picker:
+            self.hour = int(value)
 
-    def refresh(self):
+        elif rv == self.ids.minute_picker:
+            self.minute = int(value)
 
-        self.ids.hour.ids.value.text = f"{self.hour:02d}"
-
-        self.ids.minute.ids.value.text = f"{self.minute:02d}"
-
-        self.ids.ampm.ids.value.text = (
-            "PM" if self.is_pm else "AM"
-        )
-
-    def hour_up(self):
-
-        self.hour += 1
-
-        if self.hour > 12:
-            self.hour = 1
-
-        self.refresh()
-
-    def hour_down(self):
-
-        self.hour -= 1
-
-        if self.hour < 1:
-            self.hour = 12
-
-        self.refresh()
-
-    def minute_up(self):
-
-        self.minute += 1
-
-        if self.minute > 59:
-            self.minute = 0
-
-        self.refresh()
-
-    def minute_down(self):
-
-        self.minute -= 1
-
-        if self.minute < 0:
-            self.minute = 59
-
-        self.refresh()
-
-    def toggle_ampm(self):
-
-        self.is_pm = not self.is_pm
-
-        self.refresh()
+        elif rv == self.ids.ampm_picker:
+            self.is_pm = value == 'PM'
 
     def confirm(self):
 

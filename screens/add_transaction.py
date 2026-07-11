@@ -281,7 +281,8 @@ class AddTransactionScreen(Screen):
         DatePickerDialog(callback=self.set_date).open()
     
     def open_time_picker(self):
-        TimePickerDialog(callback=self.set_time).open()
+        current_time = datetime.strptime(self.ids.time_label.text, '%I:%M %p').time()
+        TimePickerDialog(callback=self.set_time, initial_time=current_time).open()
 
     def set_date(self, selected_date):
         self.ids.date_label.text = selected_date.strftime("%Y-%m-%d")

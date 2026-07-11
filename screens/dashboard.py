@@ -6,14 +6,9 @@ from kivy.utils import get_color_from_hex
 
 from database.account_repository import get_all_accounts
 from database.transaction_repository import (
-    delete_transaction,
     get_total_amount,
     get_current_balance,
 )
-
-from widgets.transaction_card import TransactionCard
-
-from utils.snackbar import show_snackbar
 
 from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
 class DashboardScreen(Screen):

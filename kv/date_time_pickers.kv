@@ -1,38 +1,13 @@
 #:import dp kivy.metrics.dp
 
-<CalendarTextButton@MDCard>
-
-    size_hint: None, None
-    size: dp(80), dp(40)
-
-    radius: [20]
-    ripple_behavior: True
-
-    MDLabel:
-        id: label
-        halign: "center"
-        valign: "middle"
-        
-<CalendarArrow@MDCard>
-
-    size_hint: None, None
-    size: dp(40), dp(40)
-
-    radius: [20]
-    ripple_behavior: True
-
-    MDIcon:
-        id: icon
-        icon: ""
-        halign: "center"
-        valign: "middle"
-
 <CalendarDay@MDCard>
 
-    size_hint_y: None
-    height: dp(45)
+    size_hint: None, None
+    size: dp(32), dp(32)
+    on_release:
+        self.picker.select_day(label)
 
-    radius: [22]
+    radius: [16]
     ripple_behavior: True
 
     MDLabel:
@@ -42,129 +17,231 @@
     
 <DatePickerDialog>
 
-    size_hint: .9,.65
+    size_hint: .42,.72
     auto_dismiss: False
 
     MDCard:
-        orientation: "vertical"
-        radius: [20]
-        padding: dp(15)
-        spacing: dp(15)
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height
+        radius: [16]
 
-        MDBoxLayout:
-
-            adaptive_height: True
+        MDCard:
+            size_hint_y: None
+            height: self.minimum_height
             spacing: dp(10)
-            CalendarArrow:
-                id: previous
+            md_bg_color: get_color_from_hex('#A2D672')
+            radius: [16, 16, 0, 0]
 
-            MDLabel:
-                id: month_label
-                halign: "center"
-                bold: True
 
-            CalendarArrow:
-                id: next
+            MDCard:
+                size_hint: None, None
+                size: dp(64), dp(64)
+                md_bg_color: (0, 0, 0, 0)
+                on_release: root.previous_month()
 
-        MDGridLayout:
-            cols: 7
-            adaptive_height: True
-            spacing: dp(5)
-            id: weekday_grid
+                AnchorLayout:
+                    
+                    MDIcon:
+                        icon: 'chevron-left'
+                        theme_icon_color: 'Custom'
+                        icon_color: get_color_from_hex('#224B1F')
+                        pos_hint: {'center_x': .5, 'center_y': .5}
 
-        MDGridLayout:
+            MDCard:
+                md_bg_color: (0, 0, 0, 0)
+                on_release:
+                    pass
 
-            cols: 7
+                MDLabel:
+                    id: month_label
+                    theme_text_color: 'Custom'
+                    text_color: get_color_from_hex('#224B1F')
+                    halign: 'center'
+                    bold: True
 
-            spacing: dp(5)
+            MDCard:
+                size_hint: None, None
+                size: dp(64), dp(64)
+                md_bg_color: (0, 0, 0, 0)
+                on_release: root.next_month()
 
-            id: calendar_grid
+                AnchorLayout:
 
-        MDBoxLayout:
+                    MDIcon:
+                        icon: 'chevron-right'
+                        theme_icon_color: 'Custom'
+                        icon_color: get_color_from_hex('#224B1F')
+                        pos_hint: {'center_x': .5, 'center_y': .5}
 
-            adaptive_height: True
-            spacing: dp(10)
+        MDCard:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: dp(330)
+
+            radius: [20]
+            padding: [32, 16, 32, 16]
+            spacing: dp(15)
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(32)
+
+                AnchorLayout:
+
+                    GridLayout:
+                        id: weekday_grid
+                        cols: 7
+                        size_hint: None, None
+                        width: self.minimum_width
+                        height: self.minimum_height
+                        spacing: dp(10)
 
             Widget:
+                size_hint_y: None
+                height: "1dp"
 
-            CalendarArrow:
-                id: cancel
+                canvas.before:
+                    Color:
+                        rgba: get_color_from_hex("#D8D8D8")
+
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size       
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(242)
+                
+                AnchorLayout:
+
+                    GridLayout:
+                        id: calendar_grid
+                        cols: 7
+                        size_hint: None, None
+                        width: self.minimum_width
+                        height: dp(242)
+                        spacing: dp(10)
+
+        MDCard:
+            adaptive_height: True
+            padding: [20, 0, 0, 0]
+
+            MDCard:
+                on_release:
+                    root.dismiss()
 
                 MDLabel:
                     text: "Cancel"
-                    halign: "center"
+                    halign: "left"
 
-            CalendarArrow:
-                id: ok
-
-                MDLabel:
-                    text: "OK"
-                    halign: "center"
-
-
-<TimeValue@MDCard>
-
-    size_hint: None, None
-    size: dp(80), dp(100)
-
-    radius: [20]
-    ripple_behavior: False
-
-    MDBoxLayout:
-        orientation: "vertical"
-
-        CalendarArrow:
-            id: up
-
-        MDLabel:
-            id: value
-            halign: "center"
-            bold: True
-
-        CalendarArrow:
-            id: down
+<TimeScroll@MDLabel>
+    text_size: self.size
+    halign: 'center'
+    valign: 'middle'
+    font_style: 'H5'
 
 <TimePickerDialog>
 
-    size_hint: .8, .45
+    size_hint: .6, .30
     auto_dismiss: False
 
     MDCard:
-        orientation: "vertical"
-        padding: dp(15)
-        spacing: dp(15)
+        orientation: 'vertical'
 
-        MDLabel:
-            text: "Select Time"
-            halign: "center"
-            bold: True
+        FloatLayout:
 
-        MDBoxLayout:
+            MDCard:
+                size_hint: 0.9, None
+                height: dp(40)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                md_bg_color: 0, 1, 0, .15
+                radius: [10]
+                ripple_behavior: False
 
+            BoxLayout:
+                size_hint: 1, 1
+                pos_hint: {'center_x': .5, 'center_y': .5}
+        
+                AnchorLayout:
+
+                    RecycleView:
+                        id: hour_picker
+                        viewclass: 'TimeScroll'
+                        size_hint: None, None
+                        size: dp(70), dp(120)
+                        bar_width: 0
+                        on_scroll_y:
+                            root.check_scroll(self)
+
+                        RecycleBoxLayout:
+                            default_size: None, dp(40)
+                            default_size_hint: 1, None
+                            size_hint_y: None
+                            height: self.minimum_height
+                            orientation: 'vertical'
+
+                AnchorLayout:
+
+                    RecycleView:
+                        id: minute_picker
+                        viewclass: 'TimeScroll'
+                        size_hint: None, None
+                        size: dp(70), dp(120)
+                        bar_width: 0
+                        on_scroll_y:
+                            root.check_scroll(self)
+
+                        RecycleBoxLayout:
+                            default_size: None, dp(40)
+                            default_size_hint: 1, None
+                            size_hint_y: None
+                            height: self.minimum_height
+                            orientation: 'vertical'
+                
+                AnchorLayout:
+
+                    RecycleView:
+                        id: ampm_picker
+                        viewclass: 'TimeScroll'
+                        size_hint: None, None
+                        size: dp(70), dp(40)
+                        bar_width: 0
+                        on_scroll_y:
+                            root.check_scroll(self)
+
+                        RecycleBoxLayout:
+                            default_size: None, dp(40)
+                            default_size_hint: 1, None
+                            size_hint_y: None
+                            height: self.minimum_height
+                            orientation: 'vertical'
+
+        MDCard:
+            orientation: 'horizontal'
             adaptive_height: True
-            spacing: dp(15)
+            padding: [20, 0, 20, 0]
 
-            TimeValue:
-                id: hour
+            MDCard:
+                on_release:
+                    root.dismiss()
 
-            MDLabel:
-                text: ":"
-                adaptive_width: True
-                halign: "center"
+                MDLabel:
+                    text: "Cancel"
+                    halign: "left"
 
-            TimeValue:
-                id: minute
+            OutlinedCard:
+                size_hint_x: .15
+                size_hint_y: None
+                height: '42dp'
+                pos_hint: {'center_y': .5}
+                radius: '24dp'
+                md_bg_color: get_color_from_hex("#388E3C")
+                on_release:
+                    root.confirm()
 
-            TimeValue:
-                id: ampm
-
-        MDBoxLayout:
-
-            adaptive_height: True
-
-            CalendarTextButton:
-                id: cancel
-
-
-            CalendarTextButton:
-                id: ok
+                MDLabel:
+                    text: "Save"
+                    halign: "center"
+                    theme_text_color: "Custom"
+                    text_color: 1,1,1,1
