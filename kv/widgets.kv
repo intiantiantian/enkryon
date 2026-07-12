@@ -16,32 +16,6 @@
                 self.radius[0])
             width: 1.2
 
-<CategoryInputRow@BoxLayout>:
-    orientation: "horizontal"
-    spacing: "10dp"
-    size_hint_y: None
-    height: "56dp" 
-
-    MDTextField:
-        id: category_input
-        hint_text: "Category Name"
-        size_hint_x: .85
-
-    OutlinedCard:
-        id: add_button
-        size_hint_x: .15
-        size_hint_y: None
-        height: '42dp'
-        pos_hint: {'center_y': .5}
-        radius: '24dp'
-        md_bg_color: get_color_from_hex("#388E3C")
-
-        MDLabel:
-            text: "+ Add"
-            halign: "center"
-            theme_text_color: "Custom"
-            text_color: 1,1,1,1
-
 <KeypadButton@OutlinedCard>
     ripple_behavior: True
     md_bg_color: get_color_from_hex("#FFFFFF")

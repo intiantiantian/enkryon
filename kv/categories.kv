@@ -73,6 +73,11 @@
                 valign: 'middle'
 
             MDIconButton:
+                icon: "plus"
+                on_release:
+                    root.add_category()
+
+            MDIconButton:
                 icon: "pencil"
                 on_release:
                     root.edit_group()
@@ -182,63 +187,32 @@
                     text: 'EXPENSE'
                     theme_text_color: 'Custom'
                     text_color: get_color_from_hex('#1B5E20')
+
+        FloatLayout:
             
-        ScrollView:
-            size_hint_y: 1
-            
-            BoxLayout:
-                id: groups_container
-                size_hint_y: None
-                height: self.minimum_height
-                orientation: 'vertical'
-                padding: '10dp'
-                spacing: '10dp'
-
-        Widget:
-            size_hint_y: None
-            height: "1dp"
-
-            canvas.before:
-                Color:
-                    rgba: get_color_from_hex("#D8D8D8")
-
-                Rectangle:
-                    pos: self.pos
-                    size: self.size    
-                        
-        BoxLayout:
-            padding: '10dp'
-            size_hint_y: None
-            height: self.minimum_height
-
-            OutlinedCard:
-                size_hint_y: None
-                height: self.minimum_height
-                padding: '10dp'
+            ScrollView:
+                size_hint_y: 1
                 
                 BoxLayout:
-                    orientation: 'horizontal'
+                    id: groups_container
                     size_hint_y: None
                     height: self.minimum_height
+                    orientation: 'vertical'
+                    padding: '10dp'
                     spacing: '10dp'
 
-                    MDTextField:
-                        id: group_name_input
-                        hint_text: 'Group Name'
-                        size_hint_x: 0.8
+            MDCard:
+                size_hint: None, None
+                size: dp(42), dp(42)
+                radius: [36]
+                md_bg_color: get_color_from_hex('#B7E892')
 
-                    OutlinedCard:
-                        md_bg_color: get_color_from_hex('#388E3C')
-                        radius: '24dp'
-                        padding: '10dp'
-                        size_hint_x: 0.2
-                        size_hint_y: None
-                        height: '42dp'
-                        pos_hint: {'center_y': .5}
-                        on_release:
-                            root.add_group()
+                pos_hint: {'right': .96, 'y': .03}
 
-                        MDLabel:
-                            text: '+ Add New Group'
-                            theme_text_color: 'Custom'
-                            text_color: 1, 1, 1, 1                    
+                on_release: root.add_group()
+
+                AnchorLayout:
+
+                    MDIcon:
+                        icon: 'plus'
+                        pos_hint: {'center_x': .5, 'center_y': .5}

@@ -25,6 +25,7 @@ class MyFinance(MDApp):
         Builder.load_file('kv/categories.kv')
         Builder.load_file('kv/transactions.kv')
         Builder.load_file('kv/date_time_pickers.kv')
+        Builder.load_file('kv/input_dialog.kv')
 
         create_transactions_table()
         create_accounts_table()

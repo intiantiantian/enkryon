@@ -9,6 +9,7 @@ from widgets.category_group_card import CategoryGroupCard
 
 from database.category_group_repository import delete_category_group, get_category_groups_by_type, insert_category_group, update_category_group
 from database.category_repository import insert_category, update_category, delete_category
+from widgets.input_dialog import InputDialog
 
 class CategoriesScreen(Screen):
     
@@ -58,7 +59,14 @@ class CategoriesScreen(Screen):
         self.load_groups()
 
     def add_group(self):
-        group_name = self.ids.group_name_input.text.strip()
+        InputDialog(
+            title="New Category Group",
+            hint_text="Category Group name...",
+            callback=self.save_group
+        ).open()
+        
+    def save_group(self, group_name):
+                   
         if not group_name:
             show_snackbar("Group name cannot be empty.")
             return
@@ -67,7 +75,6 @@ class CategoriesScreen(Screen):
 
         if success:
             show_snackbar(f"Group '{group_name}' added successfully.")
-            self.ids.group_name_input.text = ''
             self.load_groups()
         else:
             show_snackbar(f"Group name '{group_name}' already exists.")
@@ -149,9 +156,15 @@ class CategoriesScreen(Screen):
             self.delete_dialog.dismiss()
             self.delete_dialog = None
 
-    def add_category(self, group_id, category_name):
-        category_name = category_name.strip()
+    def add_category(self, group_id):
+        InputDialog(
+            title="New Category",
+            hint_text="Category name...",
+            callback=lambda name: self.save_category(group_id, name)
+        ).open()
 
+    def save_category(self, group_id, category_name):
+                   
         if not category_name:
             show_snackbar("Category name cannot be empty.")
             return

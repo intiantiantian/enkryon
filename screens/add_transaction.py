@@ -18,6 +18,7 @@ from database.transaction_repository import (
 from utils.snackbar import show_snackbar
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
+from widgets.input_dialog import InputDialog
 
 class AddTransactionScreen(Screen):
 
@@ -123,8 +124,7 @@ class AddTransactionScreen(Screen):
         self.set_current_date_time()
         self.clear()
 
-        self.ids.notes_input.text = ''
-        self.ids.notes_input.hint_text = 'Add notes (optional)'
+        self.set_notes('')
 
     def open_account_menu(self):
         accounts = get_all_accounts()
@@ -303,7 +303,11 @@ class AddTransactionScreen(Screen):
         dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
         date_time = dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        notes = self.ids.notes_input.text
+        notes = (
+            ""
+            if self.ids.notes_label.text == "Add notes"
+            else self.ids.notes_label.text
+        )
 
         if getattr(self, "editing_transaction_id", None):
             update_transaction(account, amount, category, date_time, notes, self.editing_transaction_id)
@@ -319,7 +323,7 @@ class AddTransactionScreen(Screen):
 
     def validate_form(self):
 
-        if self.selected_account_id == None:
+        if self.selected_account_id is None:
             show_snackbar("Please select an account.")
             return False
         
@@ -327,11 +331,11 @@ class AddTransactionScreen(Screen):
             show_snackbar("Amount cannot be less than or equal to zero.")
             return False
 
-        if self.transaction_type == None:
+        if self.transaction_type is None:
             show_snackbar("Please select a transaction type.")
             return False
         
-        if self.selected_category_id == None:
+        if self.selected_category_id is None:
             show_snackbar("Please select a category.")
             return False
 
@@ -372,7 +376,7 @@ class AddTransactionScreen(Screen):
         self.amount = str(amount)
         self.update_amount_label()
 
-        self.ids.notes_input.text = notes
+        self.set_notes(notes)
 
         dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
 
@@ -380,6 +384,7 @@ class AddTransactionScreen(Screen):
         self.ids.time_label.text = dt.strftime("%I:%M %p")
 
     def set_transaction_type(self, transaction_type):
+
         self.transaction_type = transaction_type
 
         active = get_color_from_hex('#D5F4BE')
@@ -394,3 +399,21 @@ class AddTransactionScreen(Screen):
         )
 
         self.update_groups_button(transaction_type)
+
+    def add_notes(self):
+        InputDialog(
+            title = 'Notes',
+            hint_text = 'Enter notes...',
+            text = self.ids.notes_label.text
+                if self.ids.notes_label.text != 'Add notes'
+                else '',
+            callback = self.set_notes
+        ).open()
+
+    def set_notes(self, notes):
+        if notes.strip():
+            self.ids.notes_label.text = notes
+            self.ids.notes_label.theme_text_color = 'Primary'
+        else:
+            self.ids.notes_label.text = 'Add notes'
+            self.ids.notes_label.theme_text_color = 'Hint'

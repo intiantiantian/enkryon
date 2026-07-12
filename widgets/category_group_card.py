@@ -39,16 +39,9 @@ class CategoryGroupCard(MDCard):
             card.set_category(category)
             self.ids.categories_container.add_widget(card)
 
-        row = Factory.CategoryInputRow()
-        row.ids.add_button.bind(on_release=lambda *_: self.add_category(row.ids.category_input.text))
-
-        self.ids.categories_container.add_widget(row)
         self.ids.toggle_button.icon = 'chevron-up'
         self.screen.expanded_groups.add(self.group_id)
         self.expanded = True
 
-    def add_category(self, category_name):
-        self.screen.add_category(
-            self.group_id,
-            category_name
-        )
+    def add_category(self):
+        self.screen.add_category(self.group_id)

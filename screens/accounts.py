@@ -8,6 +8,7 @@ from widgets.account_card import AccountCard
 from utils.snackbar import show_snackbar
 
 from database.account_repository import get_all_accounts, insert_account, update_account, delete_account
+from widgets.input_dialog import InputDialog
 
 class AccountsScreen(Screen):
 
@@ -31,11 +32,18 @@ class AccountsScreen(Screen):
             self.ids.accounts_container.add_widget(card)
 
     def add_account(self):
-        account_name = self.ids.account_name_input.text.strip()
+        InputDialog(
+            title="New Account",
+            hint_text="Account name...",
+            callback=self.save_account
+        ).open()
+
+    def save_account(self, account_name):
+
         if not account_name:
-            show_snackbar(f"Account name cannot be empty.")
+            show_snackbar("Account name cannot be empty.")
             return
-        
+
         success = insert_account(account_name)
 
         if success:

@@ -91,62 +91,31 @@
                     pos: self.pos
                     size: self.size        
 
-        ScrollView:
-            size_hint_y: 1
-            
-            BoxLayout:
-                id: accounts_container
-                size_hint_y: None
-                height: self.minimum_height
-                orientation: 'vertical'
-                padding: '10dp'
-                spacing: '10dp'
+        FloatLayout:
 
-        Widget:
-            size_hint_y: None
-            height: "1dp"
-
-            canvas.before:
-                Color:
-                    rgba: get_color_from_hex("#D8D8D8")
-
-                Rectangle:
-                    pos: self.pos
-                    size: self.size   
-
-        BoxLayout:
-            padding: '10dp'
-            size_hint_y: None
-            height: self.minimum_height
-
-            OutlinedCard:
-                size_hint_y: None
-                height: self.minimum_height
-                padding: '10dp'
+            ScrollView:
+                size_hint_y: 1
                 
                 BoxLayout:
-                    orientation: 'horizontal'
+                    id: accounts_container
                     size_hint_y: None
                     height: self.minimum_height
+                    orientation: 'vertical'
+                    padding: '10dp'
                     spacing: '10dp'
 
-                    MDTextField:
-                        id: account_name_input
-                        hint_text: 'Account Name'
-                        size_hint_x: 0.78
+            MDCard:
+                size_hint: None, None
+                size: dp(42), dp(42)
+                radius: [36]
+                md_bg_color: get_color_from_hex('#B7E892')
 
-                    OutlinedCard:
-                        md_bg_color: get_color_from_hex('#388E3C')
-                        radius: '24dp'
-                        padding: '10dp'
-                        size_hint_x: 0.22
-                        size_hint_y: None
-                        height: '42dp'
-                        pos_hint: {'center_y': .5}
-                        on_release:
-                            root.add_account()
+                pos_hint: {'right': .96, 'y': .03}
 
-                        MDLabel:
-                            text: '+ Add New Account'
-                            theme_text_color: 'Custom'
-                            text_color: 1, 1, 1, 1                    
+                on_release: root.add_account()
+
+                AnchorLayout:
+
+                    MDIcon:
+                        icon: 'plus'
+                        pos_hint: {'center_x': .5, 'center_y': .5}

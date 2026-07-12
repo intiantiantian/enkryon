@@ -1,0 +1,50 @@
+<InputDialog>
+    size_hint: .85, None
+    height: '180dp'
+    auto_dismiss: False
+
+    MDCard:
+        orientation: 'vertical'
+        adaptive_height: True
+        padding: '24dp'
+        spacing: '20dp'
+        radius: [16]
+
+        MDLabel:
+            text: root.title
+            bold: True
+            font_style: 'H6'
+
+        MDTextField:
+            id: input
+            mode: 'rectangle'
+            text: root.text
+            hint_text: root.hint_text
+
+        MDCard:
+            orientation: 'horizontal'
+            adaptive_height: True
+
+            MDCard:
+                on_release:
+                    root.cancel()
+
+                MDLabel:
+                    text: "Cancel"
+                    halign: "left"
+
+            OutlinedCard:
+                size_hint_x: .50
+                size_hint_y: None
+                height: '42dp'
+                pos_hint: {'center_y': .5}
+                radius: '24dp'
+                md_bg_color: get_color_from_hex("#388E3C")
+                on_release:
+                    root.save()
+
+                MDLabel:
+                    text: "Save"
+                    halign: "center"
+                    theme_text_color: "Custom"
+                    text_color: 1,1,1,1
