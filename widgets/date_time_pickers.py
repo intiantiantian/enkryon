@@ -1,64 +1,80 @@
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
+from kivy.properties import NumericProperty, ObjectProperty
+from kivy.uix.behaviors import ButtonBehavior
+from kivymd.uix.label import MDLabel
 
 from calendar import monthrange
 from datetime import date, time
 
 from kivy.factory import Factory
 
+class CalendarDay(ButtonBehavior, MDLabel):
+    day = NumericProperty(0)
+    picker = ObjectProperty(None)
+
 class DatePickerDialog(ModalView):
+
+    day = NumericProperty(0)
 
     def __init__(self, callback=None, **kwargs):
         super().__init__(**kwargs)
         self.callback = callback
         today = date.today()
+        self.day_widgets = []
         self.current_year = today.year
         self.current_month = today.month
         self.selected_day = today.day
 
     def on_open(self):
         self.build_weekdays()
+        if not self.day_widgets:
+            self.build_calendar_widgets()
         self.build_calendar()
 
     def build_weekdays(self):
-
         self.ids.weekday_grid.clear_widgets()
-
         for day in ("Mon","Tue","Wed","Thu","Fri","Sat","Sun"):
             card = Factory.CalendarDay()
             card.ripple_behavior = False
             card.md_bg_color = (0, 0, 0, 0)
-            card.ids.label.text = day
+            card.text = day
             self.ids.weekday_grid.add_widget(card)
 
+    def build_calendar_widgets(self):
+        for _ in range(42):
+            card = Factory.CalendarDay()
+            card.picker = self
+            self.day_widgets.append(card)
+            self.ids.calendar_grid.add_widget(card)
+
     def build_calendar(self):
-
-        self.ids.calendar_grid.clear_widgets()
-
         self.ids.month_label.text = (
-            date(self.current_year,self.current_month,1)
-            .strftime("%B %Y")
+            date(self.current_year, self.current_month, 1).strftime('%B %Y')
         )
-
         first_weekday, days = monthrange(
             self.current_year,
             self.current_month
         )
 
-        for _ in range(first_weekday):
-            card = Factory.CalendarDay()
-            card.ripple_behavior = False
-            self.ids.calendar_grid.add_widget(card)
+        day = 1
 
-        for day in range(1, days + 1):
+        for i, card in enumerate(self.day_widgets):
+            if first_weekday <= i < first_weekday + days:
+                card.day = day
+                card.text = str(day)
+                card.disabled = False
+                card.ripple_behavior = True
+                day += 1
 
-            card = Factory.CalendarDay()
-            card.ids.label.text = str(day)
-            card.picker = self
-            self.ids.calendar_grid.add_widget(card)
+            else:
+                card.day = 0
+                card.text = ''
+                card.disabled = True
+                card.ripple_behavior = False
 
     def select_day(self, day):
-        self.selected_day = int(day.text)
+        self.selected_day = day.day
 
         selected = date(
             self.current_year,

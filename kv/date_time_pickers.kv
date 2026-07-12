@@ -1,19 +1,16 @@
 #:import dp kivy.metrics.dp
 
-<CalendarDay@MDCard>
+<CalendarDay>
 
     size_hint: None, None
     size: dp(32), dp(32)
+
+    halign: 'center'
+    valign: 'middle'
+    text_size: self.size
+
     on_release:
-        self.picker.select_day(label)
-
-    radius: [16]
-    ripple_behavior: True
-
-    MDLabel:
-        id: label
-        halign: "center"
-        valign: "middle"
+        if self.day: self.picker.select_day(self)
     
 <DatePickerDialog>
 
