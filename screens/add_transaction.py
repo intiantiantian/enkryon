@@ -21,21 +21,22 @@ from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 
 class AddTransactionScreen(Screen):
 
-    KEYS = [
-        "1", "2", "3", "backspace",
-        "4", "5", "6", "C",
-        "7", "8", "9", ".",
-        "", "0", "00", "",
-    ]
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+        self.KEYS = [
+            "1", "2", "3", "backspace",
+            "4", "5", "6", "C",
+            "7", "8", "9", ".",
+            "", "0", "00", "",
+        ]
 
-    amount = '0'
-    transaction_type = None
+        self.amount = '0'
+        self.transaction_type = None
+        self.build_keypad()
 
     def go_to_dashboard(self):
         self.reset_form()
-        self.manager.get_screen("dashboard").load_dashboard()
-
         self.manager.current = 'dashboard'
     
     def press_key(self, key):
@@ -68,7 +69,6 @@ class AddTransactionScreen(Screen):
         self.ids.amount_label.text = f'₱ {self.amount}'
     
     def on_pre_enter(self):
-        self.build_keypad()
 
         if getattr(self, 'editing_transaction_id', None):
             return
@@ -312,7 +312,10 @@ class AddTransactionScreen(Screen):
         else:
             insert_transaction(account, amount, category, date_time, notes)
             show_snackbar("Transaction added successfully.")
-        self.go_to_dashboard()
+        
+        dashboard = self.manager.get_screen('dashboard')
+        dashboard.load_dashboard()
+        self.manager.current = 'dashboard'
 
     def validate_form(self):
 

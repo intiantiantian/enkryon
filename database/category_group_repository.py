@@ -73,7 +73,7 @@ def get_all_category_groups():
 def get_category_groups_by_type(transaction_type):
     connection = connect_database()
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM category_groups WHERE transaction_type = ? ORDER BY name', (transaction_type,))
+    cursor.execute('SELECT * FROM category_groups WHERE transaction_type = ? ORDER BY name COLLATE NOCASE', (transaction_type,))
     category_groups = cursor.fetchall()
     connection.close()
     return category_groups

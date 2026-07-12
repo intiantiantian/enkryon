@@ -17,7 +17,7 @@ def create_accounts_table():
 def get_all_accounts():
     connection = connect_database()
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM accounts')
+    cursor.execute('SELECT * FROM accounts ORDER BY name COLLATE NOCASE')
     accounts = cursor.fetchall()
     connection.close()
     return accounts

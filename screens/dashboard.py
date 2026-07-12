@@ -13,9 +13,13 @@ from database.transaction_repository import (
 from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
 class DashboardScreen(Screen):
 
-    selected_account_id = None
-    balance_visible = True
-    transaction_filter = None
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.selected_account_id = None
+        self.balance_visible = True
+        self.transaction_filter = None
+        self.first_load = True
 
     def go_to_add_transaction(self):
         self.manager.current = 'add_transaction'
@@ -33,17 +37,26 @@ class DashboardScreen(Screen):
         self.manager.current = 'transactions'
 
     def on_pre_enter(self):
+        self.reset_dashboard()
+
+        if self.first_load:
+            self.load_dashboard()
+            self.first_load = False
+
+    def reset_dashboard(self):
         self.ids.all_filter.md_bg_color = get_color_from_hex('#D5F4BE')
         self.ids.income_filter.md_bg_color = get_color_from_hex("#FFFFFF")
         self.ids.expense_filter.md_bg_color = get_color_from_hex("#FFFFFF")
         self.transaction_filter = None
 
         if self.selected_account_id is None:
-            self.ids.account_label.text = "All Accounts"
-
-        self.load_dashboard()
+            self.ids.account_label.text = 'All Accounts'
 
     def load_dashboard(self):
+        self.load_summary()
+        self.load_recent_transactions()
+
+    def load_summary(self):
         balance = get_current_balance(self.selected_account_id)
         income = get_total_amount('income', self.selected_account_id)
         expense = get_total_amount('expense', self.selected_account_id)
@@ -59,6 +72,7 @@ class DashboardScreen(Screen):
             self.ids.expense_label.text = "₱ ******"
             self.ids.eye_button.icon = "eye-off"
 
+    def load_recent_transactions(self):
         load_transactions(self, limit=5)
 
     def set_transaction_filter(self, transaction_type):
@@ -79,7 +93,7 @@ class DashboardScreen(Screen):
             active if transaction_type == 'expense' else inactive
         )
         
-        load_transactions(self, limit=5)
+        self.load_recent_transactions()
 
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen('add_transaction')
@@ -141,4 +155,4 @@ class DashboardScreen(Screen):
 
     def toggle_balance(self):
         self.balance_visible = not self.balance_visible
-        self.load_dashboard()
+        self.load_summary()

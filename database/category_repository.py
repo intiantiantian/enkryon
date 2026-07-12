@@ -92,7 +92,7 @@ def get_categories_by_group(group_id):
         FROM categories
         INNER JOIN category_groups ON categories.group_id = category_groups.group_id
         WHERE categories.group_id = ?
-        ORDER BY category_groups.name, categories.name
+        ORDER BY categories.name COLLATE NOCASE
     ''', (group_id,))
     categories_by_group = cursor.fetchall()
     connection.close()
