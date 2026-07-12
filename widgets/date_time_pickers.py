@@ -1,6 +1,6 @@
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty, BooleanProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.label import MDLabel
 
@@ -12,22 +12,30 @@ from kivy.factory import Factory
 class CalendarDay(ButtonBehavior, MDLabel):
     day = NumericProperty(0)
     picker = ObjectProperty(None)
+    selected = BooleanProperty(False)
 
 class DatePickerDialog(ModalView):
 
     day = NumericProperty(0)
 
-    def __init__(self, callback=None, **kwargs):
+    def __init__(self, callback=None, initial_date=None, **kwargs):
         super().__init__(**kwargs)
         self.callback = callback
-        today = date.today()
-        self.day_widgets = []
-        self.current_year = today.year
-        self.current_month = today.month
-        self.selected_day = today.day
 
-    def on_open(self):
+        selected = initial_date or date.today()
+        
+        self.current_month = selected.month
+        self.current_year = selected.year
+
+        self.selected_year = selected.year
+        self.selected_month = selected.month
+        self.selected_day = selected.day
+
+        self.day_widgets = []
+
         self.build_weekdays()
+
+    def on_pre_open(self):
         if not self.day_widgets:
             self.build_calendar_widgets()
         self.build_calendar()
@@ -62,6 +70,11 @@ class DatePickerDialog(ModalView):
         for i, card in enumerate(self.day_widgets):
             if first_weekday <= i < first_weekday + days:
                 card.day = day
+                card.selected = (
+                    day == self.selected_day
+                    and self.current_month == self.selected_month
+                    and self.current_year == self.selected_year
+                    )
                 card.text = str(day)
                 card.disabled = False
                 card.ripple_behavior = True
@@ -116,7 +129,7 @@ class TimePickerDialog(ModalView):
             self.minute = 0
             self.is_pm = False
 
-    def on_open(self):
+    def on_pre_open(self):
         self.ids.minute_picker.data = [
             {'text': f'{i:02d}'}
             for i in range(60)

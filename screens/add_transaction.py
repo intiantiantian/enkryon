@@ -3,7 +3,6 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex
 from kivy.factory import Factory
-from kivy.core.window import Window
 
 from datetime import datetime
 
@@ -278,8 +277,9 @@ class AddTransactionScreen(Screen):
         self.ids.time_label.text = now.strftime('%I:%M %p')
 
     def open_date_picker(self):
-        DatePickerDialog(callback=self.set_date).open()
-    
+        selected_date = datetime.strptime(self.ids.date_label.text, '%Y-%m-%d').date()
+        DatePickerDialog(callback=self.set_date, initial_date=selected_date).open()
+
     def open_time_picker(self):
         current_time = datetime.strptime(self.ids.time_label.text, '%I:%M %p').time()
         TimePickerDialog(callback=self.set_time, initial_time=current_time).open()

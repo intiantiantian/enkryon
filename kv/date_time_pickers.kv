@@ -11,10 +11,20 @@
 
     on_release:
         if self.day: self.picker.select_day(self)
+
+    canvas.before:
+        Color:
+            rgba: get_color_from_hex("#E8F5E9") if root.selected else (0, 0, 0, 0)
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [16]
     
 <DatePickerDialog>
 
-    size_hint: .42,.72
+    size_hint: .9, None
+    height: dp(430)
     auto_dismiss: False
 
     MDCard:
@@ -122,7 +132,7 @@
 
         MDCard:
             adaptive_height: True
-            padding: [20, 0, 0, 0]
+            padding: [50, 0, 0, 0]
 
             MDCard:
                 on_release:
@@ -217,7 +227,7 @@
         MDCard:
             orientation: 'horizontal'
             adaptive_height: True
-            padding: [20, 0, 20, 0]
+            padding: [50, 0, 50, 20]
 
             MDCard:
                 on_release:
@@ -228,7 +238,7 @@
                     halign: "left"
 
             OutlinedCard:
-                size_hint_x: .15
+                size_hint_x: .50
                 size_hint_y: None
                 height: '42dp'
                 pos_hint: {'center_y': .5}
