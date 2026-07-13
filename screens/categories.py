@@ -1,6 +1,5 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton
 from kivy.utils import get_color_from_hex
 
@@ -79,51 +78,36 @@ class CategoriesScreen(Screen):
         else:
             show_snackbar(f"Group name '{group_name}' already exists.")
 
-    def open_rename_dialog(self, group_id, group_name):
+    def rename_group(self, group_id, new_name):
 
-        if self.rename_dialog:
-            self.rename_dialog.dismiss()
-        
-        self.rename_dialog = MDDialog(
-            title="Rename Group",
-            type="custom",
-            content_cls=MDTextField(
-                text=group_name,
-                multiline=False
-            ),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_rename_dialog
-                ),
-                MDFlatButton(
-                    text="RENAME",
-                    on_release=lambda x: self.rename_group(group_id)
-                )
-            ]
-        )
-        self.rename_dialog.open()
+        new_name = new_name.strip()
 
-    def close_rename_dialog(self, *args):
-        self.rename_dialog.dismiss()
-        self.rename_dialog = None
-
-    def rename_group(self, group_id):
-
-        new_name = self.rename_dialog.content_cls.text.strip()
         if not new_name:
-            show_snackbar("New group name cannot be empty")
+            show_snackbar("New group name cannot be empty.")
             return
-        
+
         success = update_category_group(group_id, new_name)
 
         if success:
-            show_snackbar(f"Group renamed to '{new_name}' successfully.")
-            self.close_rename_dialog()
+            show_snackbar(
+                f"Group renamed to '{new_name}' successfully."
+            )
             self.load_groups()
         else:
+            show_snackbar(
+                f"Group name '{new_name}' already exists."
+            )
             show_snackbar(f"Group name '{new_name}' already exists.")
 
+    def edit_group(self, group_id, group_name):
+        InputDialog(
+            title="Rename Group",
+            hint_text="Group name...",
+            text=group_name,
+            callback=lambda name:
+                self.rename_group(group_id, name)
+        ).open()
+    
     def perform_delete_group(self, group_id):
         self.close_delete_dialog()
         success = delete_category_group(group_id)
@@ -177,48 +161,33 @@ class CategoriesScreen(Screen):
         else:
             show_snackbar(f"Category name '{category_name}' already exists.")
 
-    def open_rename_category_dialog(self, category_id, category_name):
-        if self.rename_category_dialog:
-            self.rename_category_dialog.dismiss()
-        
-        self.rename_category_dialog = MDDialog(
-            title="Rename Category",
-            type="custom",
-            content_cls=MDTextField(
-                text=category_name,
-                multiline=False
-            ),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_rename_category_dialog
-                ),
-                MDFlatButton(
-                    text="RENAME",
-                    on_release=lambda x: self.rename_category(category_id)
-                )
-            ]
-        )
-        self.rename_category_dialog.open()
+    def rename_category(self, category_id, new_name):
 
-    def close_rename_category_dialog(self, *args):
-        self.rename_category_dialog.dismiss()
-        self.rename_category_dialog = None
+        new_name = new_name.strip()
 
-    def rename_category(self, category_id):
-        new_name = self.rename_category_dialog.content_cls.text.strip()
         if not new_name:
-            show_snackbar("New category name cannot be empty")
+            show_snackbar("New category name cannot be empty.")
             return
-        
+
         success = update_category(category_id, new_name)
 
         if success:
-            show_snackbar(f"Category renamed to '{new_name}' successfully.")
-            self.close_rename_category_dialog()
+            show_snackbar(
+                f"Category renamed to '{new_name}' successfully."
+            )
             self.load_groups()
         else:
-            show_snackbar(f"Category name '{new_name}' already exists.")
+            show_snackbar(
+                f"Category name '{new_name}' already exists."
+            )
+
+    def edit_category(self, category_id, category_name):
+        InputDialog(
+            title="Rename Category",
+            hint_text="Category name...",
+            text=category_name,
+            callback=lambda name: self.rename_category(category_id, name)
+        ).open()
 
     def perform_delete_category(self, category_id):
         self.close_delete_category_dialog()

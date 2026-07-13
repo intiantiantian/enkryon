@@ -1,5 +1,4 @@
 from kivymd.uix.card import MDCard
-from kivy.factory import Factory
 
 from database.category_repository import get_categories_by_group
 
@@ -17,7 +16,10 @@ class CategoryGroupCard(MDCard):
         self.ids.group_name.text = group[1]
 
     def edit_group(self):
-        self.screen.open_rename_dialog(self.group_id, self.ids.group_name.text)
+        self.screen.edit_group(
+            self.group_id,
+            self.ids.group_name.text
+        )
 
     def delete_group(self):
         self.screen.confirm_delete_group(self.group_id)

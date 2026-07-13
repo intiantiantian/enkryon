@@ -12,7 +12,10 @@ class CategoryCard(MDCard):
         self.category_id = category[0]
 
     def edit_category(self):
-        self.screen.open_rename_category_dialog(self.category_id, self.ids.category_name.text)
+        self.screen.edit_category(
+            self.category_id,
+            self.ids.category_name.text
+        )
 
     def delete_category(self):
         self.screen.confirm_delete_category(self.category_id)
