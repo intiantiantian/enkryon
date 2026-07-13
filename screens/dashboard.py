@@ -120,7 +120,7 @@ class DashboardScreen(Screen):
     def open_account_menu(self):
         accounts = get_all_accounts()
         if not accounts:
-            self.ids.account_button.text = 'No Accounts'
+            self.ids.account_label.text = 'No Accounts'
             return
 
         menu_items = []

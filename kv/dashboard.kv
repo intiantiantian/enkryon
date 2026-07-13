@@ -277,7 +277,6 @@
                             id: all_filter
                             on_release:
                                 root.set_transaction_filter(None)
-                            ripple_behavior: True
                             md_bg_color: get_color_from_hex('#D5F4BE')
                             radius: [10]
 
@@ -289,10 +288,8 @@
 
                         OutlinedCard:
                             id: income_filter
-                            # go income toggled transactions
                             on_release:
                                 root.set_transaction_filter('income')
-                            ripple_behavior: True
                             md_bg_color: get_color_from_hex('#D5F4BE')
                             radius: [10]
 
@@ -304,10 +301,8 @@
 
                         OutlinedCard:
                             id: expense_filter
-                            # go expense toggled transactions
                             on_release:
                                 root.set_transaction_filter('expense')
-                            ripple_behavior: True
                             md_bg_color: get_color_from_hex('#D5F4BE')
                             radius: [10]
 

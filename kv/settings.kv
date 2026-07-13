@@ -1,14 +1,69 @@
-<SettingsScreen>:
+<SettingsScreen>
     BoxLayout:
         orientation: 'vertical'
-        padding: 20
-        spacing: 15
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex('#F8F7F4')
 
-        Label:
-            text: 'Settings'
-            font_size: '30sp'
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
-        Button:
-            text: 'Back to Dashboard'
-            on_release:
-                root.go_to_dashboard()
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '64dp'
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex('#B7E892')
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex('#1B5E20')
+                pos_hint: {'center_y': .5}
+
+            MDLabel:
+                text: 'Settings'
+                font_size: '26sp'
+                size_hint_x: 1
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex('#1B5E20')
+
+        Widget:
+            size_hint_y: None
+            height: "1dp"
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex("#D8D8D8")
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size        
+
+        ScrollView:
+            size_hint_y: 1
+            
+            BoxLayout:
+                orientation: 'vertical'
+                padding: '10dp'
+                spacing: '10dp'
+
+                OutlinedCard:
+                    size_hint_y: None
+                    height: '56dp'
+                    padding: '10dp'
+                    on_release: root.clear_data()
+
+                    MDLabel:
+                        text: 'Clear All Data'
+                        theme_text_color: 'Error'
+                        bold: True

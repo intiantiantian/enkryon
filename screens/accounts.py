@@ -48,7 +48,6 @@ class AccountsScreen(Screen):
 
         if success:
             show_snackbar(f"Account '{account_name}' added successfully.")
-            self.ids.account_name_input.text = ''
             self.load_accounts()
         else:
             show_snackbar(f"Account '{account_name}' already exists.")

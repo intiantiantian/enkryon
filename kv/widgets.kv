@@ -58,3 +58,81 @@
         halign: "center"
         theme_text_color: "Custom"
         text_color: 1,1,1,1
+
+<TransactionCard>
+    size_hint_y: None
+    height: self.minimum_height
+
+    canvas.after:
+        Color:
+            rgba: get_color_from_hex("#1B5E20")
+
+        Line:
+            rounded_rectangle:
+                (self.x, self.y,
+                self.width, self.height,
+                self.radius[0])
+            width: 1.2
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: '10dp'
+        size_hint: 1, None
+        height: self.minimum_height
+
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, None
+                adaptive_height: True
+
+                MDLabel:
+                    id: account_name
+
+                MDLabel:
+                    id: date_time
+                    font_size: '8sp'
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, None
+                adaptive_height: True
+
+                MDLabel:
+                    id: group_name
+                    font_size: '12sp'
+
+                MDLabel:
+                    id: category_name
+                    font_size: '12sp'
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 1, None
+                adaptive_height: True
+
+                MDLabel:
+                    id: transaction_type
+                    font_size: '12sp'
+
+                MDLabel:
+                    id: amount
+
+        BoxLayout:
+            size_hint_x: None
+            width: self.minimum_width
+
+            MDIconButton:
+                icon: 'pencil'
+                icon_size: '18sp'
+                on_release:
+                    root.edit_transaction()
+
+            MDIconButton:
+                icon: 'delete'
+                icon_size: '18sp'
+                on_release:
+                    root.delete_transaction()

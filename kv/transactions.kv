@@ -1,59 +1,3 @@
-<TransactionCard>
-    size_hint_y: None
-    height: 100
-
-    canvas.after:
-        Color:
-            rgba: get_color_from_hex("#1B5E20")
-
-        Line:
-            rounded_rectangle:
-                (self.x, self.y,
-                self.width, self.height,
-                self.radius[0])
-            width: 1.2
-
-    BoxLayout:
-        orientation: 'horizontal'
-        padding: '10dp'
-
-        GridLayout:
-            cols: 3
-            rows: 2
-            size_hint_x: 0.85
-
-            MDLabel:
-                id: account_name
-
-            MDLabel:
-                id: group_name
-
-            MDLabel:
-                id: transaction_type
-
-            MDLabel:
-                id: date_time
-
-            MDLabel:
-                id: category_name
-
-            MDLabel:
-                id: amount
-
-        GridLayout:
-            cols: 2
-            size_hint_x: 0.15
-
-            MDIconButton:
-                icon: 'pencil'
-                on_release:
-                    root.edit_transaction()
-
-            MDIconButton:
-                icon: 'delete'
-                on_release:
-                    root.delete_transaction()
-
 <TransactionsScreen>
     BoxLayout:
         orientation: 'vertical'
@@ -117,7 +61,6 @@
                 id: all_filter
                 on_release:
                     root.set_transaction_filter(None)
-                ripple_behavior: True
                 md_bg_color: get_color_from_hex('#D5F4BE')
                 radius: [10]
 
@@ -131,7 +74,6 @@
                 id: income_filter
                 on_release:
                     root.set_transaction_filter('income')
-                ripple_behavior: True
                 md_bg_color: get_color_from_hex('#D5F4BE')
                 radius: [10]
 
@@ -145,7 +87,6 @@
                 id: expense_filter
                 on_release:
                     root.set_transaction_filter('expense')
-                ripple_behavior: True
                 md_bg_color: get_color_from_hex('#D5F4BE')
                 radius: [10]
 
