@@ -3,7 +3,7 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgba: get_color_from_hex('#F8F7F4')
+                rgba: get_color_from_hex(Colors.BACKGROUND)
 
             Rectangle:
                 pos: self.pos
@@ -17,7 +17,7 @@
             spacing: '8dp'
             canvas.before:
                 Color:
-                    rgba: get_color_from_hex('#B7E892')
+                    rgba: get_color_from_hex(Colors.SURFACE_MUTED)
 
                 Rectangle:
                     pos: self.pos
@@ -27,7 +27,7 @@
                 icon: 'arrow-left'
                 on_release: root.go_to_dashboard()
                 theme_icon_color: 'Custom'
-                icon_color: get_color_from_hex('#1B5E20')
+                icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                 pos_hint: {'center_y': .5}
 
             MDLabel:
@@ -35,7 +35,7 @@
                 font_size: '26sp'
                 size_hint_x: 1
                 theme_text_color: 'Custom'
-                text_color: get_color_from_hex('#1B5E20')
+                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
         Widget:
             size_hint_y: None
@@ -43,7 +43,7 @@
 
             canvas.before:
                 Color:
-                    rgba: get_color_from_hex("#D8D8D8")
+                    rgba: get_color_from_hex(Colors.BORDER)
 
                 Rectangle:
                     pos: self.pos

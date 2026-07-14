@@ -3,7 +3,7 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgba: get_color_from_hex('#F8F7F4')
+                rgba: get_color_from_hex(Colors.BACKGROUND)
 
             Rectangle:
                 pos: self.pos
@@ -17,7 +17,7 @@
             spacing: '8dp'
             canvas.before:
                 Color:
-                    rgba: get_color_from_hex('#B7E892')
+                    rgba: get_color_from_hex(Colors.SURFACE_MUTED)
 
                 Rectangle:
                     pos: self.pos
@@ -28,13 +28,13 @@
                 font_size: '26sp'
                 size_hint_x: 1
                 theme_text_color: 'Custom'
-                text_color: get_color_from_hex('#1B5E20')
+                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
             MDIconButton:
                 icon: 'cog'
                 on_release: root.go_to_settings()
                 theme_icon_color: 'Custom'
-                icon_color: get_color_from_hex('#1B5E20')
+                icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                 pos_hint: {'center_y': .5}
 
         Widget:
@@ -43,7 +43,7 @@
 
             canvas.before:
                 Color:
-                    rgba: get_color_from_hex("#D8D8D8")
+                    rgba: get_color_from_hex(Colors.BORDER)
 
                 Rectangle:
                     pos: self.pos
@@ -97,12 +97,12 @@
                                     halign: 'center'
                                     id: account_label
                                     theme_text_color: 'Custom'
-                                    text_color: get_color_from_hex('#1B5E20')
+                                    text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                             MDIconButton:
                                 id: eye_button
                                 theme_icon_color: 'Custom'
-                                icon_color: get_color_from_hex('#1B5E20')
+                                icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                                 on_release:
                                     root.toggle_balance()
 
@@ -146,7 +146,7 @@
                             text: '+ Add Transaction'
                             halign: 'center'
                             theme_text_color: 'Custom'
-                            text_color: get_color_from_hex('#1B5E20')
+                            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                     OutlinedCard:
                         ripple_behavior: True
@@ -160,7 +160,7 @@
                             text: 'Manage Accounts'
                             halign: 'center'
                             theme_text_color: 'Custom'
-                            text_color: get_color_from_hex('#1B5E20')
+                            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                     OutlinedCard:
                         ripple_behavior: True
@@ -174,7 +174,7 @@
                             text: 'Manage Categories'
                             halign: 'center'
                             theme_text_color: 'Custom'
-                            text_color: get_color_from_hex('#1B5E20')
+                            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                 BoxLayout:
                     orientation: 'horizontal'
@@ -205,7 +205,7 @@
                                     halign: 'center'
                                     text: 'INCOME'
                                     theme_text_color: 'Custom'
-                                    text_color: get_color_from_hex('#1B5E20')
+                                    text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                         MDLabel:
                             id: income_label
@@ -240,7 +240,7 @@
                                     halign: 'center'
                                     text: 'EXPENSE'
                                     theme_text_color: 'Custom'
-                                    text_color: get_color_from_hex('#1B5E20')
+                                    text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                         MDLabel:
                             id: expense_label
@@ -277,7 +277,7 @@
                             icon: 'chevron-right'
                             pos_hint: {'center_y': .5}
                             theme_icon_color: 'Custom'
-                            icon_color: get_color_from_hex('#1B5E20')
+                            icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                             on_release:
                                 root.go_to_transactions()
 
@@ -299,7 +299,7 @@
                                 halign: 'center'
                                 text: 'All'
                                 theme_text_color: 'Custom'
-                                text_color: get_color_from_hex('#1B5E20')
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                         OutlinedCard:
                             id: income_filter
@@ -312,7 +312,7 @@
                                 halign: 'center'
                                 text: 'INCOME'
                                 theme_text_color: 'Custom'
-                                text_color: get_color_from_hex('#1B5E20')
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                         OutlinedCard:
                             id: expense_filter
@@ -325,7 +325,7 @@
                                 halign: 'center'
                                 text: 'EXPENSE'
                                 theme_text_color: 'Custom'
-                                text_color: get_color_from_hex('#1B5E20')
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                     BoxLayout:
                         id: transactions_container
