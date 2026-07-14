@@ -1,4 +1,4 @@
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDRectangleFlatButton
 
 from theme.tokens import Colors, ComponentSize, Radius, hex_to_rgba
 
@@ -46,14 +46,16 @@ class EnkryonSecondaryButton(MDRaisedButton):
         self.height = SECONDARY_BUTTON_STYLE["height"]
         self.radius = SECONDARY_BUTTON_STYLE["radius"]
 
-
-class EnkryonFilterButton(MDRaisedButton):
+class EnkryonFilterButton(MDRectangleFlatButton):
     def __init__(self, selected=False, **kwargs):
         super().__init__(**kwargs)
         self.height = ComponentSize.SMALL_BUTTON_HEIGHT
         self.radius = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
         self.set_selected(selected)
-
+        self.ripple_behavior = False
+        self.line_color = hex_to_rgba(Colors.BRAND_PRIMARY)
+        self.text_color = hex_to_rgba(Colors.BRAND_PRIMARY)
+        
     def set_selected(self, selected):
         colors = get_filter_button_colors(selected)
         self.md_bg_color = colors["background_color"]
