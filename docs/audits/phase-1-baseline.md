@@ -1,0 +1,463 @@
+# Phase 1 Baseline
+
+## Environment
+
+* Python: 3.13.14
+* Kivy: 2.3.1
+* KivyMD: 1.2.0
+* Operating system: Windows 11
+* Tested date: July 14, 2026
+
+## Test Conditions
+
+The application was tested from a clean installation state with:
+
+* no accounts;
+* no category groups;
+* no categories;
+* no transactions;
+* no existing user data.
+
+Testing followed the expected first-time-user workflow:
+
+1. Launch the application.
+2. Inspect all empty states.
+3. Create an account.
+4. Create income and expense category groups.
+5. Create income and expense categories.
+6. Create income and expense transactions.
+7. Edit and delete transactions.
+8. Rename accounts and categories.
+9. Test data relationships.
+10. Restart the application and verify persistence.
+11. Clear all application data.
+
+## Working Features
+
+### Application
+
+* [x] Launch application with a clean database
+* [x] Display zero balances on first launch
+* [x] Navigate between existing screens
+* [x] Preserve data after restarting the application
+* [x] Clear all application data
+* [x] Cancel the Clear Data confirmation
+
+### Accounts
+
+* [x] Create account
+* [x] Reject empty account name
+* [x] Reject duplicate account name
+* [x] Rename account
+* [x] Delete unused account
+* [ ] Refresh renamed account across all screens
+* [ ] Protect accounts referenced by transactions
+
+### Categories
+
+* [x] Create income category group
+* [x] Create expense category group
+* [x] Create income category
+* [x] Create expense category
+* [x] Rename category group
+* [x] Rename category
+* [x] Expand and collapse category groups
+* [x] Reject empty category and group names
+* [ ] Validate duplicate category and group names consistently
+* [ ] Protect categories referenced by transactions
+
+### Transactions
+
+* [x] Add income
+* [x] Add expense
+* [x] Edit transaction
+* [x] Change transaction type while editing
+* [x] Delete transaction
+* [x] Recalculate account balance
+* [x] Recalculate income and expense totals
+* [x] Display transactions in transaction history
+* [x] Preserve transactions after application restart
+* [x] Validate missing amount
+* [x] Validate zero amount
+* [x] Validate missing account
+* [x] Validate missing category
+* [x] Prevent multiple decimal points
+* [x] Support keypad delete and clear actions
+* [ ] Handle excessively large monetary values safely
+* [ ] Support all planned transaction filters
+
+### Filters
+
+* [x] Display all transactions
+* [x] Filter income transactions
+* [x] Filter expense transactions
+* [x] Filter transactions by account
+* [ ] Filter transactions by category
+* [ ] Filter transactions by date
+* [ ] Reset all filters
+* [ ] Display an empty state when filters return no results
+
+## Known Defects
+
+### DEF-001 — Referenced account can be deleted
+
+**Severity:** Critical
+
+**Related test:** BL-025
+
+**Screen:** Accounts and Edit Transaction
+
+**Precondition:**
+
+An account exists and is referenced by at least one transaction.
+
+**Steps to reproduce:**
+
+1. Create an account.
+2. Create a transaction using the account.
+3. Open the Accounts screen.
+4. Delete the account.
+5. Open the related transaction for editing.
+
+**Expected:**
+
+The account should not be deleted while it is referenced by an existing transaction. The application should display a clear warning explaining why the account cannot be deleted.
+
+**Actual:**
+
+The account is deleted successfully. Opening the related transaction for editing causes the application to crash.
+
+**Suspected cause:**
+
+* missing foreign-key enforcement;
+* missing repository-level reference check;
+* transaction editor assumes that the referenced account always exists.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+---
+
+### DEF-002 — Referenced category can be deleted
+
+**Severity:** Critical
+
+**Related test:** BL-026
+
+**Screen:** Categories and Edit Transaction
+
+**Precondition:**
+
+A category exists and is referenced by at least one transaction.
+
+**Steps to reproduce:**
+
+1. Create a category.
+2. Create a transaction using the category.
+3. Open the Categories screen.
+4. Delete the category.
+5. Open the related transaction for editing.
+
+**Expected:**
+
+The category should not be deleted while it is referenced by an existing transaction. The application should display a clear warning explaining why the category cannot be deleted.
+
+**Actual:**
+
+The category is deleted successfully. Opening the related transaction for editing causes the application to crash.
+
+**Suspected cause:**
+
+* missing foreign-key enforcement;
+* missing repository-level reference check;
+* transaction editor assumes that the referenced category always exists.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+---
+
+### DEF-003 — Renamed account is not refreshed on the Dashboard
+
+**Severity:** Medium
+
+**Related test:** BL-010
+
+**Screen:** Dashboard
+
+**Precondition:**
+
+An account exists and is already available in the Dashboard account filter.
+
+**Steps to reproduce:**
+
+1. Create an account named `Cash`.
+2. Open the Dashboard.
+3. Rename the account to `Cash Wallet`.
+4. Return to the Dashboard.
+5. Open the account filter.
+
+**Expected:**
+
+The account filter should display `Cash Wallet`, and the old name should no longer appear.
+
+**Actual:**
+
+The account is renamed in the Accounts screen, but the Dashboard filter continues to display the old account name.
+
+**Suspected cause:**
+
+* cached account menu items;
+* missing screen refresh;
+* account options loaded only during initial screen creation.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+---
+
+### DEF-004 — Duplicate category validation is inconsistent
+
+**Severity:** Medium
+
+**Related test:** BL-015
+
+**Screen:** Categories
+
+**Precondition:**
+
+A category group or category with the same name already exists in another transaction type or parent group.
+
+**Steps to reproduce:**
+
+1. Create a group or category.
+2. Switch to the other transaction type or another parent group.
+3. Create another group or category using the same name.
+4. Save the new entry.
+
+**Expected:**
+
+The application should consistently do one of the following:
+
+* allow the duplicate without showing an error when duplicates are valid in that scope; or
+* prevent creation and show a duplicate warning.
+
+**Actual:**
+
+A duplicate warning snackbar appears, but the group or category is still created successfully.
+
+**Suspected cause:**
+
+* validation checks a different scope than the database constraint;
+* the creation function continues after displaying the snackbar;
+* duplicate queries do not account for transaction type or parent group correctly.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+---
+
+### DEF-005 — Large monetary values break the interface layout
+
+**Severity:** High
+
+**Related tests:** BL-018 and BL-023
+
+**Screen:** Dashboard and other monetary displays
+
+**Precondition:**
+
+A transaction contains an excessively large amount.
+
+**Steps to reproduce:**
+
+1. Create a transaction with a very large amount.
+2. Save the transaction.
+3. Return to the Dashboard.
+4. Inspect the balance, income, and expense values.
+5. Open other screens that display the transaction amount.
+
+**Expected:**
+
+Large values should remain readable and contained within their assigned components. Text should resize, shorten, wrap appropriately, or remain constrained without overlapping nearby elements.
+
+**Actual:**
+
+Large monetary values overflow their containers and ruin the screen layout.
+
+**Suspected cause:**
+
+* fixed font sizes;
+* fixed card dimensions;
+* missing text shortening;
+* missing adaptive font sizing;
+* labels without width constraints.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+---
+
+### DEF-006 — Transactions screen has no empty-state message
+
+**Severity:** Low
+
+**Related test:** BL-005
+
+**Screen:** Transactions
+
+**Precondition:**
+
+No transactions exist.
+
+**Steps to reproduce:**
+
+1. Clear all application data.
+2. Open the Transactions screen.
+
+**Expected:**
+
+The screen should explain that no transactions exist and provide a clear action for creating the first transaction.
+
+**Actual:**
+
+The screen displays the filters and an otherwise blank content area.
+
+**Suspected cause:**
+
+* missing transaction-list empty-state handling;
+* empty-state component not implemented;
+* empty-state visibility not updated after loading the transaction list.
+
+**Status:**
+
+* [x] Open
+* [ ] Fixed
+* [ ] Retested
+* [ ] Closed
+
+## Visual Inconsistencies
+
+### Branding
+
+* The app icon colors do not match the colors used inside the application.
+* The splash screen colors do not match the current app interface.
+* The icon uses a dark emerald and gold visual identity, while the app mainly uses pale and medium greens.
+* Gold from the icon is not consistently used as an accent inside the application.
+
+### Buttons
+
+* Dialog buttons use a different green from the primary buttons used on screens.
+* Management buttons for accounts and categories appear too tightly fitted.
+* Button sizes and internal padding require further review.
+* Empty-state screens do not consistently provide a clear action button.
+
+### Cards
+
+* Card padding is not consistent across all screens.
+* Text alignment varies between similar cards.
+* Large monetary values can overflow card boundaries.
+
+### Typography
+
+* Screen titles do not use a fully consistent typography style.
+* Section titles do not use a fully consistent typography style.
+* Body text does not use a fully consistent typography style.
+* Monetary values do not follow a consistent hierarchy.
+* Large values are not displayed responsively.
+
+### Colors
+
+* Income and expense values are not sufficiently distinguishable in every context.
+* Dialog components introduce a green that is inconsistent with the main interface.
+* The application does not yet use a centralized semantic color system.
+
+### Empty States
+
+* The Dashboard empty state is understandable.
+* The Accounts empty state is understandable.
+* The Categories empty state is understandable.
+* The Transactions screen does not display an appropriate empty state.
+* Empty states do not consistently provide a clear next action.
+
+### Layout
+
+* Large monetary values can overlap or overflow nearby components.
+* Long text has not yet been fully tested across all screens.
+* Some buttons appear too small or tightly fitted for their labels.
+* Layouts rely on fixed dimensions that may not support unusual content.
+* Scrollable content remains accessible during normal testing.
+
+## Skipped or Blocked Tests
+
+The following tests were skipped or blocked because the required features are not yet implemented:
+
+* category transaction filtering;
+* date transaction filtering;
+* filter reset behavior;
+* some filtered empty-result scenarios.
+
+These are classified as missing functionality rather than defects in an implemented feature.
+
+## Test Summary
+
+* Total test cases: 29
+* Passed: 21
+* Failed: 7
+* Blocked: 1
+* Not supported: 0
+
+## Defect Summary
+
+* Critical defects: 2
+* High-severity defects: 1
+* Medium-severity defects: 2
+* Low-severity defects: 1
+
+The failed tests BL-018 and BL-023 are represented by the same underlying large-value layout defect.
+
+## Baseline Decision
+
+* [ ] Stable enough to begin full visual refactoring
+* [x] Functional defects must be corrected first
+* [x] Database integrity issues must be corrected first
+* [ ] Additional baseline testing is required
+
+## Recommended Repair Order
+
+1. Prevent deletion of accounts referenced by transactions.
+2. Prevent deletion of categories referenced by transactions.
+3. Add defensive handling for existing orphaned transaction data.
+4. Correct large-value monetary layouts.
+5. Refresh account data after account creation, rename, and deletion.
+6. Correct duplicate category and group validation.
+7. Add a Transactions empty-state message.
+8. Complete the remaining transaction filters later in the feature roadmap.
+
+## Conclusion
+
+Enkryon’s primary account, category, and transaction workflows are functional. Users can create, edit, delete, and persist financial records under normal conditions.
+
+However, the application currently allows accounts and categories to be deleted while they are still referenced by transactions. This creates orphaned records and can cause the application to crash when those transactions are edited. These database integrity defects must be corrected before the main visual and architectural refactoring begins.
+
+After the critical and high-severity defects are fixed and retested, the application will be ready to proceed with the broader Phase 1 theme, design-system, and code-quality improvements.
