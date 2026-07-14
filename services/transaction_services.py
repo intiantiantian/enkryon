@@ -28,15 +28,21 @@ def get_empty_transaction_state(transaction_filter=None, compact=False):
         "message": "Go back to Dashboard and tap + Add Transaction."
     }
 
+def get_transactions_for_view(account_id=None, transaction_filter=None, limit=None):
+    return get_transactions(
+        account_id=account_id,
+        transaction_type=transaction_filter,
+        limit=limit
+    )
 
 def load_transactions(screen, limit=None, compact_empty_state=False):
     screen.ids.transactions_container.clear_widgets()
 
     account_id = getattr(screen, "selected_account_id", None)
 
-    transactions = get_transactions(
+    transactions = get_transactions_for_view(
         account_id=account_id,
-        transaction_type=screen.transaction_filter,
+        transaction_filter=screen.transaction_filter,
         limit=limit
     )
 
@@ -65,7 +71,6 @@ def perform_delete_transaction(self, transaction_id, dialog_screen):
     close_delete_transaction_dialog(dialog_screen)
     self.load_dashboard()
     show_snackbar("Transaction deleted successfully.")
-
 
 def close_delete_transaction_dialog(dialog_screen):
     dialog_screen.dismiss()
