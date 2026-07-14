@@ -4,6 +4,8 @@ from datetime import datetime
 
 from utils.money import format_signed_money
 
+from widgets.empty_state import EmptyState
+
 class TransactionCard(MDCard):
 
     def __init__(self, **kwargs):
@@ -36,3 +38,9 @@ class TransactionCard(MDCard):
 
     def delete_transaction(self):
         self.screen.confirm_delete_transaction(self.transaction_id)
+
+def create_transaction_empty_state(empty_state):
+    return EmptyState(
+        title=empty_state["title"],
+        message=empty_state["message"]
+    )

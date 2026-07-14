@@ -1,8 +1,8 @@
 from database.transaction_repository import delete_transaction, get_transactions
-from utils.snackbar import show_snackbar
-from widgets.transaction_card import TransactionCard
-from widgets.empty_state import EmptyState
 
+from utils.snackbar import show_snackbar
+
+from widgets.transaction_card import TransactionCard, create_transaction_empty_state
 
 def get_empty_transaction_state(transaction_filter=None, compact=False):
     if transaction_filter == "income":
@@ -53,10 +53,7 @@ def load_transactions(screen, limit=None, compact_empty_state=False):
         )
 
         screen.ids.transactions_container.add_widget(
-            EmptyState(
-                title=empty_state["title"],
-                message=empty_state["message"]
-            )
+            create_transaction_empty_state(empty_state)
         )
         return
 
