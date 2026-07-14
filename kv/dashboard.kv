@@ -87,7 +87,7 @@
                             OutlinedCard:
                                 id: account_selector
                                 ripple_behavior: True
-                                md_bg_color: get_color_from_hex('#D5F4BE')
+                                md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
                                 radius: [10]
                                 size_hint_x: 1
                                 on_release:
@@ -136,7 +136,7 @@
                         
                     OutlinedCard:
                         ripple_behavior: True
-                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        md_bg_color: get_color_from_hex(Colors.SURFACE_MUTED)
                         radius: [12]
                         size_hint_x: 1
                         on_release:
@@ -150,7 +150,7 @@
 
                     OutlinedCard:
                         ripple_behavior: True
-                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        md_bg_color: get_color_from_hex(Colors.SURFACE_MUTED)
                         radius: [12]
                         size_hint_x: 1
                         on_release:
@@ -164,7 +164,7 @@
 
                     OutlinedCard:
                         ripple_behavior: True
-                        md_bg_color: get_color_from_hex('#CCF0B3')
+                        md_bg_color: get_color_from_hex(Colors.SURFACE_MUTED)
                         radius: [12]
                         size_hint_x: 1
                         on_release:
@@ -199,7 +199,7 @@
                             size_hint_y: .35
 
                             OutlinedCard:
-                                md_bg_color: get_color_from_hex('#D5F4BE')
+                                md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
 
                                 MDLabel:
                                     halign: 'center'
@@ -235,7 +235,7 @@
                             size_hint_y: .35
 
                             OutlinedCard:
-                                md_bg_color: get_color_from_hex('#D5F4BE')
+                                md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
                                 MDLabel:
                                     halign: 'center'
                                     text: 'EXPENSE'
@@ -292,7 +292,7 @@
                             id: all_filter
                             on_release:
                                 root.set_transaction_filter(None)
-                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
                             radius: [10]
 
                             MDLabel:
@@ -305,7 +305,7 @@
                             id: income_filter
                             on_release:
                                 root.set_transaction_filter('income')
-                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
                             radius: [10]
 
                             MDLabel:
@@ -318,7 +318,7 @@
                             id: expense_filter
                             on_release:
                                 root.set_transaction_filter('expense')
-                            md_bg_color: get_color_from_hex('#D5F4BE')
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
                             radius: [10]
 
                             MDLabel:
