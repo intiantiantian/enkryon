@@ -117,14 +117,14 @@
                             size_hint: 1, None
                             height: "64dp"
                             ripple_behavior: True
-                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
+                            md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                             on_release: root.open_account_menu()
 
                             MDLabel:
                                 id: account_label
                                 halign: "center"
                                 theme_text_color: "Custom"
-                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
                     MDLabel:
                         id: amount_label
