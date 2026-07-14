@@ -11,6 +11,9 @@ from database.transaction_repository import (
 )
 
 from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
+
+from utils.money import format_money
+
 class DashboardScreen(Screen):
 
     def __init__(self, **kwargs):
@@ -62,9 +65,9 @@ class DashboardScreen(Screen):
         expense = get_total_amount('expense', self.selected_account_id)
 
         if self.balance_visible:
-            self.ids.balance_label.text = f"₱ {balance:,.2f}"
-            self.ids.income_label.text = f"₱ {income:,.2f}"
-            self.ids.expense_label.text = f"₱ {expense:,.2f}"
+            self.ids.balance_label.text = format_money(balance, compact=True)
+            self.ids.income_label.text = format_money(income, compact=True)
+            self.ids.expense_label.text = format_money(expense, compact=True)
             self.ids.eye_button.icon = "eye"
         else:
             self.ids.balance_label.text = "₱ ******"

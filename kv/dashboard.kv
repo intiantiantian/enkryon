@@ -122,6 +122,11 @@
                                 id: balance_label
                                 font_size: '42sp'
                                 halign: 'right'
+                                valign: 'middle'
+                                text_size: self.size
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'left'
                 
                 BoxLayout:
                     orientation: 'horizontal'
@@ -206,6 +211,11 @@
                             id: income_label
                             font_size: '32sp'
                             halign: 'center'
+                            valign: 'middle'
+                            text_size: self.size
+                            max_lines: 1
+                            shorten: True
+                            shorten_from: 'left'
                             size_hint_y: .65
 
                     OutlinedCard:
@@ -236,6 +246,11 @@
                             id: expense_label
                             font_size: '32sp'
                             halign: 'center'
+                            valign: 'middle'
+                            text_size: self.size
+                            max_lines: 1
+                            shorten: True
+                            shorten_from: 'left'
                             size_hint_y: .65
 
                 MDCard:

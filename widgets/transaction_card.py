@@ -2,6 +2,8 @@ from kivymd.uix.card import MDCard
 
 from datetime import datetime
 
+from utils.money import format_signed_money
+
 class TransactionCard(MDCard):
 
     def __init__(self, **kwargs):
@@ -16,12 +18,13 @@ class TransactionCard(MDCard):
         self.ids.category_name.text = transaction[3]
 
         amount = transaction[4]
+        transaction_type = transaction[7]
 
-        if transaction[7] == 'income':
-            self.ids.amount.text = f"+ ₱{amount}"
-
-        else:
-            self.ids.amount.text = f"- ₱{amount}"
+        self.ids.amount.text = format_signed_money(
+            amount,
+            transaction_type,
+            compact=True
+        )
 
         dt = datetime.strptime(transaction[5], "%Y-%m-%d %H:%M:%S")
         self.ids.date_time.text = dt.strftime("%Y-%m-%d %I:%M %p")

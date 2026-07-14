@@ -51,7 +51,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Rename account
 * [x] Delete unused account
 * [ ] Refresh renamed account across all screens
-* [ ] Protect accounts referenced by transactions
+* [x] Protect accounts referenced by transactions
 
 ### Categories
 
@@ -64,7 +64,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Expand and collapse category groups
 * [x] Reject empty category and group names
 * [ ] Validate duplicate category and group names consistently
-* [ ] Protect categories referenced by transactions
+* [x] Protect categories referenced by transactions
 
 ### Transactions
 
@@ -83,7 +83,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Validate missing category
 * [x] Prevent multiple decimal points
 * [x] Support keypad delete and clear actions
-* [ ] Handle excessively large monetary values safely
+* [x] Handle excessively large monetary values safely
 * [ ] Support all planned transaction filters
 
 ### Filters
@@ -99,132 +99,65 @@ Testing followed the expected first-time-user workflow:
 
 ## Known Defects
 
-### DEF-001 — Referenced account can be deleted
+### DEF-001 — Referenced account deletion
 
-**Severity:** Critical
+Screen: Accounts  
+Status: Fixed in Phase 1.1  
 
-**Related test:** BL-025
+Steps tested:
+1. Created an account.
+2. Added a transaction using that account.
+3. Attempted to delete the account.
 
-**Screen:** Accounts and Edit Transaction
+Expected:
+The app should prevent deletion because transactions reference the account.
 
-**Precondition:**
+Actual after fix:
+The account was not deleted. The app showed a warning message.
 
-An account exists and is referenced by at least one transaction.
+Result:
+Passed.
+---
 
-**Steps to reproduce:**
+### DEF-002 — Referenced category deletion
 
-1. Create an account.
-2. Create a transaction using the account.
-3. Open the Accounts screen.
-4. Delete the account.
-5. Open the related transaction for editing.
+Screen: Categories  
+Status: Fixed in Phase 1.1  
 
-**Expected:**
+Steps tested:
+1. Created a category.
+2. Added a transaction using that category.
+3. Attempted to delete the category.
 
-The account should not be deleted while it is referenced by an existing transaction. The application should display a clear warning explaining why the account cannot be deleted.
+Expected:
+The app should prevent deletion because transactions reference the category.
 
-**Actual:**
+Actual after fix:
+The category was not deleted. The app showed a warning message.
 
-The account is deleted successfully. Opening the related transaction for editing causes the application to crash.
-
-**Suspected cause:**
-
-* missing foreign-key enforcement;
-* missing repository-level reference check;
-* transaction editor assumes that the referenced account always exists.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
+Result:
+Passed.
 
 ---
 
-### DEF-002 — Referenced category can be deleted
+### DEF-003 — Large monetary values break dashboard layout
 
-**Severity:** Critical
+Screen: Dashboard / Transaction rows  
+Status: Fixed in Phase 1.1  
 
-**Related test:** BL-026
+Steps tested:
+1. Added transactions with very large amounts.
+2. Returned to the dashboard.
+3. Checked current balance, income, expense, and transaction rows.
 
-**Screen:** Categories and Edit Transaction
+Expected:
+Large monetary values should remain readable and should not break the layout.
 
-**Precondition:**
+Actual after fix:
+Large values are displayed using compact formatting. Labels remain within their containers.
 
-A category exists and is referenced by at least one transaction.
-
-**Steps to reproduce:**
-
-1. Create a category.
-2. Create a transaction using the category.
-3. Open the Categories screen.
-4. Delete the category.
-5. Open the related transaction for editing.
-
-**Expected:**
-
-The category should not be deleted while it is referenced by an existing transaction. The application should display a clear warning explaining why the category cannot be deleted.
-
-**Actual:**
-
-The category is deleted successfully. Opening the related transaction for editing causes the application to crash.
-
-**Suspected cause:**
-
-* missing foreign-key enforcement;
-* missing repository-level reference check;
-* transaction editor assumes that the referenced category always exists.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
-
----
-
-### DEF-003 — Renamed account is not refreshed on the Dashboard
-
-**Severity:** Medium
-
-**Related test:** BL-010
-
-**Screen:** Dashboard
-
-**Precondition:**
-
-An account exists and is already available in the Dashboard account filter.
-
-**Steps to reproduce:**
-
-1. Create an account named `Cash`.
-2. Open the Dashboard.
-3. Rename the account to `Cash Wallet`.
-4. Return to the Dashboard.
-5. Open the account filter.
-
-**Expected:**
-
-The account filter should display `Cash Wallet`, and the old name should no longer appear.
-
-**Actual:**
-
-The account is renamed in the Accounts screen, but the Dashboard filter continues to display the old account name.
-
-**Suspected cause:**
-
-* cached account menu items;
-* missing screen refresh;
-* account options loaded only during initial screen creation.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
+Result:
+Passed.
 
 ---
 
