@@ -14,10 +14,14 @@ from database.account_repository import create_accounts_table
 from database.category_group_repository import create_category_groups_table
 from database.category_repository import create_categories_table
 
+from theme.app_theme import apply_app_theme
+
 __version__ = "0.2.0"
 
 class EnkryonApp(MDApp):
     def build(self):
+
+        apply_app_theme(self)
 
         Builder.load_file('kv/widgets.kv')
         Builder.load_file('kv/dashboard.kv')
