@@ -16,7 +16,7 @@ from database.category_repository import create_categories_table
 
 __version__ = "0.2.0"
 
-class EnkyronApp(MDApp):
+class EnkryonApp(MDApp):
     def build(self):
 
         Builder.load_file('kv/widgets.kv')
@@ -46,4 +46,4 @@ class EnkyronApp(MDApp):
         return screen_manager
     
 if __name__ == '__main__':
-    EnkyronApp().run()
+    EnkryonApp().run()
