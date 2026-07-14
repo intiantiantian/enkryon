@@ -7,14 +7,14 @@ PRIMARY_BUTTON_STYLE = {
     "background_color": hex_to_rgba(Colors.BRAND_PRIMARY),
     "text_color": hex_to_rgba(Colors.TEXT_ON_PRIMARY),
     "height": ComponentSize.BUTTON_HEIGHT,
-    "radius": [Radius.MD],
+    "radius": [Radius.MD, Radius.MD, Radius.MD, Radius.MD],
 }
 
 SECONDARY_BUTTON_STYLE = {
     "background_color": hex_to_rgba(Colors.SURFACE),
     "text_color": hex_to_rgba(Colors.BRAND_PRIMARY),
     "height": ComponentSize.BUTTON_HEIGHT,
-    "radius": [Radius.MD],
+    "radius": [Radius.MD, Radius.MD, Radius.MD, Radius.MD],
 }
 
 
@@ -51,7 +51,7 @@ class EnkryonFilterButton(MDRaisedButton):
     def __init__(self, selected=False, **kwargs):
         super().__init__(**kwargs)
         self.height = ComponentSize.SMALL_BUTTON_HEIGHT
-        self.radius = [Radius.MD]
+        self.radius = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
         self.set_selected(selected)
 
     def set_selected(self, selected):

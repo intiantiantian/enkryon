@@ -134,47 +134,32 @@
                     height: '56dp'
                     spacing: '5dp'
                         
-                    OutlinedCard:
-                        ripple_behavior: True
-                        md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
-                        radius: [12]
+                    EnkryonPrimaryButton:
                         size_hint_x: 1
                         on_release:
                             root.go_to_add_transaction()
 
-                        MDLabel:
-                            text: '+ Add Transaction'
-                            halign: 'center'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                        text: '+ Add Transaction'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                    OutlinedCard:
-                        ripple_behavior: True
-                        md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
-                        radius: [12]
+                    EnkryonPrimaryButton:
                         size_hint_x: 1
                         on_release:
                             root.go_to_accounts()
 
-                        MDLabel:
-                            text: 'Manage Accounts'
-                            halign: 'center'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                        text: 'Manage Accounts'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                    OutlinedCard:
-                        ripple_behavior: True
-                        md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
-                        radius: [12]
+                    EnkryonPrimaryButton:
                         size_hint_x: 1
                         on_release:
                             root.go_to_categories()
 
-                        MDLabel:
-                            text: 'Manage Categories'
-                            halign: 'center'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                        text: 'Manage Categories'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
                 BoxLayout:
                     orientation: 'horizontal'
