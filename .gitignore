@@ -6,6 +6,7 @@ bin/
 
 # Local databases
 *.db
+database/*.db
 *.sqlite
 *.sqlite3
 
