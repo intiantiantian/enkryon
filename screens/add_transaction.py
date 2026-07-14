@@ -100,7 +100,7 @@ class AddTransactionScreen(Screen):
         self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
     
         self.selected_account_id = None
-        self.ids.account_label.text = 'Select Account'
+        self.ids.account_selector.text = 'Select Account'
 
         self.selected_group_id = None
         self.ids.group_label.text = 'No Transaction Type Selected'
@@ -118,7 +118,7 @@ class AddTransactionScreen(Screen):
     def open_account_menu(self):
         accounts = get_all_accounts()
         if not accounts:
-            self.ids.account_label.text = 'No Accounts'
+            self.ids.account_selector.text = 'No Accounts'
             return
 
         menu_items = []
@@ -146,7 +146,7 @@ class AddTransactionScreen(Screen):
         self.account_menu.open()
 
     def select_account(self, account_id, account_name):
-        self.ids.account_label.text = account_name
+        self.ids.account_selector.text = account_name
         self.selected_account_id = account_id
         self.account_menu.dismiss()
 
@@ -358,7 +358,7 @@ class AddTransactionScreen(Screen):
         self.selected_group_id = group_id
         self.selected_category_id = category_id
 
-        self.ids.account_label.text = account_name
+        self.ids.account_selector.text = account_name
         self.ids.group_label.text = group_name
         self.ids.category_label.text = category_name
         self.ids.category_selector.disabled = False
