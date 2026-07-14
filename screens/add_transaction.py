@@ -4,8 +4,6 @@ from kivy.uix.widget import Widget
 from kivy.utils import get_color_from_hex
 from kivy.factory import Factory
 
-from datetime import datetime
-
 from database.account_repository import get_all_accounts
 from database.category_group_repository import get_category_groups_by_type
 from database.category_repository import get_categories_by_group
@@ -18,6 +16,15 @@ from database.transaction_repository import (
 from utils.amount_input import apply_amount_key
 from utils.snackbar import show_snackbar
 from utils.transaction_validation import validate_transaction_form
+from utils.transaction_datetime import (
+    combine_date_time_labels,
+    format_date_label,
+    format_time_label,
+    get_current_transaction_datetime_labels,
+    parse_date_label,
+    parse_time_label,
+    split_database_datetime,
+)
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
@@ -252,23 +259,23 @@ class AddTransactionScreen(Screen):
             self.categories_menu.dismiss()
 
     def set_current_date_time(self):
-        now = datetime.now()
-        self.ids.date_label.text = now.strftime('%Y-%m-%d')
-        self.ids.time_label.text = now.strftime('%I:%M %p')
+        date_label, time_label = get_current_transaction_datetime_labels()
+        self.ids.date_label.text = date_label
+        self.ids.time_label.text = time_label
 
     def open_date_picker(self):
-        selected_date = datetime.strptime(self.ids.date_label.text, '%Y-%m-%d').date()
+        selected_date = parse_date_label(self.ids.date_label.text)
         DatePickerDialog(callback=self.set_date, initial_date=selected_date).open()
 
     def open_time_picker(self):
-        current_time = datetime.strptime(self.ids.time_label.text, '%I:%M %p').time()
+        current_time = parse_time_label(self.ids.time_label.text)
         TimePickerDialog(callback=self.set_time, initial_time=current_time).open()
 
     def set_date(self, selected_date):
-        self.ids.date_label.text = selected_date.strftime("%Y-%m-%d")
+        self.ids.date_label.text = format_date_label(selected_date)
 
     def set_time(self, selected_time):
-        self.ids.time_label.text = selected_time.strftime("%I:%M %p")
+        self.ids.time_label.text = format_time_label(selected_time)
 
     def save_transaction(self):
         if not self.validate_form():
@@ -280,8 +287,7 @@ class AddTransactionScreen(Screen):
         date = self.ids.date_label.text
         time = self.ids.time_label.text
 
-        dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
-        date_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+        date_time = combine_date_time_labels(date, time)
 
         notes = (
             ""
@@ -352,10 +358,10 @@ class AddTransactionScreen(Screen):
 
         self.set_notes(notes)
 
-        dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+        date_label, time_label = split_database_datetime(date_time)
 
-        self.ids.date_label.text = dt.strftime("%Y-%m-%d")
-        self.ids.time_label.text = dt.strftime("%I:%M %p")
+        self.ids.date_label.text = date_label
+        self.ids.time_label.text = time_label
 
     def set_transaction_type(self, transaction_type):
 
