@@ -14,7 +14,7 @@
 
     canvas.before:
         Color:
-            rgba: get_color_from_hex("#E8F5E9") if root.selected else (0, 0, 0, 0)
+            rgba: get_color_from_hex(Colors.BRAND_ACCENT_SOFT) if root.selected else (0, 0, 0, 0)
 
         RoundedRectangle:
             pos: self.pos
@@ -37,7 +37,7 @@
             size_hint_y: None
             height: self.minimum_height
             spacing: dp(10)
-            md_bg_color: get_color_from_hex('#A2D672')
+            md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY_LIGHT)
             radius: [16, 16, 0, 0]
 
 
@@ -52,7 +52,7 @@
                     MDIcon:
                         icon: 'chevron-left'
                         theme_icon_color: 'Custom'
-                        icon_color: get_color_from_hex('#224B1F')
+                        icon_color: get_color_from_hex(Colors.BRAND_PRIMARY_DARK)
                         pos_hint: {'center_x': .5, 'center_y': .5}
 
             MDCard:
@@ -63,7 +63,7 @@
                 MDLabel:
                     id: month_label
                     theme_text_color: 'Custom'
-                    text_color: get_color_from_hex('#224B1F')
+                    text_color: get_color_from_hex(Colors.BRAND_PRIMARY_DARK)
                     halign: 'center'
                     bold: True
 
@@ -78,7 +78,7 @@
                     MDIcon:
                         icon: 'chevron-right'
                         theme_icon_color: 'Custom'
-                        icon_color: get_color_from_hex('#224B1F')
+                        icon_color: get_color_from_hex(Colors.BRAND_PRIMARY_DARK)
                         pos_hint: {'center_x': .5, 'center_y': .5}
 
         MDCard:
@@ -110,7 +110,7 @@
 
                 canvas.before:
                     Color:
-                        rgba: get_color_from_hex("#D8D8D8")
+                        rgba: get_color_from_hex(Colors.BORDER)
 
                     Rectangle:
                         pos: self.pos
@@ -243,7 +243,7 @@
                 height: '42dp'
                 pos_hint: {'center_y': .5}
                 radius: '24dp'
-                md_bg_color: get_color_from_hex("#388E3C")
+                md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                 on_release:
                     root.confirm()
 
