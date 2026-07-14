@@ -14,7 +14,9 @@ from database.account_repository import create_accounts_table
 from database.category_group_repository import create_category_groups_table
 from database.category_repository import create_categories_table
 
-class Enkyron(MDApp):
+__version__ = "0.2.0"
+
+class EnkyronApp(MDApp):
     def build(self):
 
         Builder.load_file('kv/widgets.kv')
@@ -44,4 +46,4 @@ class Enkyron(MDApp):
         return screen_manager
     
 if __name__ == '__main__':
-    Enkyron().run()
+    EnkyronApp().run()

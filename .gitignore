@@ -1,17 +1,15 @@
-# Virtual Environment
-.venv/
+# Buildozer / Android build output
+.buildozer/
+bin/
+*.apk
+*.aab
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
 
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-
-# SQLite
-*.db
-
-# VS Code
-.vscode/
-
-# Build files
-build/
-dist/
+.venv/
