@@ -10,7 +10,12 @@ from database.transaction_repository import (
     get_current_balance,
 )
 
-from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
+from services.transaction_services import (
+    close_delete_transaction_dialog,
+    delete_transaction_by_id,
+    load_transactions,
+)
+from utils.snackbar import show_snackbar
 
 from utils.money import format_money
 
@@ -100,6 +105,12 @@ class DashboardScreen(Screen):
         screen.load_transaction(transaction_id)
         self.manager.current = 'add_transaction'
 
+    def delete_transaction(self, transaction_id):
+        delete_transaction_by_id(transaction_id)
+        close_delete_transaction_dialog(self.delete_transaction_dialog)
+        self.load_dashboard()
+        show_snackbar("Transaction deleted successfully.")
+
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(
             title="Confirm Delete",
@@ -111,7 +122,7 @@ class DashboardScreen(Screen):
                 ),
                 MDFlatButton(
                     text="DELETE",
-                    on_release=lambda x: perform_delete_transaction(self, transaction_id, dialog_screen=self.delete_transaction_dialog)
+                    on_release=lambda x: self.delete_transaction(transaction_id)
                 )
             ]
         )

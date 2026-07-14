@@ -3,7 +3,12 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivy.utils import get_color_from_hex
 
-from services.transaction_services import close_delete_transaction_dialog, load_transactions, perform_delete_transaction
+from services.transaction_services import (
+    close_delete_transaction_dialog,
+    delete_transaction_by_id,
+    load_transactions,
+)
+from utils.snackbar import show_snackbar
 
 class TransactionsScreen(Screen):
 
@@ -45,6 +50,12 @@ class TransactionsScreen(Screen):
         screen.load_transaction(transaction_id)
         self.manager.current = 'add_transaction'
 
+    def delete_transaction(self, transaction_id):
+        delete_transaction_by_id(transaction_id)
+        close_delete_transaction_dialog(self.delete_transaction_dialog)
+        load_transactions(self)
+        show_snackbar("Transaction deleted successfully.")
+
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(
             title="Confirm Delete",
@@ -55,7 +66,7 @@ class TransactionsScreen(Screen):
                     on_release=lambda x: close_delete_transaction_dialog(dialog_screen=self.delete_transaction_dialog)                ),
                 MDFlatButton(
                     text="DELETE",
-                    on_release=lambda x: perform_delete_transaction(self, transaction_id, dialog_screen=self.delete_transaction_dialog)
+                    on_release=lambda x: self.delete_transaction(transaction_id)
                 )
             ]
         )

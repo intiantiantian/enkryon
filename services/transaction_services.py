@@ -1,7 +1,5 @@
 from database.transaction_repository import delete_transaction, get_transactions
 
-from utils.snackbar import show_snackbar
-
 from widgets.transaction_card import create_transaction_empty_state, create_transaction_card
 
 def get_empty_transaction_state(transaction_filter=None, compact=False):
@@ -62,11 +60,8 @@ def load_transactions(screen, limit=None, compact_empty_state=False):
             create_transaction_card(transaction, screen)
         )
 
-def perform_delete_transaction(self, transaction_id, dialog_screen):
+def delete_transaction_by_id(transaction_id):
     delete_transaction(transaction_id)
-    close_delete_transaction_dialog(dialog_screen)
-    self.load_dashboard()
-    show_snackbar("Transaction deleted successfully.")
 
 def close_delete_transaction_dialog(dialog_screen):
     dialog_screen.dismiss()
