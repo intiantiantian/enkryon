@@ -15,6 +15,7 @@ from database.transaction_repository import (
     update_transaction
     )
 
+from utils.amount_input import apply_amount_key
 from utils.snackbar import show_snackbar
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
@@ -41,29 +42,7 @@ class AddTransactionScreen(Screen):
         self.manager.current = 'dashboard'
     
     def press_key(self, key):
-        key = str(key)
-
-        if key == "backspace":
-            if len(self.amount) > 1:
-                self.amount = self.amount[:-1]
-            else:
-                self.amount = "0"
-
-        elif key == "C":
-            self.amount = "0"
-
-        elif key == ".":
-            if "." not in self.amount:
-                self.amount += "."
-
-        else:  # Numbers ("0", "00", "1"...)
-            if self.amount == "0":
-                if key in ("0", "00"):
-                    return
-                self.amount = key
-            else:
-                self.amount += key
-
+        self.amount = apply_amount_key(self.amount, key)
         self.update_amount_label()
 
     def update_amount_label(self):
