@@ -1,7 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
-from kivy.utils import get_color_from_hex
 
 from services.transaction_services import (
     delete_transaction_by_id,
@@ -9,8 +8,6 @@ from services.transaction_services import (
 )
 
 from widgets.transaction_list import render_transaction_list
-
-from theme.widget_states import SELECTED_BUTTON_BG, UNSELECTED_BUTTON_BG
 
 from utils.snackbar import show_snackbar
 
@@ -22,9 +19,9 @@ class TransactionsScreen(Screen):
         self.manager.current = 'dashboard'
 
     def on_pre_enter(self):
-        self.ids.all_filter.md_bg_color = SELECTED_BUTTON_BG
-        self.ids.income_filter.md_bg_color = UNSELECTED_BUTTON_BG
-        self.ids.expense_filter.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.all_filter.set_selected(self.transaction_filter == None)
+        self.ids.income_filter.set_selected(self.transaction_filter == "income")
+        self.ids.expense_filter.set_selected(self.transaction_filter == "expense")
         self.transaction_filter = None
 
         self.load_transactions()
@@ -45,20 +42,9 @@ class TransactionsScreen(Screen):
     def set_transaction_filter(self, transaction_type):
         self.transaction_filter = transaction_type
 
-        active = SELECTED_BUTTON_BG
-        inactive = UNSELECTED_BUTTON_BG
-
-        self.ids.all_filter.md_bg_color = (
-            active if transaction_type is None else inactive
-        )
-
-        self.ids.income_filter.md_bg_color = (
-            active if transaction_type == 'income' else inactive
-        )
-
-        self.ids.expense_filter.md_bg_color = (
-            active if transaction_type == 'expense' else inactive
-        )
+        self.ids.all_filter.set_selected(transaction_type == None)
+        self.ids.income_filter.set_selected(transaction_type == "income")
+        self.ids.expense_filter.set_selected(transaction_type == "expense")
         
         self.load_transactions()
 
