@@ -48,7 +48,7 @@ class CategoriesScreen(Screen):
         inactive = get_color_from_hex("#FFFFFF")
 
         self.ids.income_button.md_bg_color = (
-            active if transaction_type is 'income' else inactive
+            active if transaction_type == 'income' else inactive
         )
 
         self.ids.expense_button.md_bg_color = (
