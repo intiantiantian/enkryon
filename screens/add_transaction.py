@@ -16,8 +16,8 @@ from database.transaction_repository import (
 from utils.amount_input import apply_amount_key
 from utils.snackbar import show_snackbar
 from utils.transaction_validation import validate_transaction_form
+from utils.transaction_payload import build_transaction_payload
 from utils.transaction_datetime import (
-    combine_date_time_labels,
     format_date_label,
     format_time_label,
     get_current_transaction_datetime_labels,
@@ -281,26 +281,34 @@ class AddTransactionScreen(Screen):
         if not self.validate_form():
             return
         
-        account = self.selected_account_id
-        amount = float(self.amount)
-        category = self.selected_category_id
-        date = self.ids.date_label.text
-        time = self.ids.time_label.text
-
-        date_time = combine_date_time_labels(date, time)
-
-        notes = (
-            ""
-            if self.ids.notes_label.text == "Add notes"
-            else self.ids.notes_label.text
+        payload = build_transaction_payload(
+            account_id=self.selected_account_id,
+            amount=self.amount,
+            category_id=self.selected_category_id,
+            date_label=self.ids.date_label.text,
+            time_label=self.ids.time_label.text,
+            notes_label=self.ids.notes_label.text,
         )
 
         if getattr(self, "editing_transaction_id", None):
-            update_transaction(account, amount, category, date_time, notes, self.editing_transaction_id)
+            update_transaction(
+                payload["account_id"],
+                payload["amount"],
+                payload["category_id"],
+                payload["date_time"],
+                payload["notes"],
+                self.editing_transaction_id,
+            )
             self.editing_transaction_id = None
             show_snackbar("Transaction updated successfully.")
         else:
-            insert_transaction(account, amount, category, date_time, notes)
+            insert_transaction(
+                payload["account_id"],
+                payload["amount"],
+                payload["category_id"],
+                payload["date_time"],
+                payload["notes"],
+            )
             show_snackbar("Transaction added successfully.")
         
         dashboard = self.manager.get_screen('dashboard')
