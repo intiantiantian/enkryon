@@ -110,19 +110,23 @@ class CategoriesScreen(Screen):
     
     def perform_delete_group(self, group_id):
         self.close_delete_dialog()
-        success = delete_category_group(group_id)
+
+        success, reason = delete_category_group(group_id)
 
         if success:
-            show_snackbar(f"Group deleted successfully.")
+            show_snackbar("Group deleted successfully.")
             self.load_groups()
+            return
+
+        if reason == "has_categories":
+            show_snackbar("Cannot delete group because it still contains categories.")
         else:
-            show_snackbar(f"Unable to delete group.")
+            show_snackbar("Group could not be deleted.")
 
     def confirm_delete_group(self, group_id):
         self.delete_dialog = MDDialog(
             title="Confirm Delete",
-            text="Are you sure you want to delete this group?",
-            buttons=[
+            text="Are you sure you want to delete this group? Groups with existing categories cannot be deleted.",            buttons=[
                 MDFlatButton(
                     text="CANCEL",
                     on_release=self.close_delete_dialog
@@ -191,19 +195,23 @@ class CategoriesScreen(Screen):
 
     def perform_delete_category(self, category_id):
         self.close_delete_category_dialog()
-        success = delete_category(category_id)
+
+        success, reason = delete_category(category_id)
 
         if success:
             show_snackbar("Category deleted successfully.")
             self.load_groups()
+            return
+
+        if reason == "referenced":
+            show_snackbar("Cannot delete category because it has existing transactions.")
         else:
-            show_snackbar("Unable to delete category.")
+            show_snackbar("Category could not be deleted.")
 
     def confirm_delete_category(self, category_id):
         self.delete_category_dialog = MDDialog(
             title="Confirm Delete",
-            text="Are you sure you want to delete this category?",
-            buttons=[
+            text="Are you sure you want to delete this category? Categories with existing transactions cannot be deleted.",            buttons=[
                 MDFlatButton(
                     text="CANCEL",
                     on_release=self.close_delete_category_dialog

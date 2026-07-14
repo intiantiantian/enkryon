@@ -99,15 +99,23 @@ class AccountsScreen(Screen):
 
     def perform_delete_account(self, account_id):
         self.close_delete_dialog()
-        delete_account(account_id)
-        show_snackbar(f"Account deleted successfully.")
-        self.load_accounts()
+
+        success, reason = delete_account(account_id)
+
+        if success:
+            show_snackbar("Account deleted successfully.")
+            self.load_accounts()
+            return
+
+        if reason == "referenced":
+            show_snackbar("Cannot delete account because it has existing transactions.")
+        else:
+            show_snackbar("Account could not be deleted.")
 
     def confirm_delete_account(self, account_id):
         self.delete_dialog = MDDialog(
             title="Confirm Delete",
-            text="Are you sure you want to delete this account?",
-            buttons=[
+            text="Are you sure you want to delete this account? Accounts with existing transactions cannot be deleted.",            buttons=[
                 MDFlatButton(
                     text="CANCEL",
                     on_release=self.close_delete_dialog

@@ -52,13 +52,30 @@ def update_category_group(group_id, name):
 def delete_category_group(group_id):
     connection = connect_database()
     cursor = connection.cursor()
+
     try:
-        cursor.execute('DELETE FROM category_groups WHERE group_id = ?', (group_id,))
+        cursor.execute(
+            "SELECT COUNT(*) FROM categories WHERE group_id = ?",
+            (group_id,)
+        )
+
+        category_count = cursor.fetchone()[0]
+
+        if category_count > 0:
+            return False, "has_categories"
+
+        cursor.execute(
+            "DELETE FROM category_groups WHERE group_id = ?",
+            (group_id,)
+        )
+
         connection.commit()
-        return True
+        return True, None
+
     except sqlite3.Error as e:
         print(e)
-        return False
+        return False, "error"
+
     finally:
         connection.close()
 

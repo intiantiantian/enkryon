@@ -59,13 +59,30 @@ def update_category(category_id, name):
 def delete_category(category_id):
     connection = connect_database()
     cursor = connection.cursor()
+
     try:
-        cursor.execute('DELETE FROM categories WHERE category_id = ?', (category_id,))
+        cursor.execute(
+            "SELECT COUNT(*) FROM transactions WHERE category_id = ?",
+            (category_id,)
+        )
+
+        transaction_count = cursor.fetchone()[0]
+
+        if transaction_count > 0:
+            return False, "referenced"
+
+        cursor.execute(
+            "DELETE FROM categories WHERE category_id = ?",
+            (category_id,)
+        )
+
         connection.commit()
-        return True
+        return True, None
+
     except sqlite3.Error as e:
         print(e)
-        return False
+        return False, "error"
+
     finally:
         connection.close()
 
