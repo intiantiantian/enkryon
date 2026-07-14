@@ -1,6 +1,6 @@
 from database.transaction_repository import delete_transaction, get_transactions
 
-from widgets.transaction_card import create_transaction_empty_state, create_transaction_card
+from widgets.transaction_list import render_transaction_list
 
 def get_empty_transaction_state(transaction_filter=None, compact=False):
     if transaction_filter == "income":
@@ -34,8 +34,6 @@ def get_transactions_for_view(account_id=None, transaction_filter=None, limit=No
     )
 
 def load_transactions(screen, limit=None, compact_empty_state=False):
-    screen.ids.transactions_container.clear_widgets()
-
     account_id = getattr(screen, "selected_account_id", None)
 
     transactions = get_transactions_for_view(
@@ -44,21 +42,17 @@ def load_transactions(screen, limit=None, compact_empty_state=False):
         limit=limit
     )
 
-    if not transactions:
-        empty_state = get_empty_transaction_state(
-            screen.transaction_filter,
-            compact=compact_empty_state
-        )
+    empty_state = get_empty_transaction_state(
+        screen.transaction_filter,
+        compact_empty_state
+    )
 
-        screen.ids.transactions_container.add_widget(
-            create_transaction_empty_state(empty_state)
-        )
-        return
-
-    for transaction in transactions:
-        screen.ids.transactions_container.add_widget(
-            create_transaction_card(transaction, screen)
-        )
+    render_transaction_list(
+        container=screen.ids.transactions_container,
+        transactions=transactions,
+        screen=screen,
+        empty_state=empty_state,
+    )
 
 def delete_transaction_by_id(transaction_id):
     delete_transaction(transaction_id)
