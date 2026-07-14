@@ -10,6 +10,8 @@ from services.transaction_services import (
 
 from widgets.transaction_list import render_transaction_list
 
+from theme.widget_states import SELECTED_BUTTON_BG, UNSELECTED_BUTTON_BG
+
 from utils.snackbar import show_snackbar
 
 class TransactionsScreen(Screen):
@@ -20,9 +22,9 @@ class TransactionsScreen(Screen):
         self.manager.current = 'dashboard'
 
     def on_pre_enter(self):
-        self.ids.all_filter.md_bg_color = get_color_from_hex('#D5F4BE')
-        self.ids.income_filter.md_bg_color = get_color_from_hex("#FFFFFF")
-        self.ids.expense_filter.md_bg_color = get_color_from_hex("#FFFFFF")
+        self.ids.all_filter.md_bg_color = SELECTED_BUTTON_BG
+        self.ids.income_filter.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.expense_filter.md_bg_color = UNSELECTED_BUTTON_BG
         self.transaction_filter = None
 
         self.load_transactions()
@@ -43,8 +45,8 @@ class TransactionsScreen(Screen):
     def set_transaction_filter(self, transaction_type):
         self.transaction_filter = transaction_type
 
-        active = get_color_from_hex('#D5F4BE')
-        inactive = get_color_from_hex("#FFFFFF")
+        active = SELECTED_BUTTON_BG
+        inactive = UNSELECTED_BUTTON_BG
 
         self.ids.all_filter.md_bg_color = (
             active if transaction_type is None else inactive

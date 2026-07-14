@@ -26,6 +26,8 @@ from utils.transaction_datetime import (
     split_database_datetime,
 )
 
+from theme.widget_states import SELECTED_BUTTON_BG, UNSELECTED_BUTTON_BG
+
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
 
@@ -61,8 +63,8 @@ class AddTransactionScreen(Screen):
         if getattr(self, 'editing_transaction_id', None):
             return
         
-        self.ids.income_button.md_bg_color = ('#FFFFFF')
-        self.ids.expense_button.md_bg_color = ('#FFFFFF')
+        self.ids.income_button.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
         self.reset_form()
 
     def build_keypad(self):
@@ -94,8 +96,8 @@ class AddTransactionScreen(Screen):
         self.update_amount_label()
 
     def reset_form(self):
-        self.ids.income_button.md_bg_color = ('#FFFFFF')
-        self.ids.expense_button.md_bg_color = ('#FFFFFF')
+        self.ids.income_button.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
     
         self.selected_account_id = None
         self.ids.account_label.text = 'Select Account'
@@ -157,8 +159,8 @@ class AddTransactionScreen(Screen):
         self.selected_group_id = None
         self.selected_category_id = None
 
-        active = get_color_from_hex('#D5F4BE')
-        inactive = get_color_from_hex("#FFFFFF")
+        active = SELECTED_BUTTON_BG
+        inactive = UNSELECTED_BUTTON_BG
 
         self.ids.income_button.md_bg_color = (
             active if self.transaction_type == 'income' else inactive
@@ -375,8 +377,8 @@ class AddTransactionScreen(Screen):
 
         self.transaction_type = transaction_type
 
-        active = get_color_from_hex('#D5F4BE')
-        inactive = get_color_from_hex('#FFFFFF')
+        active = SELECTED_BUTTON_BG
+        inactive = UNSELECTED_BUTTON_BG
 
         self.ids.income_button.md_bg_color = (
             active if transaction_type == 'income' else inactive
