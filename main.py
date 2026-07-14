@@ -16,6 +16,18 @@ from database.category_repository import create_categories_table
 
 from theme.app_theme import apply_app_theme
 
+from widgets.buttons import (
+    EnkryonFilterButton,
+    EnkryonPrimaryButton,
+    EnkryonSecondaryButton,
+)
+
+_ = (
+    EnkryonFilterButton,
+    EnkryonPrimaryButton,
+    EnkryonSecondaryButton,
+)
+
 __version__ = "0.2.0"
 
 class EnkryonApp(MDApp):
