@@ -2,7 +2,7 @@ from database.transaction_repository import delete_transaction, get_transactions
 
 from utils.snackbar import show_snackbar
 
-from widgets.transaction_card import TransactionCard, create_transaction_empty_state
+from widgets.transaction_card import create_transaction_empty_state, create_transaction_card
 
 def get_empty_transaction_state(transaction_filter=None, compact=False):
     if transaction_filter == "income":
@@ -58,10 +58,9 @@ def load_transactions(screen, limit=None, compact_empty_state=False):
         return
 
     for transaction in transactions:
-        card = TransactionCard()
-        card.screen = screen
-        card.set_transaction(transaction)
-        screen.ids.transactions_container.add_widget(card)
+        screen.ids.transactions_container.add_widget(
+            create_transaction_card(transaction, screen)
+        )
 
 def perform_delete_transaction(self, transaction_id, dialog_screen):
     delete_transaction(transaction_id)

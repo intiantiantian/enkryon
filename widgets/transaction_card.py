@@ -44,3 +44,9 @@ def create_transaction_empty_state(empty_state):
         title=empty_state["title"],
         message=empty_state["message"]
     )
+
+def create_transaction_card(transaction, screen):
+    card = TransactionCard()
+    card.screen = screen
+    card.set_transaction(transaction)
+    return card
