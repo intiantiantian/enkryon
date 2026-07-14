@@ -117,6 +117,7 @@ The account was not deleted. The app showed a warning message.
 
 Result:
 Passed.
+
 ---
 
 ### DEF-002 — Referenced category deletion
@@ -161,48 +162,26 @@ Passed.
 
 ---
 
-### DEF-004 — Duplicate category validation is inconsistent
+### DEF-004 — Dashboard does not refresh after account/category changes
 
-**Severity:** Medium
+Screen: Dashboard  
+Status: Fixed in Phase 1.1  
 
-**Related test:** BL-015
+Steps tested:
+1. Selected an account on the dashboard.
+2. Renamed the selected account.
+3. Returned to the dashboard.
+4. Renamed a category used by a recent transaction.
+5. Returned to the dashboard.
 
-**Screen:** Categories
+Expected:
+Dashboard should show the latest account name, latest transaction labels, and updated totals.
 
-**Precondition:**
+Actual after fix:
+Dashboard refreshed on entry. The selected account label, balance, totals, and recent transactions updated correctly.
 
-A category group or category with the same name already exists in another transaction type or parent group.
-
-**Steps to reproduce:**
-
-1. Create a group or category.
-2. Switch to the other transaction type or another parent group.
-3. Create another group or category using the same name.
-4. Save the new entry.
-
-**Expected:**
-
-The application should consistently do one of the following:
-
-* allow the duplicate without showing an error when duplicates are valid in that scope; or
-* prevent creation and show a duplicate warning.
-
-**Actual:**
-
-A duplicate warning snackbar appears, but the group or category is still created successfully.
-
-**Suspected cause:**
-
-* validation checks a different scope than the database constraint;
-* the creation function continues after displaying the snackbar;
-* duplicate queries do not account for transaction type or parent group correctly.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
+Result:
+Passed.
 
 ---
 

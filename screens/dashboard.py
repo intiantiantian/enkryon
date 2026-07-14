@@ -4,7 +4,7 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.utils import get_color_from_hex
 
-from database.account_repository import get_all_accounts
+from database.account_repository import get_all_accounts, get_account_by_id
 from database.transaction_repository import (
     get_total_amount,
     get_current_balance,
@@ -22,7 +22,11 @@ class DashboardScreen(Screen):
         self.selected_account_id = None
         self.balance_visible = True
         self.transaction_filter = None
-        self.first_load = True
+
+    def on_pre_enter(self):
+        self.refresh_selected_account()
+        self.reset_dashboard()
+        self.load_dashboard()
 
     def go_to_add_transaction(self):
         self.manager.current = 'add_transaction'
@@ -38,13 +42,6 @@ class DashboardScreen(Screen):
 
     def go_to_transactions(self):
         self.manager.current = 'transactions'
-
-    def on_pre_enter(self):
-        self.reset_dashboard()
-
-        if self.first_load:
-            self.load_dashboard()
-            self.first_load = False
 
     def reset_dashboard(self):
         self.ids.all_filter.md_bg_color = get_color_from_hex('#D5F4BE')
@@ -156,6 +153,20 @@ class DashboardScreen(Screen):
         self.account_menu.dismiss()
         self.load_dashboard()
 
+    def refresh_selected_account(self):
+        if self.selected_account_id is None:
+            self.ids.account_label.text = "All Accounts"
+            return
+
+        account = get_account_by_id(self.selected_account_id)
+
+        if account is None:
+            self.selected_account_id = None
+            self.ids.account_label.text = "All Accounts"
+            return
+
+        self.ids.account_label.text = account[1]
+        
     def toggle_balance(self):
         self.balance_visible = not self.balance_visible
         self.load_summary()

@@ -22,6 +22,20 @@ def get_all_accounts():
     connection.close()
     return accounts
 
+def get_account_by_id(account_id):
+    connection = connect_database()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM accounts WHERE id = ?",
+        (account_id,)
+    )
+
+    account = cursor.fetchone()
+    connection.close()
+
+    return account
+
 def insert_account(name):
     connection = connect_database()
     cursor = connection.cursor()
