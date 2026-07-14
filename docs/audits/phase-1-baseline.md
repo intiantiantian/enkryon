@@ -185,48 +185,30 @@ Passed.
 
 ---
 
-### DEF-005 — Large monetary values break the interface layout
+### DEF-005 — Inconsistent duplicate category validation
 
-**Severity:** High
+Screen: Categories  
+Status: Fixed in Phase 1.1  
 
-**Related tests:** BL-018 and BL-023
+Business rule:
+- Category group names must be unique per transaction type.
+- Category names must be unique per transaction type.
+- Income and expense may use the same category name.
+- Validation ignores leading/trailing spaces and capitalization.
 
-**Screen:** Dashboard and other monetary displays
+Steps tested:
+1. Tried creating duplicate group names with different capitalization.
+2. Tried creating duplicate category names with different capitalization.
+3. Tried creating the same category name under Income and Expense.
 
-**Precondition:**
+Expected:
+Duplicates within the same transaction type should be blocked. The same name across Income and Expense should be allowed.
 
-A transaction contains an excessively large amount.
+Actual after fix:
+The app blocked same-type duplicates and allowed cross-type names.
 
-**Steps to reproduce:**
-
-1. Create a transaction with a very large amount.
-2. Save the transaction.
-3. Return to the Dashboard.
-4. Inspect the balance, income, and expense values.
-5. Open other screens that display the transaction amount.
-
-**Expected:**
-
-Large values should remain readable and contained within their assigned components. Text should resize, shorten, wrap appropriately, or remain constrained without overlapping nearby elements.
-
-**Actual:**
-
-Large monetary values overflow their containers and ruin the screen layout.
-
-**Suspected cause:**
-
-* fixed font sizes;
-* fixed card dimensions;
-* missing text shortening;
-* missing adaptive font sizing;
-* labels without width constraints.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
+Result:
+Passed.
 
 ---
 

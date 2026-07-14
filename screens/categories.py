@@ -65,39 +65,44 @@ class CategoriesScreen(Screen):
         ).open()
         
     def save_group(self, group_name):
-                   
-        if not group_name:
-            show_snackbar("Group name cannot be empty.")
-            return
-        
-        success = insert_category_group(group_name, self.current_transaction_type)
+        group_name = (group_name or "").strip()
+
+        success, reason = insert_category_group(
+            group_name,
+            self.current_transaction_type
+        )
 
         if success:
             show_snackbar(f"Group '{group_name}' added successfully.")
             self.load_groups()
-        else:
-            show_snackbar(f"Group name '{group_name}' already exists.")
-
-    def rename_group(self, group_id, new_name):
-
-        new_name = new_name.strip()
-
-        if not new_name:
-            show_snackbar("New group name cannot be empty.")
             return
 
-        success = update_category_group(group_id, new_name)
+        if reason == "empty":
+            show_snackbar("Group name cannot be empty.")
+        elif reason == "duplicate":
+            show_snackbar(f"Group name '{group_name}' already exists for this type.")
+        else:
+            show_snackbar("Group could not be added.")
+
+    def rename_group(self, group_id, new_name):
+        new_name = (new_name or "").strip()
+
+        success, reason = update_category_group(group_id, new_name)
 
         if success:
-            show_snackbar(
-                f"Group renamed to '{new_name}' successfully."
-            )
+            show_snackbar(f"Group renamed to '{new_name}' successfully.")
+            self.load_groups()
+            return
+
+        if reason == "empty":
+            show_snackbar("New group name cannot be empty.")
+        elif reason == "duplicate":
+            show_snackbar(f"Group name '{new_name}' already exists for this type.")
+        elif reason == "not_found":
+            show_snackbar("Group no longer exists.")
             self.load_groups()
         else:
-            show_snackbar(
-                f"Group name '{new_name}' already exists."
-            )
-            show_snackbar(f"Group name '{new_name}' already exists.")
+            show_snackbar("Group could not be renamed.")
 
     def edit_group(self, group_id, group_name):
         InputDialog(
@@ -152,38 +157,44 @@ class CategoriesScreen(Screen):
         ).open()
 
     def save_category(self, group_id, category_name):
-                   
-        if not category_name:
-            show_snackbar("Category name cannot be empty.")
-            return
-        
-        success = insert_category(group_id, category_name)
+        category_name = (category_name or "").strip()
+
+        success, reason = insert_category(group_id, category_name)
 
         if success:
             show_snackbar(f"Category '{category_name}' added successfully.")
             self.load_groups()
-        else:
-            show_snackbar(f"Category name '{category_name}' already exists.")
-
-    def rename_category(self, category_id, new_name):
-
-        new_name = new_name.strip()
-
-        if not new_name:
-            show_snackbar("New category name cannot be empty.")
             return
 
-        success = update_category(category_id, new_name)
-
-        if success:
-            show_snackbar(
-                f"Category renamed to '{new_name}' successfully."
-            )
+        if reason == "empty":
+            show_snackbar("Category name cannot be empty.")
+        elif reason == "duplicate":
+            show_snackbar(f"Category name '{category_name}' already exists for this type.")
+        elif reason == "group_not_found":
+            show_snackbar("Category group no longer exists.")
             self.load_groups()
         else:
-            show_snackbar(
-                f"Category name '{new_name}' already exists."
-            )
+            show_snackbar("Category could not be added.")
+
+    def rename_category(self, category_id, new_name):
+        new_name = (new_name or "").strip()
+
+        success, reason = update_category(category_id, new_name)
+
+        if success:
+            show_snackbar(f"Category renamed to '{new_name}' successfully.")
+            self.load_groups()
+            return
+
+        if reason == "empty":
+            show_snackbar("New category name cannot be empty.")
+        elif reason == "duplicate":
+            show_snackbar(f"Category name '{new_name}' already exists for this type.")
+        elif reason == "not_found":
+            show_snackbar("Category no longer exists.")
+            self.load_groups()
+        else:
+            show_snackbar("Category could not be renamed.")
 
     def edit_category(self, category_id, category_name):
         InputDialog(

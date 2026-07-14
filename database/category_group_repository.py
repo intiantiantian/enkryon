@@ -16,39 +16,99 @@ def create_category_groups_table():
     connection.commit()
     connection.close()
 
+def category_group_name_exists(cursor, name, transaction_type, exclude_group_id=None):
+    query = '''
+        SELECT 1
+        FROM category_groups
+        WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+        AND transaction_type = ?
+    '''
+
+    params = [name, transaction_type]
+
+    if exclude_group_id is not None:
+        query += ' AND group_id != ?'
+        params.append(exclude_group_id)
+
+    cursor.execute(query, tuple(params))
+    return cursor.fetchone() is not None
+
 def insert_category_group(name, transaction_type):
     connection = connect_database()
     cursor = connection.cursor()
+
+    name = (name or "").strip()
+
+    if not name:
+        connection.close()
+        return False, "empty"
+
     try:
+        if category_group_name_exists(cursor, name, transaction_type):
+            return False, "duplicate"
+
         cursor.execute('''
             INSERT INTO category_groups (name, transaction_type)
             VALUES (?, ?)
         ''', (name, transaction_type))
+
         connection.commit()
-        return True
+        return True, None
+
     except sqlite3.Error as e:
         print(e)
-        return False
+        return False, "error"
+
     finally:
         connection.close()
 
 def update_category_group(group_id, name):
     connection = connect_database()
     cursor = connection.cursor()
+
+    name = (name or "").strip()
+
+    if not name:
+        connection.close()
+        return False, "empty"
+
     try:
+        cursor.execute(
+            "SELECT transaction_type FROM category_groups WHERE group_id = ?",
+            (group_id,)
+        )
+
+        group = cursor.fetchone()
+
+        if group is None:
+            return False, "not_found"
+
+        transaction_type = group[0]
+
+        if category_group_name_exists(
+            cursor,
+            name,
+            transaction_type,
+            exclude_group_id=group_id
+        ):
+            return False, "duplicate"
+
         cursor.execute('''
             UPDATE category_groups
             SET name = ?
             WHERE group_id = ?
         ''', (name, group_id))
+
         connection.commit()
-        return True
+        return True, None
+
     except sqlite3.Error as e:
         print(e)
-        return False
+        return False, "error"
+
     finally:
         connection.close()
-
+        
 def delete_category_group(group_id):
     connection = connect_database()
     cursor = connection.cursor()
