@@ -62,6 +62,3 @@ def load_transactions(screen, limit=None, compact_empty_state=False):
 
 def delete_transaction_by_id(transaction_id):
     delete_transaction(transaction_id)
-
-def close_delete_transaction_dialog(dialog_screen):
-    dialog_screen.dismiss()

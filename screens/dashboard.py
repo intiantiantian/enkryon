@@ -11,10 +11,10 @@ from database.transaction_repository import (
 )
 
 from services.transaction_services import (
-    close_delete_transaction_dialog,
     delete_transaction_by_id,
     load_transactions,
 )
+
 from utils.snackbar import show_snackbar
 
 from utils.money import format_money
@@ -107,7 +107,7 @@ class DashboardScreen(Screen):
 
     def delete_transaction(self, transaction_id):
         delete_transaction_by_id(transaction_id)
-        close_delete_transaction_dialog(self.delete_transaction_dialog)
+        self.delete_transaction_dialog.dismiss()
         self.load_dashboard()
         show_snackbar("Transaction deleted successfully.")
 
@@ -118,7 +118,7 @@ class DashboardScreen(Screen):
             buttons=[
                 MDFlatButton(
                     text="CANCEL",
-                    on_release=lambda x: close_delete_transaction_dialog(dialog_screen=self.delete_transaction_dialog)
+                    on_release=lambda x: self.delete_transaction_dialog.dismiss()
                 ),
                 MDFlatButton(
                     text="DELETE",
