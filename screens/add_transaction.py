@@ -17,6 +17,7 @@ from database.transaction_repository import (
 
 from utils.amount_input import apply_amount_key
 from utils.snackbar import show_snackbar
+from utils.transaction_validation import validate_transaction_form
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
@@ -301,21 +302,15 @@ class AddTransactionScreen(Screen):
         self.manager.current = 'dashboard'
 
     def validate_form(self):
+        is_valid, message = validate_transaction_form(
+            account_id=self.selected_account_id,
+            amount=self.amount,
+            transaction_type=self.transaction_type,
+            category_id=self.selected_category_id,
+        )
 
-        if self.selected_account_id is None:
-            show_snackbar("Please select an account.")
-            return False
-        
-        if float(self.amount) <= 0:
-            show_snackbar("Amount cannot be less than or equal to zero.")
-            return False
-
-        if self.transaction_type is None:
-            show_snackbar("Please select a transaction type.")
-            return False
-        
-        if self.selected_category_id is None:
-            show_snackbar("Please select a category.")
+        if not is_valid:
+            show_snackbar(message)
             return False
 
         return True
