@@ -14,7 +14,7 @@ from database.account_repository import create_accounts_table
 from database.category_group_repository import create_category_groups_table
 from database.category_repository import create_categories_table
 
-class MyFinance(MDApp):
+class Enkyron(MDApp):
     def build(self):
 
         Builder.load_file('kv/widgets.kv')
@@ -44,4 +44,4 @@ class MyFinance(MDApp):
         return screen_manager
     
 if __name__ == '__main__':
-    MyFinance().run()
+    Enkyron().run()

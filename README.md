@@ -1,8 +1,8 @@
-# My Finance
+# Enkyron
 
 A personal finance tracker mobile application built with **Python**, **Kivy**, **KivyMD**, and **SQLite**.
 
-My Finance helps users manage their personal finances by tracking income and expenses, organizing categories, managing accounts, and viewing transaction history. The application focuses on a clean mobile UI with local data storage and offline functionality.
+Enkyron helps users manage their personal finances by tracking income and expenses, organizing categories, managing accounts, and viewing transaction history. The application focuses on a clean mobile UI with local data storage and offline functionality.
 
 ---
 
@@ -99,7 +99,7 @@ The Android APK is available through GitHub Releases.
 Download the latest version:
 
 ```
-Releases → MyFinance-v1.0.apk
+Releases → Enkyron-v1.0.0.apk
 ```
 
 ---
@@ -116,7 +116,7 @@ Releases → MyFinance-v1.0.apk
 # Project Structure
 
 ```
-my-finance/
+enkyron/
 
 ├── database/
 │   └── SQLite repositories
