@@ -5,8 +5,11 @@ from kivy.utils import get_color_from_hex
 
 from services.transaction_services import (
     delete_transaction_by_id,
-    load_transactions,
+    get_transaction_list_data,
 )
+
+from widgets.transaction_list import render_transaction_list
+
 from utils.snackbar import show_snackbar
 
 class TransactionsScreen(Screen):
@@ -22,7 +25,20 @@ class TransactionsScreen(Screen):
         self.ids.expense_filter.md_bg_color = get_color_from_hex("#FFFFFF")
         self.transaction_filter = None
 
-        load_transactions(self)
+        self.load_transactions()
+
+    def load_transactions(self):
+        transaction_list_data = get_transaction_list_data(
+            account_id=getattr(self, "selected_account_id", None),
+            transaction_filter=self.transaction_filter,
+        )
+
+        render_transaction_list(
+            container=self.ids.transactions_container,
+            transactions=transaction_list_data["transactions"],
+            screen=self,
+            empty_state=transaction_list_data["empty_state"],
+        )
 
     def set_transaction_filter(self, transaction_type):
         self.transaction_filter = transaction_type
@@ -42,7 +58,7 @@ class TransactionsScreen(Screen):
             active if transaction_type == 'expense' else inactive
         )
         
-        load_transactions(self)
+        self.load_transactions()
 
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen('add_transaction')
@@ -52,7 +68,7 @@ class TransactionsScreen(Screen):
     def delete_transaction(self, transaction_id):
         delete_transaction_by_id(transaction_id)
         self.delete_transaction_dialog.dismiss()
-        load_transactions(self)
+        self.load_transactions()
         show_snackbar("Transaction deleted successfully.")
 
     def confirm_delete_transaction(self, transaction_id):

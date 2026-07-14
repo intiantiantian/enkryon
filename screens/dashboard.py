@@ -12,11 +12,12 @@ from database.transaction_repository import (
 
 from services.transaction_services import (
     delete_transaction_by_id,
-    load_transactions,
+    get_transaction_list_data,
 )
 
-from utils.snackbar import show_snackbar
+from widgets.transaction_list import render_transaction_list
 
+from utils.snackbar import show_snackbar
 from utils.money import format_money
 
 class DashboardScreen(Screen):
@@ -78,8 +79,20 @@ class DashboardScreen(Screen):
             self.ids.eye_button.icon = "eye-off"
 
     def load_recent_transactions(self):
-        load_transactions(self, limit=5)
+        transaction_list_data = get_transaction_list_data(
+            account_id=getattr(self, "selected_account_id", None),
+            transaction_filter=self.transaction_filter,
+            limit=3,
+            compact_empty_state=True,
+        )
 
+        render_transaction_list(
+            container=self.ids.transactions_container,
+            transactions=transaction_list_data["transactions"],
+            screen=self,
+            empty_state=transaction_list_data["empty_state"],
+        )
+        
     def set_transaction_filter(self, transaction_type):
         self.transaction_filter = transaction_type
 
