@@ -3,6 +3,7 @@ from kivymd.uix.card import MDCard
 from database.category_repository import get_categories_by_group
 
 from widgets.category_card import CategoryCard
+from widgets.empty_state import EmptyState
 
 class CategoryGroupCard(MDCard):
 
@@ -34,12 +35,20 @@ class CategoryGroupCard(MDCard):
         
         categories = get_categories_by_group(self.group_id)
 
-        for category in categories:
-            card = CategoryCard()
-            card.screen = self.screen
-            card.group_card = self
-            card.set_category(category)
-            self.ids.categories_container.add_widget(card)
+        if not categories:
+            self.ids.categories_container.add_widget(
+                EmptyState(
+                    title="No categories yet",
+                    message="Tap + to add a category to this group."
+                )
+            )
+        else:
+            for category in categories:
+                card = CategoryCard()
+                card.screen = self.screen
+                card.group_card = self
+                card.set_category(category)
+                self.ids.categories_container.add_widget(card)
 
         self.ids.toggle_button.icon = 'chevron-up'
         self.screen.expanded_groups.add(self.group_id)

@@ -142,3 +142,25 @@
                 icon_size: '18sp'
                 on_release:
                     root.delete_transaction()
+
+<EmptyState>:
+    orientation: "vertical"
+    size_hint_y: None
+    height: "140dp"
+    padding: "16dp"
+    spacing: "8dp"
+
+    MDLabel:
+        text: root.title
+        halign: "center"
+        font_size: "16sp"
+        bold: True
+        theme_text_color: "Custom"
+        text_color: get_color_from_hex("#1B5E20")
+
+    MDLabel:
+        text: root.message
+        halign: "center"
+        font_size: "13sp"
+        theme_text_color: "Custom"
+        text_color: get_color_from_hex("#757575")

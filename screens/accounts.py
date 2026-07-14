@@ -8,7 +8,9 @@ from widgets.account_card import AccountCard
 from utils.snackbar import show_snackbar
 
 from database.account_repository import get_all_accounts, insert_account, update_account, delete_account
+
 from widgets.input_dialog import InputDialog
+from widgets.empty_state import EmptyState
 
 class AccountsScreen(Screen):
 
@@ -25,7 +27,18 @@ class AccountsScreen(Screen):
     def load_accounts(self):
         self.ids.accounts_container.clear_widgets()
 
-        for account in get_all_accounts():
+        accounts = get_all_accounts()
+
+        if not accounts:
+            self.ids.accounts_container.add_widget(
+                EmptyState(
+                    title="No accounts yet",
+                    message="Tap + to create your first account."
+                )
+            )
+            return
+
+        for account in accounts:
             card = AccountCard()
             card.screen = self
             card.set_account(account)

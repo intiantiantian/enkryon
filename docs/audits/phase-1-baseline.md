@@ -212,43 +212,28 @@ Passed.
 
 ---
 
-### DEF-006 — Transactions screen has no empty-state message
+### DEF-006 — Empty lists show blank areas
 
-**Severity:** Low
+Screen: Dashboard / Transactions / Accounts / Categories  
+Status: Fixed in Phase 1.1  
 
-**Related test:** BL-005
+Steps tested:
+1. Cleared application data.
+2. Opened Dashboard recent transactions.
+3. Opened Transactions.
+4. Opened Accounts.
+5. Opened Categories for Income and Expense.
+6. Created an empty category group and expanded it.
+7. Added records and confirmed the empty states disappeared.
 
-**Screen:** Transactions
+Expected:
+Empty areas should show helpful messages instead of blank space.
 
-**Precondition:**
+Actual after fix:
+Dashboard, Transactions, Accounts, Category Groups, and empty Category Group contents displayed reusable empty-state UI messages.
 
-No transactions exist.
-
-**Steps to reproduce:**
-
-1. Clear all application data.
-2. Open the Transactions screen.
-
-**Expected:**
-
-The screen should explain that no transactions exist and provide a clear action for creating the first transaction.
-
-**Actual:**
-
-The screen displays the filters and an otherwise blank content area.
-
-**Suspected cause:**
-
-* missing transaction-list empty-state handling;
-* empty-state component not implemented;
-* empty-state visibility not updated after loading the transaction list.
-
-**Status:**
-
-* [x] Open
-* [ ] Fixed
-* [ ] Retested
-* [ ] Closed
+Result:
+Passed.
 
 ## Visual Inconsistencies
 

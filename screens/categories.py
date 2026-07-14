@@ -4,11 +4,13 @@ from kivymd.uix.button import MDFlatButton
 from kivy.utils import get_color_from_hex
 
 from utils.snackbar import show_snackbar
-from widgets.category_group_card import CategoryGroupCard
 
 from database.category_group_repository import delete_category_group, get_category_groups_by_type, insert_category_group, update_category_group
 from database.category_repository import insert_category, update_category, delete_category
+
 from widgets.input_dialog import InputDialog
+from widgets.category_group_card import CategoryGroupCard
+from widgets.empty_state import EmptyState
 
 class CategoriesScreen(Screen):
     
@@ -32,7 +34,24 @@ class CategoriesScreen(Screen):
     def load_groups(self):
         self.ids.groups_container.clear_widgets()
 
-        for group in get_category_groups_by_type(self.current_transaction_type):
+        groups = get_category_groups_by_type(self.current_transaction_type)
+
+        if not groups:
+            label = (
+                "income" if self.current_transaction_type == "income"
+                else "expense"
+            )
+
+            self.ids.groups_container.add_widget(
+                EmptyState(
+                    icon="folder-outline",
+                    title=f"No {label} category groups yet",
+                    message="Tap + to create your first category group."
+                )
+            )
+            return
+
+        for group in groups:
             card = CategoryGroupCard()
             card.screen = self
             card.set_group(group)
