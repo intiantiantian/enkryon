@@ -14,7 +14,7 @@ def test_primary_button_style_uses_primary_colors():
         Colors.TEXT_ON_PRIMARY
     )
     assert PRIMARY_BUTTON_STYLE["height"] == ComponentSize.BUTTON_HEIGHT
-    assert PRIMARY_BUTTON_STYLE["radius"] == [Radius.MD]
+    assert PRIMARY_BUTTON_STYLE["radius"] == [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
 
 
 def test_secondary_button_style_uses_surface_colors():

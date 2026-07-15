@@ -17,7 +17,7 @@
             spacing: '8dp'
             canvas.before:
                 Color:
-                    rgba: get_color_from_hex(Colors.SURFACE_MUTED)
+                    rgba: get_color_from_hex(Colors.BRAND_PRIMARY)
 
                 Rectangle:
                     pos: self.pos
@@ -27,7 +27,7 @@
                 icon: 'arrow-left'
                 on_release: root.go_to_dashboard()
                 theme_icon_color: 'Custom'
-                icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
                 pos_hint: {'center_y': .5}
 
             MDLabel:
@@ -35,13 +35,13 @@
                 font_size: '26sp'
                 size_hint_x: 1
                 theme_text_color: 'Custom'
-                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
             MDIconButton:
                 icon: 'content-save'
                 on_release: root.save_transaction()
                 theme_icon_color: 'Custom'
-                icon_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
                 pos_hint: {'center_y': .5}
 
         Widget:
