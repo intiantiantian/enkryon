@@ -52,9 +52,10 @@ class EnkryonFilterButton(MDRectangleFlatButton):
         self.height = ComponentSize.SMALL_BUTTON_HEIGHT
         self.radius = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
         self.set_selected(selected)
-        self.ripple_behavior = False
+        self.ripple_alpha = 0
         self.line_color = hex_to_rgba(Colors.BRAND_PRIMARY)
         self.text_color = hex_to_rgba(Colors.BRAND_PRIMARY)
+        self.line_width = 1.5
         
     def set_selected(self, selected):
         colors = get_filter_button_colors(selected)

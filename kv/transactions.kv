@@ -60,6 +60,7 @@
             EnkryonFilterButton:
                 id: all_filter
                 text: 'All'
+                size_hint_x: 1
                 selected: True
                 on_release:
                     root.set_transaction_filter(None)
@@ -67,12 +68,14 @@
             EnkryonFilterButton:
                 id: income_filter
                 text: 'INCOME'
+                size_hint_x: 1
                 on_release:
                     root.set_transaction_filter('income')
 
             EnkryonFilterButton:
                 id: expense_filter
                 text: 'EXPENSE'
+                size_hint_x: 1
                 on_release:
                     root.set_transaction_filter('expense')
 
