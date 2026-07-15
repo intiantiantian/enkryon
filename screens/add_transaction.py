@@ -1,7 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
-from kivy.utils import get_color_from_hex
 from kivy.factory import Factory
 
 from database.account_repository import get_all_accounts
@@ -25,8 +24,6 @@ from utils.transaction_datetime import (
     parse_time_label,
     split_database_datetime,
 )
-
-from theme.widget_states import SELECTED_BUTTON_BG, UNSELECTED_BUTTON_BG
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
@@ -63,8 +60,7 @@ class AddTransactionScreen(Screen):
         if getattr(self, 'editing_transaction_id', None):
             return
         
-        self.ids.income_button.md_bg_color = UNSELECTED_BUTTON_BG
-        self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
+        self.transaction_type = None
         self.reset_form()
 
     def build_keypad(self):
@@ -96,8 +92,8 @@ class AddTransactionScreen(Screen):
         self.update_amount_label()
 
     def reset_form(self):
-        self.ids.income_button.md_bg_color = UNSELECTED_BUTTON_BG
-        self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.income_button.set_selected(False)
+        self.ids.expense_button.set_selected(False)
     
         self.selected_account_id = None
         self.ids.account_selector.text = 'Select Account'
@@ -159,16 +155,8 @@ class AddTransactionScreen(Screen):
         self.selected_group_id = None
         self.selected_category_id = None
 
-        active = SELECTED_BUTTON_BG
-        inactive = UNSELECTED_BUTTON_BG
-
-        self.ids.income_button.md_bg_color = (
-            active if self.transaction_type == 'income' else inactive
-        )
-
-        self.ids.expense_button.md_bg_color = (
-            active if self.transaction_type == 'expense' else inactive
-        )
+        self.ids.income_button.set_selected(transaction_type == 'income')
+        self.ids.expense_button.set_selected(transaction_type == 'expense')
 
         self.ids.group_selector.disabled = False
         self.ids.group_label.text = 'Select Category Group'
@@ -377,16 +365,8 @@ class AddTransactionScreen(Screen):
 
         self.transaction_type = transaction_type
 
-        active = SELECTED_BUTTON_BG
-        inactive = UNSELECTED_BUTTON_BG
-
-        self.ids.income_button.md_bg_color = (
-            active if transaction_type == 'income' else inactive
-        )
-
-        self.ids.expense_button.md_bg_color = (
-            active if transaction_type == 'expense' else inactive
-        )
+        self.ids.income_button.set_selected(transaction_type == 'income')
+        self.ids.expense_button.set_selected(transaction_type == 'expense')
 
         self.update_groups_button(transaction_type)
 

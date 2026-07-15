@@ -73,33 +73,15 @@
                     orientation: 'horizontal'
                     spacing: '10dp'
 
-                    OutlinedCard:
+                    EnkryonFilterButton:
                         id: income_button
-                        on_release:
-                            root.update_groups_button('income')
-                        ripple_behavior: True
-                        md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
-                        radius: [10]
+                        text: "INCOME"
+                        on_release: root.update_groups_button('income')
 
-                        MDLabel:
-                            halign: 'center'
-                            text: 'INCOME'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
-
-                    OutlinedCard:
+                    EnkryonFilterButton:
                         id: expense_button
-                        on_release:
-                            root.update_groups_button('expense')
-                        ripple_behavior: True
-                        md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
-                        radius: [10]
-
-                        MDLabel:
-                            halign: 'center'
-                            text: 'EXPENSE'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                        text: "EXPENSE"
+                        on_release: root.update_groups_button('expense')
                         
                 OutlinedCard:
                     size_hint_y: None
