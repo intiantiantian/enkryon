@@ -1,14 +1,11 @@
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
-from kivy.utils import get_color_from_hex
 
 from utils.snackbar import show_snackbar
 
 from database.category_group_repository import delete_category_group, get_category_groups_by_type, insert_category_group, update_category_group
 from database.category_repository import insert_category, update_category, delete_category
-
-from theme.widget_states import SELECTED_BUTTON_BG, UNSELECTED_BUTTON_BG
 
 from widgets.input_dialog import InputDialog
 from widgets.category_group_card import CategoryGroupCard
@@ -26,8 +23,8 @@ class CategoriesScreen(Screen):
         self.delete_category_dialog = None
 
         self.current_transaction_type = 'income'
-        self.ids.income_button.md_bg_color = SELECTED_BUTTON_BG
-        self.ids.expense_button.md_bg_color = UNSELECTED_BUTTON_BG
+        self.ids.income_button.set_selected(self.current_transaction_type == 'income')
+        self.ids.expense_button.set_selected(self.current_transaction_type == 'expense')
 
         self.expanded_groups = set()
 
@@ -65,16 +62,8 @@ class CategoriesScreen(Screen):
     def set_transaction_type(self, transaction_type):
         self.current_transaction_type = transaction_type
 
-        active = SELECTED_BUTTON_BG
-        inactive = UNSELECTED_BUTTON_BG
-
-        self.ids.income_button.md_bg_color = (
-            active if transaction_type == 'income' else inactive
-        )
-
-        self.ids.expense_button.md_bg_color = (
-            active if transaction_type == 'expense' else inactive
-        )
+        self.ids.income_button.set_selected(transaction_type == 'income')
+        self.ids.expense_button.set_selected(transaction_type == 'expense')
 
         self.load_groups()
 
