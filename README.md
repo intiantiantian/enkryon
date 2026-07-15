@@ -1,141 +1,126 @@
 # Enkryon
 
-A personal finance tracker mobile application built with **Python**, **Kivy**, **KivyMD**, and **SQLite**.
+A modern **offline-first personal finance tracker** built with **Python**, **Kivy**, **KivyMD**, and **SQLite**.
 
-Enkryon helps users manage their personal finances by tracking income and expenses, organizing categories, managing accounts, and viewing transaction history. The application focuses on a clean mobile UI with local data storage and offline functionality.
+Enkryon is an offline-first personal finance tracker that helps users record income and expenses, organize accounts and categories, and monitor their financial activity through a clean and intuitive interface.
 
----
-
-## Features
-
-## Dashboard
-
-- View current balance
-- View total income
-- View total expenses
-- Filter transactions by account
-- Quick access to application features
-
----
-
-## Transactions
-
-- Add income and expense transactions
-- Edit transactions
-- Delete transactions
-- Custom numeric keypad for entering amounts
-- Select:
-  - Account
-  - Category group
-  - Category
-- Add transaction notes
-- Date and time selection
-
----
-
-## Accounts
-
-- Create accounts
-- Rename accounts
-- Delete accounts
-- Prevent duplicate account names
-
----
-
-## Categories
-
-- Separate income and expense categories
-- Create category groups
-- Create categories under groups
-- Expand/collapse category groups
-- Rename category groups
-- Rename categories
-- Delete category groups
-- Delete categories
-- Prevent duplicate names
-
----
-
-## History
-
-- View all recorded transactions
-- Edit transactions
-- Delete transactions
-
----
-
-## Settings
-
-- Clear application data
+The application focuses on simplicity, local data privacy, and responsive mobile design.
 
 ---
 
 ## Screenshots
 
 ### Dashboard
-![Dashboard](assets/screenshots/dashboard/dashboard_populated.jpg)
+
+![Dashboard](assets/screenshots/dashboard/dashboard.jpg)
 
 ### Add Transaction
-![Add Transaction](assets/screenshots/transactions/add_transaction_filled.jpg)
+
+![Add Transaction](assets/screenshots/transactions/add_transaction.jpg)
 
 ### Transaction History
-![History](assets/screenshots/transactions/transaction_history.jpg)
+
+![Transaction History](assets/screenshots/transactions/transaction_history.jpg)
 
 ### Accounts
+
 ![Accounts](assets/screenshots/accounts/accounts_populated.jpg)
 
 ### Categories
-![Categories](assets/screenshots/categories/categories_populated_expanded.jpg)
+
+![Categories](assets/screenshots/categories/categories_populated.jpg)
+
+---
+
+## Features
+
+### Dashboard
+
+- View current balance
+- View total income
+- View total expenses
+- Filter dashboard by account
+- Quick access to common actions
+
+### Transactions
+
+- Add income transactions
+- Add expense transactions
+- Edit transactions
+- Delete transactions
+- Custom numeric keypad
+- Select account
+- Select category group
+- Select category
+- Add notes
+- Date and time selection
+
+### Accounts
+
+- Create accounts
+- Rename accounts
+- Delete accounts
+- Duplicate name validation
+
+### Categories
+
+- Separate income and expense categories
+- Category groups
+- Nested categories
+- Expand / collapse category groups
+- Rename category groups
+- Rename categories
+- Delete category groups
+- Delete categories
+- Duplicate name validation
+
+### Transaction History
+
+- View all transactions
+- Filter by transaction type
+- Edit transactions
+- Delete transactions
 
 ### Settings
-![Settings](assets/screenshots/settings/settings.jpg)
+
+- Clear all application data
 
 ---
 
-# APK Download
+## Download
 
-The Android APK is available through GitHub Releases.
+The latest Android APK is available from the GitHub Releases page.
 
-Download the latest version:
+Latest release:
 
 ```
-Releases → Enkryon-v0.2.0-alpha.1.apk
+Enkryon-v0.3.0-alpha.1.apk
 ```
 
 ---
 
-# Technologies Used
+## Technologies
 
-- Python 3
+- Python 3.13
 - Kivy 2.3.1
 - KivyMD 1.2.0
 - SQLite
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```
 enkryon/
 
-├── database/
-│   └── SQLite repositories
-
-├── kv/
-│   └── Kivy UI layouts
-
-├── screens/
-│   └── Application screens
-
-├── widgets/
-│   └── Reusable UI components
-
-├── services/
-│   └── Application logic
-
-├── utils/
-│   └── Helper functions
-
+├── assets/          # Images, icons, screenshots
+├── database/        # SQLite repositories
+├── kv/              # Kivy UI layouts
+├── screens/         # Screen controllers
+├── services/        # Business logic
+├── tests/           # Automated tests
+├── utils/           # Helper utilities
+├── widgets/         # Reusable UI components
 ├── main.py
 ├── requirements.txt
 └── README.md
@@ -143,9 +128,9 @@ enkryon/
 
 ---
 
-# Database Design
+## Database
 
-The application uses SQLite for local data persistence.
+Enkryon uses **SQLite** for local data persistence.
 
 Stored data includes:
 
@@ -154,48 +139,60 @@ Stored data includes:
 - Categories
 - Transactions
 
-Database operations are separated using repository modules to keep database logic independent from UI code.
+Repository modules separate database operations from the user interface to improve maintainability and testing.
 
 ---
 
-# Android Installation
+## Installation
 
-Download the latest APK from the Releases section.
+Download the latest APK from **GitHub Releases**.
 
-Install the APK on an Android device to use the application.
+Install the APK on an Android device.
 
-> Note: Android may require enabling installation from unknown sources since the application is not distributed through the Play Store.
+> Android may require enabling installation from unknown sources because the application is not distributed through Google Play.
 
 ---
 
-# Future Improvements
+## Roadmap
 
-Planned features for future versions:
+### Completed
+
+- Dashboard
+- Transaction Management
+- Account Management
+- Category Management
+- Transaction History
+- Settings
+- Android APK
+
+### Planned
 
 - Transaction search
-- Advanced transaction filters
+- Advanced filters
 - Reports and charts
 - Budget tracking
-- Data export/import
+- Import / Export
 - Backup and restore
 - Cloud synchronization
-- Dark mode support
+- Dark mode
 
 ---
 
-# Development Notes
+## Highlights
 
-This project demonstrates:
-
-- Mobile application development using Python
-- CRUD operations
-- SQLite database management
-- UI development using KivyMD
-- Separation of UI, database, and business logic
-- Android application deployment
+- Built entirely with Python
+- Mobile-first interface using KivyMD
+- Offline-first architecture
+- SQLite local database
+- Repository pattern for database access
+- Reusable custom UI components
+- Automated tests
+- Android deployment using Buildozer
 
 ---
 
-# License
+## License
 
-This project is intended for educational and portfolio purposes.
+This project was developed for educational and portfolio purposes.
+
+It is not intended for commercial use.
