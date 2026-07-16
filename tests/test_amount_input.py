@@ -33,3 +33,15 @@ def test_clear_returns_zero():
 
 def test_double_zero_does_not_change_initial_zero():
     assert apply_amount_key("0", "00") == "0"
+
+
+def test_decimal_input_is_limited_to_two_places():
+    amount = apply_amount_key("12.", "3")
+    amount = apply_amount_key(amount, "4")
+    amount = apply_amount_key(amount, "5")
+
+    assert amount == "12.34"
+
+
+def test_double_zero_respects_decimal_limit():
+    assert apply_amount_key("12.3", "00") == "12.30"

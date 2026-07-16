@@ -31,6 +31,15 @@ def append_digit(current_amount, digit):
 
         return digit
 
+    if "." in current_amount:
+        decimal_part = current_amount.partition(".")[2]
+        remaining_places = 2 - len(decimal_part)
+
+        if remaining_places <= 0:
+            return current_amount
+
+        digit = digit[:remaining_places]
+
     return f"{current_amount}{digit}"
 
 

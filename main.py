@@ -9,10 +9,7 @@ from screens.accounts import AccountsScreen
 from screens.categories import CategoriesScreen
 from screens.transactions import TransactionsScreen
 
-from database.transaction_repository import create_transactions_table
-from database.account_repository import create_accounts_table
-from database.category_group_repository import create_category_groups_table
-from database.category_repository import create_categories_table
+from database.schema import initialize_database
 
 from theme.app_theme import apply_app_theme
 
@@ -28,7 +25,7 @@ _ = (
     EnkryonSecondaryButton,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.4.0"
 
 class EnkryonApp(MDApp):
     def build(self):
@@ -45,10 +42,7 @@ class EnkryonApp(MDApp):
         Builder.load_file('kv/date_time_pickers.kv')
         Builder.load_file('kv/input_dialog.kv')
 
-        create_transactions_table()
-        create_accounts_table()
-        create_category_groups_table()
-        create_categories_table()
+        initialize_database()
 
         screen_manager = ScreenManager()
 

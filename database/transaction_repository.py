@@ -1,32 +1,59 @@
 import sqlite3
 from .connection import connect_database
 
-def create_transactions_table():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NOT NULL,
-            amount REAL NOT NULL,
-            category_id INTEGER NOT NULL,
-            date_time TEXT NOT NULL,
-            notes TEXT,
-                   
-            FOREIGN KEY (account_id) REFERENCES accounts(id),
-            FOREIGN KEY (category_id) REFERENCES categories(category_id)
-        )
-    ''')
-    connection.commit()
-    connection.close()
+def create_transactions_table(connection=None):
+    owns_connection = connection is None
 
-def insert_transaction(account_id, amount, category_id, date_time, notes):
+    if owns_connection:
+        connection = connect_database()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                category_id INTEGER NOT NULL,
+                date_time TEXT NOT NULL,
+                notes TEXT,
+
+                FOREIGN KEY (account_id) REFERENCES accounts(id),
+                FOREIGN KEY (category_id) REFERENCES categories(category_id)
+            )
+        ''')
+
+        if owns_connection:
+            connection.commit()
+    finally:
+        if owns_connection:
+            connection.close()
+
+def insert_transaction(
+    account_id,
+    amount_centavos,
+    category_id,
+    date_time,
+    notes,
+):
     connection = connect_database()
     cursor = connection.cursor()
     cursor.execute('''
-        INSERT INTO transactions (account_id, amount, category_id, date_time, notes)
+        INSERT INTO transactions (
+            account_id,
+            amount_centavos,
+            category_id,
+            date_time,
+            notes
+        )
         VALUES (?, ?, ?, ?, ?)
-    ''', (account_id, amount, category_id, date_time, notes))
+    ''', (
+        account_id,
+        amount_centavos,
+        category_id,
+        date_time,
+        notes,
+    ))
     connection.commit()
     connection.close()
 
@@ -37,7 +64,7 @@ def get_transactions(limit=None, account_id=None, transaction_type=None):
                 accounts.name,
                 category_groups.name,
                 categories.name,
-                transactions.amount,
+                transactions.amount_centavos,
                 transactions.date_time,
                 transactions.notes,
                 category_groups.transaction_type
@@ -77,7 +104,7 @@ def get_transaction_by_id(transaction_id):
     cursor = connection.cursor()
     cursor.execute('''SELECT transactions.id,
                    transactions.account_id,
-                   transactions.amount,
+                   transactions.amount_centavos,
                    transactions.category_id,
                    transactions.date_time,
                    transactions.notes,
@@ -96,18 +123,41 @@ def get_transaction_by_id(transaction_id):
     connection.close()
     return transaction
 
-def update_transaction(account_id, amount, category_id, date_time, notes, transaction_id):
+def update_transaction(
+    account_id,
+    amount_centavos,
+    category_id,
+    date_time,
+    notes,
+    transaction_id,
+):
     connection = connect_database()
     cursor = connection.cursor()
+
     try:
-        cursor.execute('''UPDATE transactions 
-                        SET account_id = ?, amount = ?,
-                       category_id = ?, date_time = ?, notes = ?
-                        WHERE id = ?''', (account_id, amount, category_id, date_time, notes, transaction_id))
+        cursor.execute(
+            '''
+            UPDATE transactions
+            SET account_id = ?,
+                amount_centavos = ?,
+                category_id = ?,
+                date_time = ?,
+                notes = ?
+            WHERE id = ?
+            ''',
+            (
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes,
+                transaction_id,
+            ),
+        )
         connection.commit()
         return True
-    except sqlite3.Error as e:
-        print(e)
+    except sqlite3.Error as error:
+        print(error)
         return False
     finally:
         connection.close()
@@ -125,31 +175,40 @@ def delete_transaction(transaction_id):
     finally:
         connection.close()
 
-def get_total_amount(transaction_type, account_id=None):
+def get_total_centavos(transaction_type, account_id=None):
     connection = connect_database()
     cursor = connection.cursor()
+
     try:
-        query = '''SELECT SUM(amount)
-                       FROM transactions
-                       INNER JOIN categories ON transactions.category_id = categories.category_id
-                       INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-                       WHERE transaction_type = ?
-                '''
-        
+        query = '''
+            SELECT SUM(amount_centavos)
+            FROM transactions
+            INNER JOIN categories
+                ON transactions.category_id = categories.category_id
+            INNER JOIN category_groups
+                ON categories.group_id = category_groups.group_id
+            WHERE transaction_type = ?
+        '''
+
         params = [transaction_type]
 
         if account_id is not None:
-            query += ' AND transactions.account_id = ?'
+            query += " AND transactions.account_id = ?"
             params.append(account_id)
 
         cursor.execute(query, tuple(params))
-        amount = cursor.fetchone()[0]
-        return float(amount or 0)
-    except sqlite3.Error as e:
-        print(e)
+        amount_centavos = cursor.fetchone()[0]
+
+        return int(amount_centavos or 0)
+    except sqlite3.Error as error:
+        print(error)
         return False
     finally:
         connection.close()
 
-def get_current_balance(account_id=None):
-    return get_total_amount('income', account_id) - get_total_amount('expense', account_id)
+
+def get_current_balance_centavos(account_id=None):
+    return (
+        get_total_centavos("income", account_id)
+        - get_total_centavos("expense", account_id)
+    )

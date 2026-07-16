@@ -59,3 +59,29 @@ def test_requires_category():
 
     assert is_valid is False
     assert message == "Please select a category."
+
+
+def test_rejects_more_than_two_decimal_places():
+    is_valid, message = validate_transaction_form(
+        account_id=1,
+        amount="12.345",
+        transaction_type="expense",
+        category_id=1,
+    )
+
+    assert is_valid is False
+    assert message == (
+        "Please enter a valid amount with up to two decimal places."
+    )
+
+
+def test_rejects_invalid_transaction_type():
+    is_valid, message = validate_transaction_form(
+        account_id=1,
+        amount="100",
+        transaction_type="transfer",
+        category_id=1,
+    )
+
+    assert is_valid is False
+    assert message == "Please select a valid transaction type."

@@ -61,3 +61,14 @@ def test_delete_unused_category_group():
     assert result is True
     assert reason is None
     assert get_category_groups_by_type("expense") == []
+
+
+def test_reject_invalid_category_group_type():
+    result, reason = insert_category_group(
+        "Transfer",
+        "transfer",
+    )
+
+    assert result is False
+    assert reason == "invalid_type"
+    assert get_category_groups_by_type("transfer") == []

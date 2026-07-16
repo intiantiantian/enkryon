@@ -7,6 +7,8 @@ from database import category_group_repository
 from database import category_repository
 from database import settings_repository
 from database import transaction_repository
+from database.schema import initialize_database
+from database import migrations
 
 
 @pytest.fixture(autouse=True)
@@ -22,6 +24,7 @@ def test_database(tmp_path, monkeypatch):
         account_repository,
         category_group_repository,
         category_repository,
+        migrations,
         settings_repository,
         transaction_repository,
     ]
@@ -34,9 +37,6 @@ def test_database(tmp_path, monkeypatch):
             raising=False,
         )
 
-    account_repository.create_accounts_table()
-    category_group_repository.create_category_groups_table()
-    category_repository.create_categories_table()
-    transaction_repository.create_transactions_table()
+    initialize_database()
 
     yield

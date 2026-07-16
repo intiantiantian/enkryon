@@ -2,10 +2,14 @@ import sqlite3
 
 from .connection import connect_database
 
-def create_categories_table():
-    connection = connect_database()
-    cursor = connection.cursor()
+def create_categories_table(connection=None):
+    owns_connection = connection is None
+
+    if owns_connection:
+        connection = connect_database()
+
     try:
+        cursor = connection.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS categories (
                 category_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,13 +19,20 @@ def create_categories_table():
                 FOREIGN KEY (group_id) REFERENCES category_groups(group_id)
             )
         ''')
-        connection.commit()
+
+        if owns_connection:
+            connection.commit()
+
         return True
-    except sqlite3.Error as e:
-        print(e)
+    except sqlite3.Error as error:
+        if not owns_connection:
+            raise
+
+        print(error)
         return False
     finally:
-        connection.close()
+        if owns_connection:
+            connection.close()
 
 def category_name_exists_for_type(cursor, name, transaction_type, exclude_category_id=None):
     query = '''

@@ -50,7 +50,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Reject duplicate account name
 * [x] Rename account
 * [x] Delete unused account
-* [ ] Refresh renamed account across all screens
+* [x] Refresh renamed account across all screens
 * [x] Protect accounts referenced by transactions
 
 ### Categories
@@ -63,7 +63,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Rename category
 * [x] Expand and collapse category groups
 * [x] Reject empty category and group names
-* [ ] Validate duplicate category and group names consistently
+* [x] Validate duplicate category and group names consistently
 * [x] Protect categories referenced by transactions
 
 ### Transactions
@@ -84,7 +84,7 @@ Testing followed the expected first-time-user workflow:
 * [x] Prevent multiple decimal points
 * [x] Support keypad delete and clear actions
 * [x] Handle excessively large monetary values safely
-* [ ] Support all planned transaction filters
+* [x] Support all planned transaction filters
 
 ### Filters
 
@@ -95,7 +95,7 @@ Testing followed the expected first-time-user workflow:
 * [ ] Filter transactions by category
 * [ ] Filter transactions by date
 * [ ] Reset all filters
-* [ ] Display an empty state when filters return no results
+* [x] Display an empty state when filters return no results
 
 ## Known Defects
 
