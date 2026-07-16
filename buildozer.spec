@@ -19,6 +19,7 @@ source.dir = .
 
 # (list) Source files to include (leave empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas
+source.exclude_dirs = .git,.venv,.buildozer,bin,tests,docs,__pycache__,.pytest_cache
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -313,10 +314,10 @@ android.allow_backup = True
 # android.no-byte-compile-python = False
 
 # (str) The format used to package the app for release mode (aab or apk or aar).
-# android.release_artifact = aab
+android.release_artifact = apk
 
 # (str) The format used to package the app for debug mode (apk or aar).
-# android.debug_artifact = apk
+android.debug_artifact = apk
 
 # (str) A display cutout is an area on some devices that extends into the display surface.
 # It allows for an edge-to-edge experience while providing space for important sensors on the front of the device.
