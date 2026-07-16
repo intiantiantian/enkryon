@@ -2,17 +2,26 @@ import sqlite3
 
 from .connection import connect_database
 
-def create_accounts_table():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE
-        )
-    ''')     
-    connection.commit()
-    connection.close()
+def create_accounts_table(connection=None):
+    owns_connection = connection is None
+
+    if owns_connection:
+        connection = connect_database()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE
+            )
+        ''')
+
+        if owns_connection:
+            connection.commit()
+    finally:
+        if owns_connection:
+            connection.close()
 
 def get_all_accounts():
     connection = connect_database()

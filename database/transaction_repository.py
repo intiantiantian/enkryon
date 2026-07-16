@@ -1,24 +1,33 @@
 import sqlite3
 from .connection import connect_database
 
-def create_transactions_table():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NOT NULL,
-            amount REAL NOT NULL,
-            category_id INTEGER NOT NULL,
-            date_time TEXT NOT NULL,
-            notes TEXT,
-                   
-            FOREIGN KEY (account_id) REFERENCES accounts(id),
-            FOREIGN KEY (category_id) REFERENCES categories(category_id)
-        )
-    ''')
-    connection.commit()
-    connection.close()
+def create_transactions_table(connection=None):
+    owns_connection = connection is None
+
+    if owns_connection:
+        connection = connect_database()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                category_id INTEGER NOT NULL,
+                date_time TEXT NOT NULL,
+                notes TEXT,
+
+                FOREIGN KEY (account_id) REFERENCES accounts(id),
+                FOREIGN KEY (category_id) REFERENCES categories(category_id)
+            )
+        ''')
+
+        if owns_connection:
+            connection.commit()
+    finally:
+        if owns_connection:
+            connection.close()
 
 def insert_transaction(account_id, amount, category_id, date_time, notes):
     connection = connect_database()

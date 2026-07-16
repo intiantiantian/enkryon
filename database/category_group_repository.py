@@ -2,19 +2,28 @@ import sqlite3
 
 from .connection import connect_database
 
-def create_category_groups_table():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS category_groups (
-            group_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            transaction_type TEXT NOT NULL,
-            UNIQUE(name, transaction_type)
-        )
-    ''')
-    connection.commit()
-    connection.close()
+def create_category_groups_table(connection=None):
+    owns_connection = connection is None
+
+    if owns_connection:
+        connection = connect_database()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS category_groups (
+                group_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                transaction_type TEXT NOT NULL,
+                UNIQUE(name, transaction_type)
+            )
+        ''')
+
+        if owns_connection:
+            connection.commit()
+    finally:
+        if owns_connection:
+            connection.close()
 
 def category_group_name_exists(cursor, name, transaction_type, exclude_group_id=None):
     query = '''
