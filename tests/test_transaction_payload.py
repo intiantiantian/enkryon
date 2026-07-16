@@ -13,7 +13,7 @@ def test_build_transaction_payload_with_notes():
 
     assert payload == {
         "account_id": 1,
-        "amount": 25075,
+        "amount_centavos": 25075,
         "category_id": 2,
         "date_time": "2026-07-15 15:30:00",
         "notes": "Lunch",

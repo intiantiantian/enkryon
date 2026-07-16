@@ -15,7 +15,7 @@ def build_transaction_payload(
 ):
     return {
         "account_id": account_id,
-        "amount": pesos_to_centavos(amount),
+        "amount_centavos": pesos_to_centavos(amount),
         "category_id": category_id,
         "date_time": combine_date_time_labels(date_label, time_label),
         "notes": normalize_transaction_notes(notes_label),
