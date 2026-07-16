@@ -1,12 +1,13 @@
-# Database Notes
+# Database Architecture
 
 Enkryon uses SQLite for local persistence.
 
-## Runtime database path
+## Database location
 
-The app uses `database/path.py` to determine where the SQLite database should be stored.
+When Enkryon is running, the database is stored as `database.db`
+inside Kivy's `App.user_data_dir`.
 
-When no Kivy app instance is running, the fallback path is:
+On Windows, the current runtime location is:
 
 ```text
-database/database.db
+%APPDATA%\enkryon\database.db
