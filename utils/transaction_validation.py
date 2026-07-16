@@ -1,3 +1,6 @@
+from utils.money import pesos_to_centavos
+
+
 def validate_transaction_form(
     account_id,
     amount,
@@ -7,7 +10,15 @@ def validate_transaction_form(
     if account_id is None:
         return False, "Please select an account."
 
-    if float(amount) <= 0:
+    try:
+        amount_centavos = pesos_to_centavos(amount)
+    except (ValueError, OverflowError):
+        return (
+            False,
+            "Please enter a valid amount with up to two decimal places.",
+        )
+
+    if amount_centavos <= 0:
         return False, "Amount cannot be less than or equal to zero."
 
     if not transaction_type:

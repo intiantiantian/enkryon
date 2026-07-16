@@ -3,6 +3,7 @@ from .category_group_repository import create_category_groups_table
 from .category_repository import create_categories_table
 from .connection import connect_database
 from .transaction_repository import create_transactions_table
+from utils.money import pesos_to_centavos
 
 
 class MigrationError(RuntimeError):
@@ -16,8 +17,104 @@ def create_initial_schema(connection):
     create_transactions_table(connection)
 
 
+def migrate_transactions_to_centavos(connection):
+    legacy_transactions = connection.execute(
+        '''
+        SELECT id, account_id, amount, category_id, date_time, notes
+        FROM transactions
+        ORDER BY id
+        '''
+    ).fetchall()
+
+    converted_transactions = []
+
+    for (
+        transaction_id,
+        account_id,
+        amount,
+        category_id,
+        date_time,
+        notes,
+    ) in legacy_transactions:
+        try:
+            amount_centavos = pesos_to_centavos(amount)
+        except (ValueError, OverflowError) as error:
+            raise MigrationError(
+                f"Transaction {transaction_id} with amount "
+                f"{amount!r} cannot be converted safely: {error}"
+            ) from error
+
+        converted_transactions.append(
+            (
+                transaction_id,
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes,
+            )
+        )
+
+    connection.execute('''
+        CREATE TABLE transactions_v2 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount_centavos INTEGER NOT NULL,
+            category_id INTEGER NOT NULL,
+            date_time TEXT NOT NULL,
+            notes TEXT,
+
+            FOREIGN KEY (account_id) REFERENCES accounts(id),
+            FOREIGN KEY (category_id) REFERENCES categories(category_id)
+        )
+    ''')
+
+    connection.executemany(
+        '''
+        INSERT INTO transactions_v2 (
+            id,
+            account_id,
+            amount_centavos,
+            category_id,
+            date_time,
+            notes
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        ''',
+        converted_transactions,
+    )
+
+    migrated_count = connection.execute(
+        "SELECT COUNT(*) FROM transactions_v2"
+    ).fetchone()[0]
+
+    if migrated_count != len(legacy_transactions):
+        raise MigrationError(
+            "Transaction count changed during centavo migration."
+        )
+
+    foreign_key_violations = connection.execute(
+        "PRAGMA foreign_key_check(transactions_v2)"
+    ).fetchall()
+
+    if foreign_key_violations:
+        raise MigrationError(
+            "Foreign-key violations were found during centavo migration."
+        )
+
+    connection.execute("DROP TABLE transactions")
+    connection.execute(
+        "ALTER TABLE transactions_v2 RENAME TO transactions"
+    )
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
+    (
+        2,
+        "transactions_amount_centavos",
+        migrate_transactions_to_centavos,
+    ),
 )
 
 

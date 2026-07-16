@@ -5,8 +5,8 @@ from kivymd.uix.menu import MDDropdownMenu
 
 from database.account_repository import get_all_accounts, get_account_by_id
 from database.transaction_repository import (
-    get_total_amount,
-    get_current_balance,
+    get_current_balance_centavos,
+    get_total_centavos,
 )
 
 from services.transaction_services import (
@@ -62,14 +62,31 @@ class DashboardScreen(Screen):
         self.load_recent_transactions()
 
     def load_summary(self):
-        balance = get_current_balance(self.selected_account_id)
-        income = get_total_amount('income', self.selected_account_id)
-        expense = get_total_amount('expense', self.selected_account_id)
+        balance_centavos = get_current_balance_centavos(
+            self.selected_account_id
+        )
+        income_centavos = get_total_centavos(
+            "income",
+            self.selected_account_id,
+        )
+        expense_centavos = get_total_centavos(
+            "expense",
+            self.selected_account_id,
+        )
 
         if self.balance_visible:
-            self.ids.balance_label.text = format_money(balance, compact=True)
-            self.ids.income_label.text = format_money(income, compact=True)
-            self.ids.expense_label.text = format_money(expense, compact=True)
+            self.ids.balance_label.text = format_money(
+                balance_centavos,
+                compact=True,
+            )
+            self.ids.income_label.text = format_money(
+                income_centavos,
+                compact=True,
+            )
+            self.ids.expense_label.text = format_money(
+                expense_centavos,
+                compact=True,
+            )
             self.ids.eye_button.icon = "eye"
         else:
             self.ids.balance_label.text = "₱ ******"

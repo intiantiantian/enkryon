@@ -13,6 +13,7 @@ from database.transaction_repository import (
     )
 
 from utils.amount_input import apply_amount_key
+from utils.money import centavos_to_peso_text
 from utils.snackbar import show_snackbar
 from utils.transaction_validation import validate_transaction_form
 from utils.transaction_payload import build_transaction_payload
@@ -283,7 +284,7 @@ class AddTransactionScreen(Screen):
         if getattr(self, "editing_transaction_id", None):
             update_transaction(
                 payload["account_id"],
-                payload["amount"],
+                payload["amount_centavos"],
                 payload["category_id"],
                 payload["date_time"],
                 payload["notes"],
@@ -294,7 +295,7 @@ class AddTransactionScreen(Screen):
         else:
             insert_transaction(
                 payload["account_id"],
-                payload["amount"],
+                payload["amount_centavos"],
                 payload["category_id"],
                 payload["date_time"],
                 payload["notes"],
@@ -327,7 +328,7 @@ class AddTransactionScreen(Screen):
         (
             transaction_id,
             account_id,
-            amount,
+            amount_centavos,
             category_id,
             date_time,
             notes,
@@ -351,7 +352,7 @@ class AddTransactionScreen(Screen):
         self.ids.category_label.text = category_name
         self.ids.category_selector.disabled = False
 
-        self.amount = str(amount)
+        self.amount = centavos_to_peso_text(amount_centavos)
         self.update_amount_label()
 
         self.set_notes(notes)

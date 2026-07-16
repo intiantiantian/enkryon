@@ -19,11 +19,11 @@ class TransactionCard(MDCard):
         self.ids.group_name.text = transaction[2]
         self.ids.category_name.text = transaction[3]
 
-        amount = transaction[4]
+        amount_centavos = transaction[4]
         transaction_type = transaction[7]
 
         self.ids.amount.text = format_signed_money(
-            amount,
+            amount_centavos,
             transaction_type,
             compact=True
         )

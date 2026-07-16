@@ -3,8 +3,8 @@ from database.category_group_repository import insert_category_group
 from database.category_repository import delete_category, insert_category
 from database.transaction_repository import (
     delete_transaction,
-    get_current_balance,
-    get_total_amount,
+    get_current_balance_centavos,
+    get_total_centavos,
     get_transaction_by_id,
     get_transactions,
     insert_transaction,
@@ -28,7 +28,7 @@ def test_insert_transaction_and_get_by_id():
 
     insert_transaction(
         account_id=1,
-        amount=1000,
+        amount_centavos=1000,
         category_id=1,
         date_time="2026-07-15 08:00:00",
         notes="Allowance",
@@ -111,7 +111,7 @@ def test_update_transaction():
 
     result = update_transaction(
         account_id=2,
-        amount=750,
+        amount_centavos=750,
         category_id=2,
         date_time="2026-07-15 12:30:00",
         notes="Updated",
@@ -146,47 +146,47 @@ def test_delete_transaction():
     assert get_transactions() == []
 
 
-def test_get_total_amount_by_type():
+def test_get_total_centavos_by_type():
     create_transaction_test_data()
 
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Income 1")
     insert_transaction(1, 500, 1, "2026-07-15 09:00:00", "Income 2")
     insert_transaction(1, 200, 2, "2026-07-15 10:00:00", "Expense")
 
-    assert get_total_amount("income") == 1500.0
-    assert get_total_amount("expense") == 200.0
+    assert get_total_centavos("income") == 1500.0
+    assert get_total_centavos("expense") == 200.0
 
 
-def test_get_total_amount_can_filter_by_account():
+def test_get_total_centavos_can_filter_by_account():
     create_transaction_test_data()
 
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Cash income")
     insert_transaction(2, 500, 1, "2026-07-15 09:00:00", "Savings income")
     insert_transaction(1, 200, 2, "2026-07-15 10:00:00", "Cash expense")
 
-    assert get_total_amount("income", account_id=1) == 1000.0
-    assert get_total_amount("income", account_id=2) == 500.0
-    assert get_total_amount("expense", account_id=1) == 200.0
+    assert get_total_centavos("income", account_id=1) == 1000.0
+    assert get_total_centavos("income", account_id=2) == 500.0
+    assert get_total_centavos("expense", account_id=1) == 200.0
 
 
-def test_get_current_balance():
+def test_get_current_balance_centavos():
     create_transaction_test_data()
 
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Income")
     insert_transaction(1, 250, 2, "2026-07-15 09:00:00", "Expense")
 
-    assert get_current_balance() == 750.0
+    assert get_current_balance_centavos() == 750.0
 
 
-def test_get_current_balance_can_filter_by_account():
+def test_get_current_balance_centavos_can_filter_by_account():
     create_transaction_test_data()
 
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Cash income")
     insert_transaction(1, 250, 2, "2026-07-15 09:00:00", "Cash expense")
     insert_transaction(2, 500, 1, "2026-07-15 10:00:00", "Savings income")
 
-    assert get_current_balance(account_id=1) == 750.0
-    assert get_current_balance(account_id=2) == 500.0
+    assert get_current_balance_centavos(account_id=1) == 750.0
+    assert get_current_balance_centavos(account_id=2) == 500.0
 
 
 def test_referenced_account_cannot_be_deleted():
