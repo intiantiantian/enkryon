@@ -94,7 +94,7 @@ The latest Android APK is available from the GitHub Releases page.
 Latest release:
 
 ```
-Enkryon-v0.3.0-alpha.1.apk
+Enkryon-v0.3.0.apk
 ```
 
 ---
