@@ -24,6 +24,9 @@ def validate_transaction_form(
     if not transaction_type:
         return False, "Please select a transaction type."
 
+    if transaction_type not in {"income", "expense"}:
+        return False, "Please select a valid transaction type."
+
     if category_id is None:
         return False, "Please select a category."
 

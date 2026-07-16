@@ -25,6 +25,7 @@ def create_category_groups_table(connection=None):
         if owns_connection:
             connection.close()
 
+
 def category_group_name_exists(cursor, name, transaction_type, exclude_group_id=None):
     query = '''
         SELECT 1
@@ -42,6 +43,7 @@ def category_group_name_exists(cursor, name, transaction_type, exclude_group_id=
     cursor.execute(query, tuple(params))
     return cursor.fetchone() is not None
 
+
 def insert_category_group(name, transaction_type):
     connection = connect_database()
     cursor = connection.cursor()
@@ -51,6 +53,10 @@ def insert_category_group(name, transaction_type):
     if not name:
         connection.close()
         return False, "empty"
+
+    if transaction_type not in {"income", "expense"}:
+        connection.close()
+        return False, "invalid_type"
 
     try:
         if category_group_name_exists(cursor, name, transaction_type):
@@ -70,6 +76,7 @@ def insert_category_group(name, transaction_type):
 
     finally:
         connection.close()
+
 
 def update_category_group(group_id, name):
     connection = connect_database()
@@ -117,7 +124,8 @@ def update_category_group(group_id, name):
 
     finally:
         connection.close()
-        
+
+
 def delete_category_group(group_id):
     connection = connect_database()
     cursor = connection.cursor()
@@ -148,6 +156,7 @@ def delete_category_group(group_id):
     finally:
         connection.close()
 
+
 def get_all_category_groups():
     connection = connect_database()
     cursor = connection.cursor()
@@ -155,6 +164,7 @@ def get_all_category_groups():
     category_groups = cursor.fetchall()
     connection.close()
     return category_groups
+
 
 def get_category_groups_by_type(transaction_type):
     connection = connect_database()

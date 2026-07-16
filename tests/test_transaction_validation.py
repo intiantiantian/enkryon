@@ -73,3 +73,15 @@ def test_rejects_more_than_two_decimal_places():
     assert message == (
         "Please enter a valid amount with up to two decimal places."
     )
+
+
+def test_rejects_invalid_transaction_type():
+    is_valid, message = validate_transaction_form(
+        account_id=1,
+        amount="100",
+        transaction_type="transfer",
+        category_id=1,
+    )
+
+    assert is_valid is False
+    assert message == "Please select a valid transaction type."

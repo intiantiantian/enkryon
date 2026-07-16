@@ -44,6 +44,16 @@ def create_legacy_transaction_database(amount):
     return connection
 
 
+def create_centavo_transaction_database(amount="12.34"):
+    connection = create_legacy_transaction_database(amount)
+
+    connection.execute("BEGIN")
+    migrations.migrate_transactions_to_centavos(connection)
+    connection.commit()
+
+    return connection
+
+
 def test_migrates_legacy_amount_to_integer_centavos():
     connection = create_legacy_transaction_database("12.34")
 
@@ -174,6 +184,7 @@ def test_run_migrations_is_idempotent():
     assert get_migration_rows() == [
         (1, "initial_schema"),
         (2, "transactions_amount_centavos"),
+        (3, "validation_constraints"),
     ]
 
 
@@ -188,7 +199,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
         migrations,
         "MIGRATIONS",
         migrations.MIGRATIONS
-        + ((3, "failing_migration", failing_migration),),
+        + ((4, "failing_migration", failing_migration),),
     )
 
     with pytest.raises(RuntimeError, match="migration failed"):
@@ -201,7 +212,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
             '''
             SELECT version
             FROM schema_migrations
-            WHERE version = 3
+            WHERE version = 4
             '''
         ).fetchone()
         rolled_back_table = connection.execute(
@@ -216,3 +227,213 @@ def test_failed_migration_is_rolled_back(monkeypatch):
 
     assert migration_record is None
     assert rolled_back_table is None
+
+
+def test_adds_transaction_amount_and_datetime_constraints():
+    connection = create_centavo_transaction_database()
+
+    try:
+        connection.execute("BEGIN")
+        migrations.add_transaction_constraints(connection)
+        connection.commit()
+
+        stored_transaction = connection.execute(
+            '''
+            SELECT id, amount_centavos, date_time
+            FROM transactions
+            '''
+        ).fetchone()
+
+        assert stored_transaction == (
+            7,
+            1234,
+            "2026-07-16 08:00:00",
+        )
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO transactions (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time
+                )
+                VALUES (1, 0, 1, '2026-07-16 09:00:00')
+                '''
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO transactions (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time
+                )
+                VALUES (1, 12.5, 1, '2026-07-16 09:00:00')
+                '''
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO transactions (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time
+                )
+                VALUES (1, 500, 1, '2026-02-30 09:00:00')
+                '''
+            )
+        connection.rollback()
+    finally:
+        connection.close()
+
+
+def test_rejects_existing_transaction_constraint_violation():
+    connection = create_centavo_transaction_database("0")
+
+    try:
+        with pytest.raises(
+            migrations.MigrationError,
+            match=r"\[7\]",
+        ):
+            migrations.add_transaction_constraints(connection)
+    finally:
+        connection.close()
+
+
+def test_adds_normalized_name_and_type_constraints():
+    connection = create_centavo_transaction_database()
+
+    try:
+        migrations.add_entity_constraints(connection)
+        connection.commit()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "INSERT INTO accounts (name) VALUES (' cash ')"
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "INSERT INTO accounts (name) VALUES ('cash')"
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO category_groups (
+                    name,
+                    transaction_type
+                )
+                VALUES ('Invalid', 'transfer')
+                '''
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                UPDATE category_groups
+                SET transaction_type = 'expense'
+                WHERE group_id = 1
+                '''
+            )
+        connection.rollback()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO categories (group_id, name)
+                VALUES (1, ' ')
+                '''
+            )
+        connection.rollback()
+    finally:
+        connection.close()
+
+
+def test_category_name_is_unique_within_transaction_type():
+    connection = create_centavo_transaction_database()
+
+    try:
+        migrations.add_entity_constraints(connection)
+        connection.commit()
+
+        cursor = connection.execute(
+            '''
+            INSERT INTO category_groups (name, transaction_type)
+            VALUES ('Other Income', 'income')
+            '''
+        )
+        income_group_id = cursor.lastrowid
+        connection.commit()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                '''
+                INSERT INTO categories (group_id, name)
+                VALUES (?, 'paycheck')
+                ''',
+                (income_group_id,),
+            )
+        connection.rollback()
+
+        cursor = connection.execute(
+            '''
+            INSERT INTO category_groups (name, transaction_type)
+            VALUES ('Food', 'expense')
+            '''
+        )
+        expense_group_id = cursor.lastrowid
+        connection.commit()
+
+        connection.execute(
+            '''
+            INSERT INTO categories (group_id, name)
+            VALUES (?, 'Paycheck')
+            ''',
+            (expense_group_id,),
+        )
+        connection.commit()
+
+        expense_category = connection.execute(
+            '''
+            SELECT categories.name
+            FROM categories
+            INNER JOIN category_groups
+                ON categories.group_id =
+                   category_groups.group_id
+            WHERE category_groups.transaction_type = 'expense'
+            '''
+        ).fetchone()
+
+        assert expense_category == ("Paycheck",)
+    finally:
+        connection.close()
+
+
+def test_rejects_existing_entity_constraint_violation():
+    connection = create_centavo_transaction_database()
+
+    try:
+        connection.execute(
+            "UPDATE accounts SET name = ' Cash ' WHERE id = 1"
+        )
+        connection.commit()
+
+        with pytest.raises(
+            migrations.MigrationError,
+            match="accounts",
+        ):
+            migrations.add_entity_constraints(connection)
+    finally:
+        connection.close()

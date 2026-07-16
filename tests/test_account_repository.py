@@ -44,7 +44,24 @@ def test_delete_unused_account():
 def test_reject_exact_duplicate_account_name():
     insert_account("Cash")
 
-    result = insert_account("Cash")
+    result = insert_account(" cash ")
 
     assert result is False
     assert get_all_accounts() == [(1, "Cash")]
+
+
+def test_reject_blank_account_name():
+    result = insert_account("   ")
+
+    assert result is False
+    assert get_all_accounts() == []
+
+
+def test_reject_duplicate_account_name_when_updating():
+    insert_account("Cash")
+    insert_account("Savings")
+
+    result = update_account(2, " cash ")
+
+    assert result is False
+    assert get_account_by_id(2) == (2, "Savings")
