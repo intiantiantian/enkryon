@@ -1,0 +1,39 @@
+name: Quality Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python 3.13 tests
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.13.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.14"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Compile Python source
+        run: python -m compileall -q main.py database screens services theme utils widgets tests
+
+      - name: Run automated tests
+        run: python -m pytest -q
