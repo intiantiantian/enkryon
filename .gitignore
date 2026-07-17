@@ -17,3 +17,8 @@ database/*.db
 __pycache__/
 *.py[cod]
 .venv/
+
+# Test coverage output
+.coverage
+coverage.xml
+htmlcov/

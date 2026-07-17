@@ -40,5 +40,5 @@ jobs:
       - name: Compile Python source
         run: python -m compileall -q main.py database screens services theme utils widgets tests
 
-      - name: Run automated tests
-        run: python -m pytest -q
+      - name: Run automated tests with coverage
+        run: python -m pytest -q --cov --cov-report=term-missing
