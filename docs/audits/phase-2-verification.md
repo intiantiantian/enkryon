@@ -45,6 +45,7 @@ Final result:
 
 ```text
 88 passed
+```
 
 ## Android release verification
 
