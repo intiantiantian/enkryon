@@ -1,0 +1,5 @@
+# Install the application dependencies.
+-r requirements.txt
+
+# Development and testing tools.
+pytest==9.1.1
