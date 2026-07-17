@@ -89,17 +89,21 @@ Added repository tests for:
 
 All tests pass.
 
-## Known Remaining Issues
+## Phase 1.2 Follow-up Status
 
-These are intentionally left for future phases:
+The following observations were accurate when Phase 1.2 ended. This table
+records what happened to them in later phases so historical notes are not
+mistaken for current defects.
 
-- `screens/add_transaction.py` is still large.
-- Money is still stored as `REAL`.
-- Account duplicate validation is not yet case-insensitive.
-- No migration system exists yet.
-- UI still has hardcoded colors.
-- Design tokens are not yet implemented.
-- Reusable design-system components are not yet implemented.
+| Phase 1.2 observation | Current status |
+|---|---|
+| `screens/add_transaction.py` is still large. | Still open; assigned to Phase 5 architecture work. |
+| Money is stored as `REAL`. | Resolved in Phase 2; amounts now use integer centavos. |
+| Account duplicate validation is not case-insensitive. | Resolved in Phase 2 through normalized application and database rules. |
+| No migration system exists. | Resolved in Phase 2 with ordered, transactional migrations. |
+| UI colors are hardcoded. | Design-system foundations were completed in Phase 1.3; remaining visual cleanup belongs to Phase 6. |
+| Design tokens are not implemented. | Resolved in Phase 1.3. |
+| Reusable design-system components are not implemented. | Initial components were completed in Phase 1.3; expansion continues in Phases 5 and 6. |
 
 ## Phase 1.2 Result
 
@@ -114,14 +118,8 @@ The app now has:
 - Documented architecture rules.
 - Android smoke test evidence.
 
-## Recommended Next Phase
+## Historical Next Step
 
-Proceed to Phase 1.3: Design System.
-
-Recommended first Phase 1.3 steps:
-
-1. Define Enkryon brand identity.
-2. Document emerald/gold color usage.
-3. Create centralized design tokens.
-4. Replace hardcoded colors gradually.
-5. Create reusable UI components.
+The next step recorded at the end of Phase 1.2 was Phase 1.3: Design
+System. That phase and the later Phase 2 financial-correctness work have
+since been completed. Current priorities are maintained in `ROADMAP.md`.

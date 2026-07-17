@@ -1,7 +1,17 @@
-import pytest
+from pathlib import Path
+import shutil
 import sqlite3
 
+import pytest
+
 from database import migrations
+
+
+LEGACY_V0_3_0_DATABASE = (
+    Path(__file__).resolve().parent
+    / "fixtures"
+    / "enkryon_v0_3_0.db"
+)
 
 
 def create_legacy_transaction_database(amount):
@@ -132,6 +142,145 @@ def get_migration_rows():
         ).fetchall()
     finally:
         connection.close()
+
+
+def test_upgrades_v0_3_0_database_file_without_data_loss(
+    tmp_path,
+    monkeypatch,
+):
+    upgraded_database = tmp_path / "upgraded_v0_3_0.db"
+    shutil.copyfile(
+        LEGACY_V0_3_0_DATABASE,
+        upgraded_database,
+    )
+
+    def connect_upgraded_database():
+        connection = sqlite3.connect(upgraded_database)
+        connection.execute("PRAGMA foreign_keys = ON")
+        return connection
+
+    monkeypatch.setattr(
+        migrations,
+        "connect_database",
+        connect_upgraded_database,
+    )
+
+    migrations.run_migrations()
+    migrations.run_migrations()
+
+    connection = connect_upgraded_database()
+
+    try:
+        migration_rows = connection.execute(
+            """
+            SELECT version, name
+            FROM schema_migrations
+            ORDER BY version
+            """
+        ).fetchall()
+
+        transaction_columns = {
+            row[1]: row[2]
+            for row in connection.execute(
+                "PRAGMA table_info(transactions)"
+            ).fetchall()
+        }
+
+        record_counts = {
+            table_name: connection.execute(
+                f"SELECT COUNT(*) FROM {table_name}"
+            ).fetchone()[0]
+            for table_name in (
+                "accounts",
+                "category_groups",
+                "categories",
+                "transactions",
+            )
+        }
+
+        transactions = connection.execute(
+            """
+            SELECT
+                id,
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes
+            FROM transactions
+            ORDER BY id
+            """
+        ).fetchall()
+
+        totals = dict(
+            connection.execute(
+                """
+                SELECT
+                    category_groups.transaction_type,
+                    SUM(transactions.amount_centavos)
+                FROM transactions
+                INNER JOIN categories
+                    ON transactions.category_id =
+                       categories.category_id
+                INNER JOIN category_groups
+                    ON categories.group_id =
+                       category_groups.group_id
+                GROUP BY category_groups.transaction_type
+                """
+            ).fetchall()
+        )
+
+        foreign_key_violations = connection.execute(
+            "PRAGMA foreign_key_check"
+        ).fetchall()
+    finally:
+        connection.close()
+
+    assert migration_rows == [
+        (1, "initial_schema"),
+        (2, "transactions_amount_centavos"),
+        (3, "validation_constraints"),
+    ]
+    assert "amount" not in transaction_columns
+    assert transaction_columns["amount_centavos"] == "INTEGER"
+    assert record_counts == {
+        "accounts": 2,
+        "category_groups": 2,
+        "categories": 2,
+        "transactions": 3,
+    }
+    assert transactions == [
+        (
+            7,
+            1,
+            123456,
+            1,
+            "2026-06-01 08:00:00",
+            "June salary",
+        ),
+        (
+            11,
+            1,
+            1,
+            2,
+            "2026-06-02 12:30:00",
+            "Centavo boundary",
+        ),
+        (
+            15,
+            2,
+            1020,
+            2,
+            "2026-06-03 09:15:00",
+            None,
+        ),
+    ]
+    assert totals == {
+        "income": 123456,
+        "expense": 1021,
+    }
+    assert totals["income"] - totals["expense"] == 122435
+    assert foreign_key_violations == []
 
 
 def test_initial_schema_uses_dependency_order(monkeypatch):

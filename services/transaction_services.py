@@ -54,4 +54,4 @@ def get_transaction_list_data(
     }
 
 def delete_transaction_by_id(transaction_id):
-    delete_transaction(transaction_id)
+    return delete_transaction(transaction_id)

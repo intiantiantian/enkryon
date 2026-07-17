@@ -113,15 +113,20 @@ Enkryon-v0.4.0.apk
 ```
 enkryon/
 
+├── .github/         # Automated GitHub quality checks
 ├── assets/          # Images, icons, screenshots
 ├── database/        # SQLite repositories
+├── docs/            # Audit and development documentation
 ├── kv/              # Kivy UI layouts
 ├── screens/         # Screen controllers
 ├── services/        # Business logic
 ├── tests/           # Automated tests
+├── theme/           # Shared design values and app theme
 ├── utils/           # Helper utilities
 ├── widgets/         # Reusable UI components
 ├── main.py
+├── ROADMAP.md
+├── requirements-dev.txt
 ├── requirements.txt
 └── README.md
 ```
@@ -139,7 +144,36 @@ Stored data includes:
 - Categories
 - Transactions
 
-Repository modules separate database operations from the user interface to improve maintainability and testing.
+Transaction amounts are stored as exact integer centavos. Ordered database
+migrations safely upgrade older installations while preserving records,
+relationships, transaction IDs, and totals.
+
+Repository modules separate database operations from the user interface to
+improve maintainability and testing. See the
+[database architecture guide](docs/development/database.md) for details.
+
+---
+
+## Development and Quality Checks
+
+Install the reproducible development environment:
+
+```bat
+python -m pip install -r requirements-dev.txt
+```
+
+Run the full suite with coverage:
+
+```bat
+python -m pytest -q --cov --cov-report=term-missing
+```
+
+GitHub Actions installs the same dependencies, compiles the Python source,
+and runs the complete test suite with coverage on every push and pull
+request.
+
+See the [local testing guide](docs/development/testing.md) for the verified
+environment and all required commands.
 
 ---
 
@@ -155,26 +189,17 @@ Install the APK on an Android device.
 
 ## Roadmap
 
-### Completed
+Development follows a reliability-first sequence:
 
-- Dashboard
-- Transaction Management
-- Account Management
-- Category Management
-- Transaction History
-- Settings
-- Android APK
+- Phase 1 established the safe architecture and design foundation.
+- Phase 2 delivered exact centavo storage and safe database migrations.
+- Phase 3 established reproducible local and automatic quality checks.
+- Phase 4 continues Android release hardening.
+- Later phases cover architecture, usability, recovery, search, and version
+  1.0 validation before major feature expansion.
 
-### Planned
-
-- Transaction search
-- Advanced filters
-- Reports and charts
-- Budget tracking
-- Import / Export
-- Backup and restore
-- Cloud synchronization
-- Dark mode
+See the [complete development roadmap](ROADMAP.md) for objectives,
+deliverables, priorities, and completion gates.
 
 ---
 
@@ -184,9 +209,12 @@ Install the APK on an Android device.
 - Mobile-first interface using KivyMD
 - Offline-first architecture
 - SQLite local database
+- Exact integer-centavo calculations
+- Versioned, transactional database migrations
 - Repository pattern for database access
 - Reusable custom UI components
-- Automated tests
+- Automated tests with coverage reporting
+- GitHub Actions quality checks
 - Android deployment using Buildozer
 
 ---

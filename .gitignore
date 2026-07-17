@@ -10,7 +10,15 @@ database/*.db
 *.sqlite
 *.sqlite3
 
+# Versioned historical databases used by migration tests
+!tests/fixtures/*.db
+
 # Python
 __pycache__/
 *.py[cod]
 .venv/
+
+# Test coverage output
+.coverage
+coverage.xml
+htmlcov/
