@@ -14,6 +14,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
 
+    env:
+      KIVY_GL_BACKEND: mock
+      KIVY_NO_ARGS: "1"
+      KIVY_NO_CONFIG: "1"
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -36,5 +41,4 @@ jobs:
         run: python -m compileall -q main.py database screens services theme utils widgets tests
 
       - name: Run automated tests
-        timeout-minutes: 5
-        run: python -m pytest -vv -s
+        run: python -m pytest -q
