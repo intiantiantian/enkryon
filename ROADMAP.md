@@ -2,7 +2,7 @@
 
 Updated: July 17, 2026
 Current release: `v0.4.0`
-Current position: Phase 2 is complete; Phase 3 is next
+Current position: Phase 3 is complete; Phase 4 is next and partially completed
 
 ## Purpose
 
@@ -28,11 +28,11 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The Phase 2 verification report records `88 passed`. Tests cover repositories, migrations, exact money conversion, validation, payloads, versioning, theme tokens, and reusable widgets. | The local test foundation is strong enough to place into continuous integration. |
+| Automated tests | The suite contains `99` passing tests. The application-wide branch-coverage baseline is `51%`, with stronger coverage around migrations, repositories, exact money handling, validation, and services. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
 | Versioning | `main.py` defines `0.4.0`; Buildozer reads that value; the README uses the matching APK filename. | Version disagreement has been resolved. |
 | Android release | The signed `Enkryon-v0.4.0.apk` was aligned, signature-verified, clean-installed, and smoke-tested with a centavo transaction. | Several Phase 4 tasks were completed early, but repeatable release automation and upgrade testing still remain. |
 | Android packaging | Tests, documentation, caches, local environments, build folders, and local database files are excluded from packaging. The build targets ARM64 and ARMv7 and produces an APK. | Packaging cleanup has started; configuration and release documentation still need hardening. |
-| Automated checks on GitHub | No GitHub Actions workflow is present in the ZIP. | Phase 3 is the next priority. |
+| Automated checks on GitHub | GitHub Actions installs the pinned development environment, compiles the source, and runs all tests with coverage on pushes, pull requests, and manual runs. | Broken correctness checks are visible before release preparation. |
 | Architecture | Repositories, services, screens, utilities, widgets, and theme modules exist. Screens still contain substantial workflow logic, especially the add-transaction screen. | Continue architecture cleanup after automatic quality checks are established. |
 | Backup and recovery | The app can clear all data, but it has no user-controlled backup and restore flow. | Recovery must be added before Enkryon leaves alpha. |
 | Search and advanced filters | Transaction-type filtering exists. Search, date range, account, category, and combined filters are not yet complete. | Complete these in Phase 8 rather than mixing them into reliability work. |
@@ -43,8 +43,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 |---|---|---|
 | 1. Safe Foundation and Consistent Design | Make the existing app safer, easier to maintain, and visually consistent. | Completed |
 | 2. Exact Money and Safe Database Upgrades | Prevent rounding errors and upgrade existing databases without losing data. | Completed |
-| 3. Automatic Quality Checks | Test every change automatically so defects are caught before release. | Next |
-| 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Partially completed |
+| 3. Automatic Quality Checks | Test every change automatically so defects are caught before release. | Completed |
+| 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Next; partially completed |
 | 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Planned |
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Planned |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Planned |
@@ -92,9 +92,10 @@ Make the existing application safe enough to improve: document its behavior, rep
 - Added reusable primary, secondary, and filter buttons.
 - Standardized selected states and empty-state styling.
 
-### Documentation follow-up
+### Documentation status
 
-The old Phase 1.2 summary still says money uses `REAL`, migrations do not exist, and account duplicates are not case-insensitive. Those statements were true when that summary was written but were resolved in Phase 2. Update the summary so historical documents do not look like current defects.
+Phase 3 updated the old Phase 1.2 summary so resolved observations are no
+longer presented as current defects.
 
 ### Completion gate
 
@@ -139,13 +140,10 @@ Make all financial values exact and ensure that users can move from an older Enk
 
 Earlier debug-signed builds cannot be upgraded directly to `v0.4.0` because they used a different signing identity. Those installations require a clean reinstall. Starting with `v0.4.0`, future releases should use the same permanent certificate so normal in-place upgrades can be tested and supported.
 
-### Documentation follow-up
+### Documentation status
 
-- Expand `docs/development/database.md` to explain the migration system, integer-centavo storage, and database rules—not only the database location.
-- Correct the unfinished code fence in `docs/audits/phase-2-verification.md`.
-- Update the stale Phase 1.2 “known remaining issues” list.
-
-These are documentation cleanups. They do not reopen the verified Phase 2 implementation.
+Phase 3 expanded the database guide, repaired the Phase 2 verification
+report, and updated the stale Phase 1.2 follow-up list.
 
 ### Completion gate
 
@@ -155,63 +153,94 @@ These are documentation cleanups. They do not reopen the verified Phase 2 implem
 
 ## Phase 3 — Automatic Quality Checks
 
-**Status:** Next
-**Priority:** High
+**Status:** Completed
+**Priority achieved:** High
 
 ### Objective
 
 Run the same dependable checks for every proposed change so a broken migration, calculation, or core workflow is discovered before it becomes a release.
 
-### Work plan
+### Completed work
 
-#### 3.1 Reproducible test setup
+#### 3.1 Reproducible development setup
 
-1. Create a development dependency file separate from the Android runtime dependencies.
-2. Include the exact testing and quality-tool versions needed by contributors and GitHub Actions.
-3. Document the setup and the commands for tests, syntax checks, and other required checks.
+- Added `requirements-dev.txt` without placing test tools in the Android
+  runtime dependencies.
+- Pinned pytest and pytest-cov to the versions verified during the phase.
+- Documented the verified Python environment and required local commands.
 
 #### 3.2 GitHub Actions
 
-1. Add a workflow that runs on pushes and pull requests.
-2. Install the documented development environment.
-3. Run Python compilation checks.
-4. Run the complete automated test suite.
-5. Make a failed required check block release preparation.
+- Added automatic checks for pushes, pull requests, and manual runs.
+- Used Python 3.13.14 on a fresh Windows runner.
+- Added dependency caching, source compilation, tests, and coverage output.
+- Used Kivy's mock graphics backend because the hosted runner exposes
+  OpenGL 1.1 rather than the OpenGL 2.0 required for real rendering.
+- Verified repeated green runs after resolving the initial headless
+  graphics failure.
 
-#### 3.3 Stronger correctness tests
+#### 3.3 Stronger correctness evidence
 
-1. Add upgrade tests using saved database files from supported older versions, not only newly created in-memory examples.
-2. Add service tests for creating, editing, deleting, validating, and handling failed transactions.
-3. Test missing records, duplicate names, invalid dates, invalid amounts, database failures, and migration incompatibilities.
-4. Add headless screen or app-start smoke tests where Kivy can run them reliably.
-5. Produce an initial coverage report and focus improvements on migrations, financial calculations, repositories, and services.
+- Added a saved `v0.3.0` SQLite fixture with legacy `REAL` amounts.
+- Verified that all three migrations preserve record counts, transaction
+  IDs, relationships, exact centavo values, totals, and balance.
+- Verified that rerunning the migration framework does not change data.
+- Added transaction-service success and failure-path tests.
+- Preserved repository deletion results through the service boundary.
+- Added a headless application-import smoke test for all six screens.
+- Established an initial `51%` application-wide branch-coverage baseline.
 
 #### 3.4 Documentation cleanup
 
-1. Correct the stale Phase 1.2 issue list.
-2. Expand the database documentation for Phase 2.
-3. Repair the Phase 2 verification report formatting.
-4. Link the full roadmap from the README.
+- Corrected the stale Phase 1.2 follow-up list.
+- Expanded the database architecture and migration guide.
+- Repaired the Phase 2 verification report formatting.
+- Added local testing and coverage instructions.
+- Added this roadmap to the repository and linked it from the README.
 
 ### Deliverables
 
-- Reproducible development/test dependency setup.
-- GitHub Actions workflow for pushes and pull requests.
-- Automatic compilation and test results.
-- Old-version database fixtures and upgrade tests.
-- Service and failure-path tests.
-- Clear local testing instructions.
-- Corrected Phase 1 and Phase 2 documentation.
+- Reproducible development/test dependency setup. **Completed**
+- GitHub Actions workflow for pushes and pull requests. **Completed**
+- Automatic compilation, test, and coverage results. **Completed**
+- Old-version database fixture and upgrade test. **Completed**
+- Service and failure-path tests. **Completed**
+- Headless application import smoke test. **Completed**
+- Clear local testing instructions. **Completed**
+- Corrected Phase 1 and Phase 2 documentation. **Completed**
+
+### Verification evidence
+
+- `99` automated tests passed locally and in GitHub Actions.
+- Application-wide branch coverage measured `51%`.
+- Python compilation completed without errors.
+- Git whitespace checks passed.
+- The working tree was clean before closeout.
+- The desktop navigation smoke check passed for Dashboard, Accounts,
+  Categories, Add Transaction, Transaction History, and Settings.
+
+### Known limits carried forward
+
+- Screen and interactive-widget behavior has lower coverage than the
+  financial and migration layers. Deeper UI testing belongs to Phase 6.
+- Phase 3 records coverage but does not impose an arbitrary percentage
+  threshold.
+- Transaction creation and editing still live mainly in screen code and
+  are assigned to Phase 5 architecture work.
+- Android build and upgrade automation remains Phase 4 work.
 
 ### Completion gate
 
-Phase 3 is complete when a fresh local environment and GitHub Actions run the same required checks, every pull request receives an automatic pass/fail result, older database fixtures upgrade successfully, and a failed financial or migration test prevents release preparation.
+**Passed.** The pinned environment works locally and on fresh GitHub
+runners, pushes and pull requests receive automatic checks, the saved
+legacy database upgrades without data loss, failures produce a red check,
+and the full regression and desktop smoke checks pass.
 
 ---
 
 ## Phase 4 — Reliable Android Releases
 
-**Status:** Partially completed
+**Status:** Next — partially completed
 **Priority:** High
 
 ### Objective
@@ -471,14 +500,16 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Create a separate, reproducible development/test dependency setup.
-2. Add GitHub Actions for compilation and the complete test suite.
-3. Add real old-version database fixtures and upgrade tests.
-4. Add service and failure-path tests.
-5. Correct stale Phase 1 and Phase 2 documentation.
-6. Explicitly pin Android API settings and document debug/release builds.
-7. Test the next official APK as an in-place upgrade from `v0.4.0`.
-8. Resume architecture simplification only after the automatic checks protect existing behavior.
+1. Explicitly pin Android API and minimum API settings.
+2. Document separate debug and release build procedures.
+3. Document secure release signing without storing secrets in the
+   repository.
+4. Add an adaptive icon and review APK asset size.
+5. Standardize the release checklist, artifact names, checksums, changelog,
+   and release notes.
+6. Build the next official APK with the permanent certificate and test an
+   in-place upgrade from `v0.4.0`.
+7. Begin Phase 5 architecture simplification after the Phase 4 gate passes.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

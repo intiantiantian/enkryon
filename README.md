@@ -193,7 +193,7 @@ Development follows a reliability-first sequence:
 
 - Phase 1 established the safe architecture and design foundation.
 - Phase 2 delivered exact centavo storage and safe database migrations.
-- Phase 3 adds reproducible local and automatic quality checks.
+- Phase 3 established reproducible local and automatic quality checks.
 - Phase 4 continues Android release hardening.
 - Later phases cover architecture, usability, recovery, search, and version
   1.0 validation before major feature expansion.
