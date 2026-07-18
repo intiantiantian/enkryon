@@ -18,7 +18,7 @@ The Phase 4 baseline was verified with:
 | Java runtime and compiler | OpenJDK 17.0.19 |
 | Buildozer | 1.6.0 |
 | Cython | 0.29.37 |
-| Python-for-Android | `v2026.05.09` |
+| Python-for-Android | `v2026.05.09` (`58d21141`) |
 | Android target API | 36 |
 | Android minimum API | 24 |
 | Android NDK | 28 |

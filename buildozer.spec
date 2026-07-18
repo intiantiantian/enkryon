@@ -338,10 +338,10 @@ android.debug_artifact = apk
 
 # (str) python-for-android branch to use, defaults to master
 # Pin the Python-for-Android release verified for Enkryon builds.
-p4a.branch = v2026.05.09
+p4a.branch = master
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
-#p4a.commit = HEAD
+p4a.commit = 58d21141
 
 # (str) python-for-android git clone directory
 #p4a.source_dir =

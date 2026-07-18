@@ -49,7 +49,8 @@ def test_android_build_toolchain_versions_are_pinned():
         if line.strip() and not line.startswith("#")
     }
 
-    assert app_config["p4a.branch"] == "v2026.05.09"
+    assert app_config["p4a.branch"] == "master"
+    assert app_config["p4a.commit"] == "58d21141"
     assert requirements == {
         "buildozer==1.6.0",
         "Cython==0.29.37",
