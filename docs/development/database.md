@@ -132,3 +132,26 @@ When the schema changes:
 
 Never delete or reorder a migration that may already exist in a user's
 database.
+
+## Android Platform Backup Policy
+
+Enkryon disables Android platform cloud backup through
+`android.allow_backup = False` in `buildozer.spec`.
+
+The runtime database contains private financial records. Generic
+file-based backup could copy and later restore the database without
+Enkryon validating its schema version, application version, record
+counts, or financial totals.
+
+Until the user-controlled backup and restore feature is implemented:
+
+- Enkryon does not opt into Android cloud backup.
+- No custom Android backup-rules file is configured.
+- Clearing application data or uninstalling Enkryon can permanently
+  remove local records.
+- Some Android 12 and newer devices may still permit manufacturer-managed
+  device-to-device transfers despite cloud backup being disabled.
+
+Phase 7 will introduce a versioned, validated, user-controlled backup and
+restore process. Android release verification must confirm that the
+generated manifest contains `android:allowBackup="false"`.

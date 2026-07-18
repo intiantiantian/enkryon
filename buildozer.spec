@@ -298,8 +298,9 @@ android.archs = arm64-v8a, armeabi-v7a
 # this is not the same as app version and should only be edited if you know what you're doing
 # android.numeric_version = 1
 
-# (bool) enables Android auto backup feature (Android API >=23)
-android.allow_backup = True
+# (bool) Disable platform cloud backup for local financial records.
+# Enkryon will provide validated, user-controlled backup in Phase 7.
+android.allow_backup = False
 
 # (str) XML file for custom backup rules (see official auto backup documentation)
 # android.backup_rules =

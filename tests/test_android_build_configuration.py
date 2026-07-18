@@ -24,3 +24,10 @@ def test_android_compatibility_versions_are_explicit():
     assert app_config["android.ndk"] == "28"
     assert ndk_api == minimum_api
     assert minimum_api < target_api
+
+
+def test_android_automatic_backup_is_disabled():
+    app_config = load_app_config()
+
+    assert app_config.getboolean("android.allow_backup") is False
+    assert app_config.get("android.backup_rules") is None
