@@ -337,7 +337,8 @@ android.debug_artifact = apk
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+# Pin the Python-for-Android release verified for Enkryon builds.
+p4a.branch = v2026.05.09
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
