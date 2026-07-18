@@ -54,6 +54,24 @@ as an adaptive-icon foreground.
 
 ## Verification
 
+### Packaging exclusions
+
+The launcher, adaptive-icon, and presplash files are compiled separately
+into Android resources. Their source copies are excluded from the Python
+application archive to prevent duplicate files in the APK. Repository
+screenshots are documentation assets and are also excluded.
+
+The exclusions do not remove the compiled Android resources. A successful
+artifact must still contain:
+
+```text
+res/drawable/presplash.jpg
+res/mipmap-anydpi-v26/icon.xml
+res/mipmap/icon.png
+res/mipmap/icon_background.png
+res/mipmap/icon_foreground.png
+```
+
 Run the asset checks after changing any packaged image or Buildozer path:
 
 ```bat

@@ -32,7 +32,7 @@ source.exclude_dirs = .git,.venv,.buildozer,bin,tests,docs,__pycache__,.pytest_c
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
-#source.exclude_patterns = license,images/*/*.jpg
+source.exclude_patterns = assets/screenshots/*/*.jpg,assets/icon/*.png,assets/splash/*.png
 
 # (str) Application versioning (method 1)
 # version = 0.3.0
