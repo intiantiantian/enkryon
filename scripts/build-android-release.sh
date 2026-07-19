@@ -56,7 +56,8 @@ buildozer -v android release
 APP_VERSION="$(
     sed -n \
         's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p' \
-        main.py
+        main.py |
+        tr -d '\r'
 )"
 [[ -n "$APP_VERSION" ]] || fail "cannot read the application version"
 
