@@ -89,7 +89,7 @@ SIGNATURE_OUTPUT="$(
 )" || fail "APK signature verification failed"
 CERTIFICATE_SHA256="$(
     printf '%s\n' "$SIGNATURE_OUTPUT" |
-        sed -n 's/^Signer #1 certificate SHA-256 digest: //p' |
+        sed -n 's/^.*certificate SHA-256 digest: //p' |
         head -n 1 |
         tr '[:upper:]' '[:lower:]'
 )"
