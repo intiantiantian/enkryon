@@ -1,5 +1,5 @@
 import sqlite3
-from .connection import connect_database
+from .connection import connect_database, managed_connection
 from .records import TransactionDetailRecord, TransactionListRecord
 
 
@@ -62,77 +62,85 @@ def insert_transaction(
 
 
 def get_transactions(limit=None, account_id=None, transaction_type=None):
-    connection = connect_database()
-    cursor = connection.cursor()
-    query = '''SELECT transactions.id,
-                accounts.name,
-                category_groups.name,
-                categories.name,
-                transactions.amount_centavos,
-                transactions.date_time,
-                transactions.notes,
-                category_groups.transaction_type
-                FROM transactions
-                INNER JOIN accounts ON transactions.account_id = accounts.id
-                INNER JOIN categories ON transactions.category_id = categories.category_id
-                INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-            '''
-    
-    conditions = []
-    params = []
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        query = '''SELECT transactions.id,
+                    accounts.name,
+                    category_groups.name,
+                    categories.name,
+                    transactions.amount_centavos,
+                    transactions.date_time,
+                    transactions.notes,
+                    category_groups.transaction_type
+                    FROM transactions
+                    INNER JOIN accounts
+                        ON transactions.account_id = accounts.id
+                    INNER JOIN categories
+                        ON transactions.category_id = categories.category_id
+                    INNER JOIN category_groups
+                        ON categories.group_id = category_groups.group_id
+                '''
 
-    if account_id is not None:
-        conditions.append('transactions.account_id = ?')
-        params.append(account_id)
+        conditions = []
+        params = []
 
-    if transaction_type is not None:
-        conditions.append('category_groups.transaction_type = ?')
-        params.append(transaction_type)
+        if account_id is not None:
+            conditions.append('transactions.account_id = ?')
+            params.append(account_id)
 
-    if conditions:
-        query += ' WHERE ' + " AND ".join(conditions)
+        if transaction_type is not None:
+            conditions.append('category_groups.transaction_type = ?')
+            params.append(transaction_type)
 
-    query += ' ORDER BY transactions.date_time DESC, transactions.id DESC'
-    
-    if limit is not None:
-        query += ' LIMIT ?'
-        params.append(limit)
+        if conditions:
+            query += ' WHERE ' + " AND ".join(conditions)
 
-    cursor.execute(query, tuple(params))
-    transactions = [
-        TransactionListRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return transactions
+        query += (
+            ' ORDER BY transactions.date_time DESC, '
+            'transactions.id DESC'
+        )
+
+        if limit is not None:
+            query += ' LIMIT ?'
+            params.append(limit)
+
+        cursor.execute(query, tuple(params))
+        return [
+            TransactionListRecord(*row)
+            for row in cursor.fetchall()
+        ]
+
 
 def get_transaction_by_id(transaction_id):
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''SELECT transactions.id,
-                   transactions.account_id,
-                   transactions.amount_centavos,
-                   transactions.category_id,
-                   transactions.date_time,
-                   transactions.notes,
-                   accounts.name,
-                   categories.name,
-                   categories.group_id,
-                   category_groups.name,
-                   category_groups.transaction_type
-                   FROM transactions
-                   INNER JOIN accounts ON transactions.account_id = accounts.id
-                   INNER JOIN categories ON transactions.category_id = categories.category_id
-                   INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-                   WHERE transactions.id = ?
-                   ''', (transaction_id,))
-    row = cursor.fetchone()
-    connection.close()
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute('''SELECT transactions.id,
+                       transactions.account_id,
+                       transactions.amount_centavos,
+                       transactions.category_id,
+                       transactions.date_time,
+                       transactions.notes,
+                       accounts.name,
+                       categories.name,
+                       categories.group_id,
+                       category_groups.name,
+                       category_groups.transaction_type
+                       FROM transactions
+                       INNER JOIN accounts
+                           ON transactions.account_id = accounts.id
+                       INNER JOIN categories
+                           ON transactions.category_id = categories.category_id
+                       INNER JOIN category_groups
+                           ON categories.group_id = category_groups.group_id
+                       WHERE transactions.id = ?
+                       ''', (transaction_id,))
+        row = cursor.fetchone()
 
     if row is None:
         return None
 
     return TransactionDetailRecord(*row)
+
 
 def update_transaction(
     account_id,
@@ -173,6 +181,7 @@ def update_transaction(
     finally:
         connection.close()
 
+
 def delete_transaction(transaction_id):
     connection = connect_database()
     cursor = connection.cursor()
@@ -186,36 +195,34 @@ def delete_transaction(transaction_id):
     finally:
         connection.close()
 
+
 def get_total_centavos(transaction_type, account_id=None):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     try:
-        query = '''
-            SELECT SUM(amount_centavos)
-            FROM transactions
-            INNER JOIN categories
-                ON transactions.category_id = categories.category_id
-            INNER JOIN category_groups
-                ON categories.group_id = category_groups.group_id
-            WHERE transaction_type = ?
-        '''
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            query = '''
+                SELECT SUM(amount_centavos)
+                FROM transactions
+                INNER JOIN categories
+                    ON transactions.category_id = categories.category_id
+                INNER JOIN category_groups
+                    ON categories.group_id = category_groups.group_id
+                WHERE transaction_type = ?
+            '''
 
-        params = [transaction_type]
+            params = [transaction_type]
 
-        if account_id is not None:
-            query += " AND transactions.account_id = ?"
-            params.append(account_id)
+            if account_id is not None:
+                query += " AND transactions.account_id = ?"
+                params.append(account_id)
 
-        cursor.execute(query, tuple(params))
-        amount_centavos = cursor.fetchone()[0]
+            cursor.execute(query, tuple(params))
+            amount_centavos = cursor.fetchone()[0]
 
-        return int(amount_centavos or 0)
+            return int(amount_centavos or 0)
     except sqlite3.Error as error:
         print(error)
         return False
-    finally:
-        connection.close()
 
 
 def get_current_balance_centavos(account_id=None):

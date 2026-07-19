@@ -4,6 +4,8 @@ import pytest
 
 from database import connection as database_connection
 
+connect_database_under_test = database_connection.connect_database
+
 
 def test_connect_database_enables_foreign_keys(monkeypatch):
     connection = Mock()
@@ -16,7 +18,7 @@ def test_connect_database_enables_foreign_keys(monkeypatch):
         get_database_path,
     )
 
-    result = database_connection.connect_database()
+    result = connect_database_under_test()
 
     assert result is connection
     get_database_path.assert_called_once_with()

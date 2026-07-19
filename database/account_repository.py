@@ -1,6 +1,6 @@
 import sqlite3
 
-from .connection import connect_database
+from .connection import connect_database, managed_connection
 from .records import AccountRecord
 
 def create_accounts_table(connection=None):
@@ -46,28 +46,22 @@ def account_name_exists(
 
 
 def get_all_accounts():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('SELECT * FROM accounts ORDER BY name COLLATE NOCASE')
-    accounts = [
-        AccountRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return accounts
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            'SELECT * FROM accounts ORDER BY name COLLATE NOCASE'
+        )
+        return [AccountRecord(*row) for row in cursor.fetchall()]
 
 
 def get_account_by_id(account_id):
-    connection = connect_database()
-    cursor = connection.cursor()
-
-    cursor.execute(
-        "SELECT * FROM accounts WHERE id = ?",
-        (account_id,)
-    )
-
-    row = cursor.fetchone()
-    connection.close()
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT * FROM accounts WHERE id = ?",
+            (account_id,)
+        )
+        row = cursor.fetchone()
 
     if row is None:
         return None

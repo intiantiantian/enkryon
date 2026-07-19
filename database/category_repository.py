@@ -1,7 +1,8 @@
 import sqlite3
 
-from .connection import connect_database
+from .connection import connect_database, managed_connection
 from .records import CategoryRecord
+
 
 def create_categories_table(connection=None):
     owns_connection = connection is None
@@ -35,6 +36,7 @@ def create_categories_table(connection=None):
         if owns_connection:
             connection.close()
 
+
 def category_name_exists_for_type(cursor, name, transaction_type, exclude_category_id=None):
     query = '''
         SELECT 1
@@ -53,6 +55,7 @@ def category_name_exists_for_type(cursor, name, transaction_type, exclude_catego
 
     cursor.execute(query, tuple(params))
     return cursor.fetchone() is not None
+
 
 def insert_category(group_id, name):
     connection = connect_database()
@@ -94,6 +97,7 @@ def insert_category(group_id, name):
 
     finally:
         connection.close()
+
 
 def update_category(category_id, name):
     connection = connect_database()
@@ -145,6 +149,7 @@ def update_category(category_id, name):
     finally:
         connection.close()
 
+
 def delete_category(category_id):
     connection = connect_database()
     cursor = connection.cursor()
@@ -175,55 +180,52 @@ def delete_category(category_id):
     finally:
         connection.close()
 
+
 def get_all_categories():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        SELECT categories.category_id, categories.group_id, categories.name,
-               category_groups.name, category_groups.transaction_type
-        FROM categories
-        INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-        ORDER BY category_groups.name, categories.name
-    ''')
-    categories = [
-        CategoryRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return categories
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute('''
+            SELECT categories.category_id, categories.group_id, categories.name,
+                   category_groups.name, category_groups.transaction_type
+            FROM categories
+            INNER JOIN category_groups
+                ON categories.group_id = category_groups.group_id
+            ORDER BY category_groups.name, categories.name
+        ''')
+        return [CategoryRecord(*row) for row in cursor.fetchall()]
+
 
 def get_categories_by_group(group_id):
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        SELECT categories.category_id, categories.group_id, categories.name,
-               category_groups.name, category_groups.transaction_type
-        FROM categories
-        INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-        WHERE categories.group_id = ?
-        ORDER BY categories.name COLLATE NOCASE
-    ''', (group_id,))
-    categories_by_group = [
-        CategoryRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return categories_by_group
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute('''
+            SELECT categories.category_id, categories.group_id, categories.name,
+                   category_groups.name, category_groups.transaction_type
+            FROM categories
+            INNER JOIN category_groups
+                ON categories.group_id = category_groups.group_id
+            WHERE categories.group_id = ?
+            ORDER BY categories.name COLLATE NOCASE
+        ''', (group_id,))
+        return [
+            CategoryRecord(*row)
+            for row in cursor.fetchall()
+        ]
+
 
 def get_categories_by_type(transaction_type):
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        SELECT categories.category_id, categories.group_id, categories.name,
-               category_groups.name, category_groups.transaction_type
-        FROM categories
-        INNER JOIN category_groups ON categories.group_id = category_groups.group_id
-        WHERE category_groups.transaction_type = ?
-        ORDER BY category_groups.name, categories.name
-    ''', (transaction_type,))
-    categories_by_type = [
-        CategoryRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return categories_by_type
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute('''
+            SELECT categories.category_id, categories.group_id, categories.name,
+                   category_groups.name, category_groups.transaction_type
+            FROM categories
+            INNER JOIN category_groups
+                ON categories.group_id = category_groups.group_id
+            WHERE category_groups.transaction_type = ?
+            ORDER BY category_groups.name, categories.name
+        ''', (transaction_type,))
+        return [
+            CategoryRecord(*row)
+            for row in cursor.fetchall()
+        ]

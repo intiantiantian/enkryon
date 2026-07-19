@@ -1,6 +1,6 @@
 import sqlite3
 
-from .connection import connect_database
+from .connection import connect_database, managed_connection
 from .records import CategoryGroupRecord
 
 def create_category_groups_table(connection=None):
@@ -159,24 +159,28 @@ def delete_category_group(group_id):
 
 
 def get_all_category_groups():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('SELECT * FROM category_groups ORDER BY name')
-    category_groups = [
-        CategoryGroupRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return category_groups
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM category_groups ORDER BY name')
+        return [
+            CategoryGroupRecord(*row)
+            for row in cursor.fetchall()
+        ]
 
 
 def get_category_groups_by_type(transaction_type):
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('SELECT * FROM category_groups WHERE transaction_type = ? ORDER BY name COLLATE NOCASE', (transaction_type,))
-    category_groups = [
-        CategoryGroupRecord(*row)
-        for row in cursor.fetchall()
-    ]
-    connection.close()
-    return category_groups
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            '''
+            SELECT *
+            FROM category_groups
+            WHERE transaction_type = ?
+            ORDER BY name COLLATE NOCASE
+            ''',
+            (transaction_type,),
+        )
+        return [
+            CategoryGroupRecord(*row)
+            for row in cursor.fetchall()
+        ]
