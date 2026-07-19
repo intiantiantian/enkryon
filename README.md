@@ -94,7 +94,7 @@ The latest Android APK is available from the GitHub Releases page.
 Latest release:
 
 ```
-Enkryon-v0.4.0.apk
+Enkryon-v0.4.8.apk
 ```
 
 ---
@@ -194,9 +194,12 @@ Development follows a reliability-first sequence:
 - Phase 1 established the safe architecture and design foundation.
 - Phase 2 delivered exact centavo storage and safe database migrations.
 - Phase 3 established reproducible local and automatic quality checks.
-- Phase 4 continues Android release hardening.
-- Later phases cover architecture, usability, recovery, search, and version
-  1.0 validation before major feature expansion.
+- Phase 4 established repeatable, permanently signed Android releases and
+  proved an in-place upgrade from official `v0.4.0` to `v0.4.8` without
+  data loss.
+- Phase 5 is next and focuses on simplifying screen and business logic.
+- Later phases cover usability, recovery, search, and version 1.0
+  validation before major feature expansion.
 
 See the [complete development roadmap](ROADMAP.md) for objectives,
 deliverables, priorities, and completion gates.

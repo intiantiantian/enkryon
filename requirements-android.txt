@@ -1,0 +1,4 @@
+# Host-side Android build tools for Ubuntu 24.04 / WSL2.
+# These dependencies are not packaged inside Enkryon.
+buildozer==1.6.0
+Cython==0.29.37

@@ -25,7 +25,7 @@ _ = (
     EnkryonSecondaryButton,
 )
 
-__version__ = "0.4.0"
+__version__ = "0.4.8"
 
 class EnkryonApp(MDApp):
     def build(self):
