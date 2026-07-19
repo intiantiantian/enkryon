@@ -10,9 +10,11 @@ from database.records import AccountRecord
 
 def test_insert_account():
     result = insert_account("Cash")
+    accounts = get_all_accounts()
 
     assert result is True
-    assert get_all_accounts() == [
+    assert isinstance(accounts[0], AccountRecord)
+    assert accounts == [
         AccountRecord(account_id=1, name="Cash")
     ]
 
@@ -22,6 +24,7 @@ def test_get_account_by_id():
 
     account = get_account_by_id(1)
 
+    assert isinstance(account, AccountRecord)
     assert account == AccountRecord(
         account_id=1,
         name="Cash",

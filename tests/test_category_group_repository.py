@@ -1,5 +1,6 @@
 from database.category_group_repository import (
     delete_category_group,
+    get_all_category_groups,
     get_category_groups_by_type,
     insert_category_group,
     update_category_group,
@@ -8,11 +9,18 @@ from database.records import CategoryGroupRecord
 
 
 def test_insert_category_group():
-    result, reason = insert_category_group("Food", "expense")
+    result, reason = insert_category_group(
+        "Food",
+        "expense",
+    )
+    groups = get_category_groups_by_type("expense")
+    all_groups = get_all_category_groups()
 
     assert result is True
     assert reason is None
-    assert get_category_groups_by_type("expense") == [
+    assert isinstance(groups[0], CategoryGroupRecord)
+    assert isinstance(all_groups[0], CategoryGroupRecord)
+    assert groups == [
         CategoryGroupRecord(
             group_id=1,
             name="Food",

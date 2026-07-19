@@ -10,7 +10,7 @@ from database.transaction_repository import (
     insert_transaction,
     update_transaction,
 )
-from database.records import TransactionDetailRecord
+from database.records import TransactionDetailRecord, TransactionListRecord
 
 
 def create_transaction_test_data():
@@ -37,6 +37,7 @@ def test_insert_transaction_and_get_by_id():
 
     transaction = get_transaction_by_id(1)
 
+    assert isinstance(transaction, TransactionDetailRecord)
     assert transaction == TransactionDetailRecord(
         transaction_id=1,
         account_id=1,
@@ -60,6 +61,11 @@ def test_get_transactions_orders_latest_first():
     insert_transaction(1, 500, 1, "2026-07-15 09:00:00", "Bonus")
 
     transactions = get_transactions()
+
+    assert all(
+        isinstance(transaction, TransactionListRecord)
+        for transaction in transactions
+    )
 
     assert [
         transaction.transaction_id
