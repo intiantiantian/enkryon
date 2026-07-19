@@ -10,7 +10,7 @@ from screens.add_transaction import AddTransactionScreen
 from screens.dashboard import DashboardScreen
 from screens.transactions import TransactionsScreen
 
-from services.transaction_services import TransactionSaveResult
+from services.transaction_services import TransactionSaveResult, TransactionDeleteResult
 
 
 def make_label(text=""):
@@ -238,7 +238,9 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         group_name="Food",
         transaction_type="expense",
     )
-    get_transaction_by_id = Mock(return_value=transaction)
+    get_transaction_for_edit = Mock(
+        return_value=transaction
+    )
     centavos_to_peso_text = Mock(return_value="123.45")
     split_database_datetime = Mock(
         return_value=("July 19, 2026", "7:30 PM")
@@ -246,8 +248,8 @@ def test_load_transaction_populates_edit_form(monkeypatch):
 
     monkeypatch.setattr(
         add_transaction_module,
-        "get_transaction_by_id",
-        get_transaction_by_id,
+        "get_transaction_for_edit",
+        get_transaction_for_edit,
     )
     monkeypatch.setattr(
         add_transaction_module,
@@ -277,7 +279,7 @@ def test_load_transaction_populates_edit_form(monkeypatch):
 
     AddTransactionScreen.load_transaction(screen, 17)
 
-    get_transaction_by_id.assert_called_once_with(17)
+    get_transaction_for_edit.assert_called_once_with(17)
     screen.reset_form.assert_called_once_with()
     screen.set_transaction_type.assert_called_once_with("expense")
 
@@ -329,19 +331,56 @@ def test_edit_transaction_loads_form_before_navigation(
 
 
 @pytest.mark.parametrize(
-    ("screen_class", "refresh_method_name"),
+    (
+        "screen_class",
+        "refresh_method_name",
+        "service_result",
+    ),
     [
-        (DashboardScreen, "load_dashboard"),
-        (TransactionsScreen, "load_transactions"),
+        (
+            DashboardScreen,
+            "load_dashboard",
+            TransactionDeleteResult(
+                success=True,
+                message="Transaction deleted successfully.",
+            ),
+        ),
+        (
+            DashboardScreen,
+            "load_dashboard",
+            TransactionDeleteResult(
+                success=False,
+                message="Transaction could not be deleted.",
+            ),
+        ),
+        (
+            TransactionsScreen,
+            "load_transactions",
+            TransactionDeleteResult(
+                success=True,
+                message="Transaction deleted successfully.",
+            ),
+        ),
+        (
+            TransactionsScreen,
+            "load_transactions",
+            TransactionDeleteResult(
+                success=False,
+                message="Transaction could not be deleted.",
+            ),
+        ),
     ],
 )
-def test_delete_transaction_refreshes_current_view(
+def test_delete_transaction_renders_service_result(
     monkeypatch,
     screen_class,
     refresh_method_name,
+    service_result,
 ):
     screen_module = import_module(screen_class.__module__)
-    delete_transaction_by_id = Mock(return_value=True)
+    delete_transaction_by_id = Mock(
+        return_value=service_result
+    )
     show_snackbar = Mock()
 
     monkeypatch.setattr(
@@ -368,7 +407,11 @@ def test_delete_transaction_refreshes_current_view(
 
     delete_transaction_by_id.assert_called_once_with(17)
     dismiss.assert_called_once_with()
-    refresh.assert_called_once_with()
     show_snackbar.assert_called_once_with(
-        "Transaction deleted successfully."
+        service_result.message
     )
+
+    if service_result.success:
+        refresh.assert_called_once_with()
+    else:
+        refresh.assert_not_called()

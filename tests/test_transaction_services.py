@@ -381,17 +381,54 @@ def test_get_transactions_for_view_propagates_repository_error(
     )
 
 
+def test_get_transaction_for_edit_forwards_transaction_id(
+    monkeypatch,
+):
+    expected_transaction = object()
+    repository_get_transaction = Mock(
+        return_value=expected_transaction
+    )
+
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        repository_get_transaction,
+    )
+
+    result = transaction_services.get_transaction_for_edit(17)
+
+    assert result is expected_transaction
+    repository_get_transaction.assert_called_once_with(17)
+
+
 @pytest.mark.parametrize(
-    "repository_result",
-    [True, False],
+    ("repository_result", "expected_result"),
+    [
+        (
+            True,
+            transaction_services.TransactionDeleteResult(
+                success=True,
+                message="Transaction deleted successfully.",
+            ),
+        ),
+        (
+            False,
+            transaction_services.TransactionDeleteResult(
+                success=False,
+                message="Transaction could not be deleted.",
+            ),
+        ),
+    ],
 )
 def test_delete_transaction_by_id_returns_repository_result(
     monkeypatch,
     repository_result,
+    expected_result,
 ):
     repository_delete_transaction = Mock(
         return_value=repository_result
     )
+
     monkeypatch.setattr(
         transaction_services,
         "delete_transaction",
@@ -400,5 +437,5 @@ def test_delete_transaction_by_id_returns_repository_result(
 
     result = transaction_services.delete_transaction_by_id(17)
 
-    assert result is repository_result
+    assert result == expected_result
     repository_delete_transaction.assert_called_once_with(17)

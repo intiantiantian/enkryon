@@ -6,11 +6,9 @@ from kivy.factory import Factory
 from database.account_repository import get_all_accounts
 from database.category_group_repository import get_category_groups_by_type
 from database.category_repository import get_categories_by_group
-from database.transaction_repository import (
-    get_transaction_by_id,
-)
 
 from services.transaction_services import (
+    get_transaction_for_edit,
     save_transaction as save_transaction_workflow,
 )
 
@@ -334,7 +332,7 @@ class AddTransactionScreen(Screen):
     def load_transaction(self, transaction_id):
         self.reset_form()
 
-        transaction = get_transaction_by_id(transaction_id)
+        transaction = get_transaction_for_edit(transaction_id)
 
         self.editing_transaction_id = transaction.transaction_id
 

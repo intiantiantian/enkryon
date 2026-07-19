@@ -124,10 +124,15 @@ class DashboardScreen(Screen):
         self.manager.current = 'add_transaction'
 
     def delete_transaction(self, transaction_id):
-        delete_transaction_by_id(transaction_id)
+        result = delete_transaction_by_id(transaction_id)
         self.delete_transaction_dialog.dismiss()
+
+        show_snackbar(result.message)
+
+        if not result.success:
+            return
+
         self.load_dashboard()
-        show_snackbar("Transaction deleted successfully.")
 
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(

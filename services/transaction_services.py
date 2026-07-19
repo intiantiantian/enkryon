@@ -2,6 +2,7 @@ from typing import NamedTuple
 
 from database.transaction_repository import (
     delete_transaction,
+    get_transaction_by_id,
     get_transactions,
     insert_transaction,
     update_transaction,
@@ -11,6 +12,11 @@ from utils.transaction_validation import validate_transaction_form
 
 
 class TransactionSaveResult(NamedTuple):
+    success: bool
+    message: str
+
+
+class TransactionDeleteResult(NamedTuple):
     success: bool
     message: str
 
@@ -131,5 +137,20 @@ def get_transaction_list_data(
         "empty_state": empty_state,
     }
 
+def get_transaction_for_edit(transaction_id):
+    return get_transaction_by_id(transaction_id)
+
+
 def delete_transaction_by_id(transaction_id):
-    return delete_transaction(transaction_id)
+    deleted = delete_transaction(transaction_id)
+
+    if deleted:
+        return TransactionDeleteResult(
+            True,
+            "Transaction deleted successfully.",
+        )
+
+    return TransactionDeleteResult(
+        False,
+        "Transaction could not be deleted.",
+    )
