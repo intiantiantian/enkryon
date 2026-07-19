@@ -76,6 +76,17 @@ the script exits:
 - `P4A_RELEASE_KEYALIAS`
 - `P4A_RELEASE_KEYALIAS_PASSWD`
 
+After Buildozer succeeds, the helper verifies the permanent certificate,
+checks APK alignment, and creates these standardized files in `bin/`:
+
+```text
+Enkryon-v<version>.apk
+Enkryon-v<version>.apk.sha256
+```
+
+The version is read from `main.py`. The checksum file records only the
+standard artifact filename so it can be checked from any release folder.
+
 Do not run the helper with shell tracing such as `bash -x`, because tracing
 can expose sensitive values.
 
@@ -90,7 +101,10 @@ bash scripts/build-android-release.sh
 
 Passwords are still entered through the private prompts.
 
-## Verify the Resulting Signature
+## Independently Verify the Resulting Signature
+
+The helper performs these checks automatically. Use the commands below to
+confirm a prepared artifact independently or during release review.
 
 Locate the Android SDK signing tool and the newest release APK:
 
