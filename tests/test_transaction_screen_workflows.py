@@ -10,6 +10,8 @@ from screens.add_transaction import AddTransactionScreen
 from screens.dashboard import DashboardScreen
 from screens.transactions import TransactionsScreen
 
+from services.transaction_services import TransactionSaveResult
+
 
 def make_label(text=""):
     return SimpleNamespace(text=text)
@@ -31,7 +33,7 @@ def make_save_screen(*, editing_transaction_id=None):
         manager=manager,
         selected_account_id=2,
         selected_category_id=8,
-        validate_form=Mock(return_value=True),
+        transaction_type="expense",
     )
 
     if editing_transaction_id is not None:
@@ -40,31 +42,19 @@ def make_save_screen(*, editing_transaction_id=None):
     return screen, dashboard
 
 
-@pytest.mark.parametrize(
-    ("validation_result", "expected_result", "expected_message"),
-    [
-        ((True, None), True, None),
-        (
-            (False, "Please select an account."),
-            False,
-            "Please select an account.",
-        ),
-    ],
-)
-def test_validate_form_renders_validation_result(
-    monkeypatch,
-    validation_result,
-    expected_result,
-    expected_message,
-):
-    add_transaction_module = import_module("screens.add_transaction")
-    validate_transaction_form = Mock(return_value=validation_result)
+def patch_save_workflow(monkeypatch, result):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    save_transaction_workflow = Mock(
+        return_value=result
+    )
     show_snackbar = Mock()
 
     monkeypatch.setattr(
         add_transaction_module,
-        "validate_transaction_form",
-        validate_transaction_form,
+        "save_transaction_workflow",
+        save_transaction_workflow,
     )
     monkeypatch.setattr(
         add_transaction_module,
@@ -72,67 +62,38 @@ def test_validate_form_renders_validation_result(
         show_snackbar,
     )
 
-    screen = SimpleNamespace(
-        amount="123.45",
-        selected_account_id=2,
-        selected_category_id=8,
-        transaction_type="expense",
+    return save_transaction_workflow, show_snackbar
+
+
+def test_save_transaction_stops_when_form_is_invalid(
+    monkeypatch,
+):
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=False,
+                message="Please select an account.",
+            ),
+        )
     )
+    screen, dashboard = make_save_screen()
 
-    result = AddTransactionScreen.validate_form(screen)
+    AddTransactionScreen.save_transaction(screen)
 
-    assert result is expected_result
-    validate_transaction_form.assert_called_once_with(
+    save_transaction_workflow.assert_called_once_with(
         account_id=2,
         amount="123.45",
         transaction_type="expense",
         category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=None,
     )
-
-    if expected_message is None:
-        show_snackbar.assert_not_called()
-    else:
-        show_snackbar.assert_called_once_with(expected_message)
-
-
-def test_save_transaction_stops_when_form_is_invalid(monkeypatch):
-    add_transaction_module = import_module("screens.add_transaction")
-    build_transaction_payload = Mock()
-    insert_transaction = Mock()
-    update_transaction = Mock()
-    show_snackbar = Mock()
-
-    monkeypatch.setattr(
-        add_transaction_module,
-        "build_transaction_payload",
-        build_transaction_payload,
+    show_snackbar.assert_called_once_with(
+        "Please select an account."
     )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "insert_transaction",
-        insert_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "update_transaction",
-        update_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "show_snackbar",
-        show_snackbar,
-    )
-
-    screen, dashboard = make_save_screen()
-    screen.validate_form.return_value = False
-
-    AddTransactionScreen.save_transaction(screen)
-
-    screen.validate_form.assert_called_once_with()
-    build_transaction_payload.assert_not_called()
-    insert_transaction.assert_not_called()
-    update_transaction.assert_not_called()
-    show_snackbar.assert_not_called()
     dashboard.load_dashboard.assert_not_called()
     screen.manager.get_screen.assert_not_called()
 
@@ -142,65 +103,38 @@ def test_save_transaction_stops_when_form_is_invalid(monkeypatch):
 def test_save_transaction_creates_transaction_and_refreshes_dashboard(
     monkeypatch,
 ):
-    add_transaction_module = import_module("screens.add_transaction")
-    payload = {
-        "account_id": 2,
-        "amount_centavos": 12345,
-        "category_id": 8,
-        "date_time": "2026-07-19 19:30:00",
-        "notes": "Dinner",
-    }
-    build_transaction_payload = Mock(return_value=payload)
-    insert_transaction = Mock()
-    update_transaction = Mock()
-    show_snackbar = Mock()
-
-    monkeypatch.setattr(
-        add_transaction_module,
-        "build_transaction_payload",
-        build_transaction_payload,
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=True,
+                message="Transaction added successfully.",
+            ),
+        )
     )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "insert_transaction",
-        insert_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "update_transaction",
-        update_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "show_snackbar",
-        show_snackbar,
-    )
-
     screen, dashboard = make_save_screen()
 
     AddTransactionScreen.save_transaction(screen)
 
-    screen.validate_form.assert_called_once_with()
-    build_transaction_payload.assert_called_once_with(
+    save_transaction_workflow.assert_called_once_with(
         account_id=2,
         amount="123.45",
+        transaction_type="expense",
         category_id=8,
         date_label="July 19, 2026",
         time_label="7:30 PM",
         notes_label="Dinner",
+        transaction_id=None,
     )
-    insert_transaction.assert_called_once_with(
-        2,
-        12345,
-        8,
-        "2026-07-19 19:30:00",
-        "Dinner",
-    )
-    update_transaction.assert_not_called()
     show_snackbar.assert_called_once_with(
         "Transaction added successfully."
     )
-    screen.manager.get_screen.assert_called_once_with("dashboard")
+
+    assert screen.editing_transaction_id is None
+
+    screen.manager.get_screen.assert_called_once_with(
+        "dashboard"
+    )
     dashboard.load_dashboard.assert_called_once_with()
 
     assert screen.manager.current == "dashboard"
@@ -209,55 +143,33 @@ def test_save_transaction_creates_transaction_and_refreshes_dashboard(
 def test_save_transaction_updates_transaction_and_clears_edit_state(
     monkeypatch,
 ):
-    add_transaction_module = import_module("screens.add_transaction")
-    payload = {
-        "account_id": 2,
-        "amount_centavos": 12345,
-        "category_id": 8,
-        "date_time": "2026-07-19 19:30:00",
-        "notes": "Dinner",
-    }
-    build_transaction_payload = Mock(return_value=payload)
-    insert_transaction = Mock()
-    update_transaction = Mock()
-    show_snackbar = Mock()
-
-    monkeypatch.setattr(
-        add_transaction_module,
-        "build_transaction_payload",
-        build_transaction_payload,
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=True,
+                message=(
+                    "Transaction updated successfully."
+                ),
+            ),
+        )
     )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "insert_transaction",
-        insert_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "update_transaction",
-        update_transaction,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "show_snackbar",
-        show_snackbar,
-    )
-
     screen, dashboard = make_save_screen(
         editing_transaction_id=17
     )
 
     AddTransactionScreen.save_transaction(screen)
 
-    update_transaction.assert_called_once_with(
-        2,
-        12345,
-        8,
-        "2026-07-19 19:30:00",
-        "Dinner",
-        17,
+    save_transaction_workflow.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=17,
     )
-    insert_transaction.assert_not_called()
 
     assert screen.editing_transaction_id is None
 
@@ -267,6 +179,48 @@ def test_save_transaction_updates_transaction_and_clears_edit_state(
     dashboard.load_dashboard.assert_called_once_with()
 
     assert screen.manager.current == "dashboard"
+
+
+def test_save_transaction_keeps_edit_state_when_update_fails(
+    monkeypatch,
+):
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=False,
+                message=(
+                    "Transaction could not be updated."
+                ),
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen(
+        editing_transaction_id=17
+    )
+
+    AddTransactionScreen.save_transaction(screen)
+
+    save_transaction_workflow.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=17,
+    )
+
+    assert screen.editing_transaction_id == 17
+
+    show_snackbar.assert_called_once_with(
+        "Transaction could not be updated."
+    )
+    dashboard.load_dashboard.assert_not_called()
+    screen.manager.get_screen.assert_not_called()
+
+    assert screen.manager.current == "add_transaction"
 
 
 def test_load_transaction_populates_edit_form(monkeypatch):
