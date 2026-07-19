@@ -203,7 +203,10 @@ def get_categories_by_group(group_id):
         WHERE categories.group_id = ?
         ORDER BY categories.name COLLATE NOCASE
     ''', (group_id,))
-    categories_by_group = cursor.fetchall()
+    categories_by_group = [
+        CategoryRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return categories_by_group
 

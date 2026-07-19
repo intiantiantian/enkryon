@@ -123,8 +123,12 @@ class AddTransactionScreen(Screen):
         for account in accounts:
             menu_items.append(
                 {
-                    "text": account[1],
-                    "on_release": lambda x=account: self.select_account(x[0], x[1])
+                    "text": account.name,
+                    "on_release": lambda x=account:
+                        self.select_account(
+                            x.account_id,
+                            x.name,
+                        )
                 }
             )
 
@@ -181,8 +185,12 @@ class AddTransactionScreen(Screen):
         for group in groups:
             menu_items.append(
                 {
-                    "text": group[1],
-                    "on_release": lambda x=group: self.select_group(x[0], x[1])
+                    "text": group.name,
+                    "on_release": lambda x=group:
+                        self.select_group(
+                            x.group_id,
+                            x.name,
+                        )
                 }
             )
 
@@ -218,8 +226,12 @@ class AddTransactionScreen(Screen):
         for category in categories:
             menu_items.append(
                 {
-                    "text": category[2],
-                    "on_release": lambda x=category: self.select_category(x[0], x[2])
+                    "text": category.name,
+                    "on_release": lambda x=category:
+                        self.select_category(
+                            x.category_id,
+                            x.name,
+                        )
                 }
             )
 
@@ -325,39 +337,29 @@ class AddTransactionScreen(Screen):
 
         transaction = get_transaction_by_id(transaction_id)
 
-        (
-            transaction_id,
-            account_id,
-            amount_centavos,
-            category_id,
-            date_time,
-            notes,
-            account_name,
-            category_name,
-            group_id,
-            group_name,
-            transaction_type            
-        ) = transaction
+        self.editing_transaction_id = transaction.transaction_id
 
-        self.editing_transaction_id = transaction_id
-    
-        self.set_transaction_type(transaction_type)
+        self.set_transaction_type(transaction.transaction_type)
 
-        self.selected_account_id = account_id
-        self.selected_group_id = group_id
-        self.selected_category_id = category_id
+        self.selected_account_id = transaction.account_id
+        self.selected_group_id = transaction.group_id
+        self.selected_category_id = transaction.category_id
 
-        self.ids.account_selector.text = account_name
-        self.ids.group_label.text = group_name
-        self.ids.category_label.text = category_name
+        self.ids.account_selector.text = transaction.account_name
+        self.ids.group_label.text = transaction.group_name
+        self.ids.category_label.text = transaction.category_name
         self.ids.category_selector.disabled = False
 
-        self.amount = centavos_to_peso_text(amount_centavos)
+        self.amount = centavos_to_peso_text(
+            transaction.amount_centavos
+        )
         self.update_amount_label()
 
-        self.set_notes(notes)
+        self.set_notes(transaction.notes)
 
-        date_label, time_label = split_database_datetime(date_time)
+        date_label, time_label = split_database_datetime(
+            transaction.date_time
+        )
 
         self.ids.date_label.text = date_label
         self.ids.time_label.text = time_label

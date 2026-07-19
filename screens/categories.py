@@ -56,7 +56,7 @@ class CategoriesScreen(Screen):
             card.set_group(group)
             self.ids.groups_container.add_widget(card)
 
-            if group[0] in self.expanded_groups:
+            if group.group_id in self.expanded_groups:
                 card.toggle_group()
 
     def set_transaction_type(self, transaction_type):

@@ -13,14 +13,14 @@ class TransactionCard(MDCard):
         self.transaction_id = None
 
     def set_transaction(self, transaction):
-        self.transaction_id = transaction[0]
+        self.transaction_id = transaction.transaction_id
 
-        self.ids.account_name.text = transaction[1]
-        self.ids.group_name.text = transaction[2]
-        self.ids.category_name.text = transaction[3]
+        self.ids.account_name.text = transaction.account_name
+        self.ids.group_name.text = transaction.group_name
+        self.ids.category_name.text = transaction.category_name
 
-        amount_centavos = transaction[4]
-        transaction_type = transaction[7]
+        amount_centavos = transaction.amount_centavos
+        transaction_type = transaction.transaction_type
 
         self.ids.amount.text = format_signed_money(
             amount_centavos,
@@ -28,10 +28,17 @@ class TransactionCard(MDCard):
             compact=True
         )
 
-        dt = datetime.strptime(transaction[5], "%Y-%m-%d %H:%M:%S")
-        self.ids.date_time.text = dt.strftime("%Y-%m-%d %I:%M %p")
+        dt = datetime.strptime(
+            transaction.date_time,
+            "%Y-%m-%d %H:%M:%S",
+        )
+        self.ids.date_time.text = dt.strftime(
+            "%Y-%m-%d %I:%M %p"
+        )
 
-        self.ids.transaction_type.text = transaction[7].upper()
+        self.ids.transaction_type.text = (
+            transaction.transaction_type.upper()
+        )
 
     def edit_transaction(self):
         self.screen.edit_transaction(self.transaction_id)

@@ -4,6 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from database.records import TransactionDetailRecord
+
 from screens.add_transaction import AddTransactionScreen
 from screens.dashboard import DashboardScreen
 from screens.transactions import TransactionsScreen
@@ -269,18 +271,18 @@ def test_save_transaction_updates_transaction_and_clears_edit_state(
 
 def test_load_transaction_populates_edit_form(monkeypatch):
     add_transaction_module = import_module("screens.add_transaction")
-    transaction = (
-        17,
-        2,
-        12345,
-        8,
-        "2026-07-19 19:30:00",
-        "Dinner",
-        "Cash",
-        "Dining",
-        5,
-        "Food",
-        "expense",
+    transaction = TransactionDetailRecord(
+        transaction_id=17,
+        account_id=2,
+        amount_centavos=12345,
+        category_id=8,
+        date_time="2026-07-19 19:30:00",
+        notes="Dinner",
+        account_name="Cash",
+        category_name="Dining",
+        group_id=5,
+        group_name="Food",
+        transaction_type="expense",
     )
     get_transaction_by_id = Mock(return_value=transaction)
     centavos_to_peso_text = Mock(return_value="123.45")

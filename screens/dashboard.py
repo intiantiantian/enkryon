@@ -164,8 +164,12 @@ class DashboardScreen(Screen):
         for account in accounts:
             menu_items.append(
                 {
-                    "text": account[1],
-                    "on_release": lambda x=account: self.select_account(x[0], x[1])
+                    "text": account.name,
+                    "on_release": lambda x=account:
+                        self.select_account(
+                            x.account_id,
+                            x.name,
+                        )
                 }
             )
 
@@ -194,7 +198,7 @@ class DashboardScreen(Screen):
             self.ids.account_label.text = "All Accounts"
             return
 
-        self.ids.account_label.text = account[1]
+        self.ids.account_label.text = account.name
         
     def toggle_balance(self):
         self.balance_visible = not self.balance_visible
