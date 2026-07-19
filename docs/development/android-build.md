@@ -117,6 +117,7 @@ rsync -a --delete \
     --exclude='.git/' \
     --exclude='.venv/' \
     --exclude='.buildozer/' \
+    --exclude='bin/' \
     --exclude='__pycache__/' \
     --exclude='.pytest_cache/' \
     --exclude='.coverage' \
@@ -125,9 +126,11 @@ rsync -a --delete \
 ```
 
 The trailing slash on both directory paths is intentional. The exclusions
-preserve the Linux virtual environment, Buildozer cache, and Git metadata.
-`--delete` removes obsolete source files from the build copy so deleted
-Python or asset files cannot remain in a later APK.
+preserve the Linux virtual environment, Buildozer cache, generated APKs,
+and Git metadata. `--delete` removes obsolete source files from the build
+copy so deleted Python or asset files cannot remain in a later APK. Without
+the `bin/` exclusion, synchronization would delete WSL-built artifacts when
+the canonical Windows source has no matching output directory.
 
 Do not reverse the source and destination paths. That would overwrite the
 canonical Windows project with the build copy.

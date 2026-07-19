@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 17, 2026
-Current release: `v0.4.0`
-Current position: Phase 3 is complete; Phase 4 is next and partially completed
+Updated: July 19, 2026
+Current release: `v0.4.8`
+Current position: Phase 4 is complete; Phase 5 is next
 
 ## Purpose
 
@@ -22,16 +22,16 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 ## Current Project Snapshot
 
-| Area | Current state in `v0.4.0` | What it means for the roadmap |
+| Area | Current state in `v0.4.8` | What it means for the roadmap |
 |---|---|---|
 | Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, transaction-type filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The suite contains `99` passing tests. The application-wide branch-coverage baseline is `51%`, with stronger coverage around migrations, repositories, exact money handling, validation, and services. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
-| Versioning | `main.py` defines `0.4.0`; Buildozer reads that value; the README uses the matching APK filename. | Version disagreement has been resolved. |
-| Android release | The signed `Enkryon-v0.4.0.apk` was aligned, signature-verified, clean-installed, and smoke-tested with a centavo transaction. | Several Phase 4 tasks were completed early, but repeatable release automation and upgrade testing still remain. |
-| Android packaging | Tests, documentation, caches, local environments, build folders, and local database files are excluded from packaging. The build targets ARM64 and ARMv7 and produces an APK. | Packaging cleanup has started; configuration and release documentation still need hardening. |
+| Automated tests | The suite contains `125` passing tests. The application-wide branch-coverage baseline is `51%`, with stronger coverage around migrations, repositories, exact money handling, validation, services, and Android release configuration. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
+| Versioning | `main.py` defines `0.4.8`; Buildozer, artifact names, checksums, and release records use the same value. | The roadmap version and Android artifact now agree. |
+| Android release | The permanently signed `Enkryon-v0.4.8.apk` passed checksum, signature, alignment, packaging, clean-launch, and in-place upgrade checks from official `v0.4.0`. | Phase 4's Android release gate is complete. |
+| Android packaging | Development files and duplicated source assets are excluded. The verified APK targets API 36, supports API 24 and later, contains ARM64 and ARMv7, and disables Android auto-backup. | Packaging and privacy behavior are explicit and test-protected. |
 | Automated checks on GitHub | GitHub Actions installs the pinned development environment, compiles the source, and runs all tests with coverage on pushes, pull requests, and manual runs. | Broken correctness checks are visible before release preparation. |
 | Architecture | Repositories, services, screens, utilities, widgets, and theme modules exist. Screens still contain substantial workflow logic, especially the add-transaction screen. | Continue architecture cleanup after automatic quality checks are established. |
 | Backup and recovery | The app can clear all data, but it has no user-controlled backup and restore flow. | Recovery must be added before Enkryon leaves alpha. |
@@ -44,8 +44,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 1. Safe Foundation and Consistent Design | Make the existing app safer, easier to maintain, and visually consistent. | Completed |
 | 2. Exact Money and Safe Database Upgrades | Prevent rounding errors and upgrade existing databases without losing data. | Completed |
 | 3. Automatic Quality Checks | Test every change automatically so defects are caught before release. | Completed |
-| 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Next; partially completed |
-| 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Planned |
+| 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Completed |
+| 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Next |
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Planned |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Planned |
 | 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Planned |
@@ -240,56 +240,87 @@ and the full regression and desktop smoke checks pass.
 
 ## Phase 4 — Reliable Android Releases
 
-**Status:** Next — partially completed
-**Priority:** High
+**Status:** Completed in `v0.4.8`
+**Priority achieved:** High
 
 ### Objective
 
 Produce Android releases that are repeatable, correctly signed, appropriately packaged, clearly documented, and safe to install over the previous official release.
 
-### Already completed
+### Completed work
 
-- Excluded tests, documentation, caches, virtual environments, build folders, and local databases from packaging.
-- Set `main.py` as the version source used by Buildozer.
-- Configured portrait orientation, ARM64 and ARMv7 architectures, and APK output.
-- Built `Enkryon-v0.4.0.apk`.
-- Signed `v0.4.0` with the permanent Enkryon release certificate.
-- Verified the APK signature and alignment.
-- Recorded package, version, architecture, size, checksum, and certificate information.
-- Passed a clean-install Android smoke test.
-
-### Remaining work
-
-1. Explicitly set supported Android API and minimum API values in `buildozer.spec` instead of leaving them as commented defaults.
-2. Document separate debug and release build commands.
-3. Document the signing process while keeping passwords and private keys outside the repository.
-4. Add an Android adaptive icon and optimize oversized launcher/splash assets where possible.
-5. Review the approximately 51 MB APK and remove avoidable size without risking runtime reliability.
-6. Standardize artifact naming, checksums, changelog entries, and release-note format.
-7. Create one release checklist covering build, signature, alignment, install, launch, migrations, persistence, backup, core workflows, and version display.
-8. Build the next test release with the same permanent certificate and test an in-place upgrade from `v0.4.0`.
-9. Confirm that user records and schema migrations survive the official-to-official upgrade.
-10. Decide and document the intended Android auto-backup behavior so it agrees with Enkryon's privacy and recovery design.
+1. Pinned the Android API, minimum API, NDK, NDK API, Buildozer, Cython,
+   and Python-for-Android compatibility versions.
+2. Documented the reproducible WSL build environment and separate debug
+   and release procedures.
+3. Added secure release-signing instructions and a helper that keeps keys
+   and passwords outside the repository.
+4. Added adaptive launcher assets and verified their packaged resources on
+   a physical Android device.
+5. Removed duplicated screenshots, icons, and splash sources from the APK,
+   reducing the verified candidate to 45,767,240 bytes.
+6. Standardized release artifact names, checksum sidecars, changelog
+   entries, release notes, and the Android release checklist.
+7. Added automated tests for build settings, signing rules, packaging,
+   assets, version extraction, certificate parsing, and release records.
+8. Explicitly disabled Android auto-backup until Phase 7 provides a
+   user-controlled, validated backup and restore flow.
+9. Built `Enkryon-v0.4.8.apk` with the permanent Enkryon certificate and
+   verified its checksum, signature, alignment, API levels, ABIs, backup
+   policy, and package exclusions.
+10. Installed `v0.4.8` over official `v0.4.0` with `adb install -r` and
+    confirmed that all controlled records, exact totals, and notes survived.
+11. Created a post-upgrade transaction and confirmed that it persisted
+    after the upgraded application was closed and relaunched.
 
 ### Deliverables
 
-- Explicit and reviewed Android build settings.
-- Debug and release build instructions.
-- Secure signing instructions.
-- Optimized/adaptive application icon assets.
+- Explicit and reviewed Android build settings. **Completed**
+- Debug and release build instructions. **Completed**
+- Secure signing instructions. **Completed**
+- Optimized/adaptive application icon assets. **Completed**
 - Standard artifact, checksum, changelog, and release-note process.
-- Android release checklist.
-- Successful in-place upgrade evidence from `v0.4.0`.
+  **Completed**
+- Android release checklist. **Completed**
+- Successful in-place upgrade evidence from `v0.4.0`. **Completed**
+
+### Verification evidence
+
+- `125` automated tests passed locally and in GitHub Actions.
+- Python compilation and Git whitespace checks passed.
+- `Enkryon-v0.4.8.apk` matched its SHA-256 checksum sidecar.
+- The APK contained no repository screenshots, source icons, source splash
+  assets, tests, documentation, databases, caches, or signing keys.
+- The APK used the permanent Enkryon certificate and passed `apksigner` and
+  `zipalign` verification.
+- The official-to-official upgrade preserved the controlled financial
+  dataset and accepted a persistent post-upgrade transaction.
+- Detailed evidence is recorded in
+  `docs/audits/phase-4-upgrade-verification.md` and
+  `docs/audits/phase-4-verification.md`.
+
+### Known limits carried forward
+
+- Automatic Android backup remains disabled. Phase 7 will provide an
+  explicit, validated backup and restore flow.
+- The APK contains both supported native architectures and their runtime
+  libraries; further size reduction must not compromise compatibility.
+- Broader device, font-size, accessibility, and layout testing belongs to
+  Phase 6.
+- Large screen controllers and remaining business logic move to Phase 5.
 
 ### Completion gate
 
-Phase 4 is complete when another developer can reproduce the documented build, the artifact contains no development-only files, the signature and alignment pass, and the new official APK installs over `v0.4.0` without losing user data.
+**Passed.** Another developer can reproduce the documented build, the
+artifact contains no development-only files, signature and alignment checks
+pass, and permanently signed `v0.4.8` installs over official `v0.4.0`
+without losing user data.
 
 ---
 
 ## Phase 5 — Simpler, More Maintainable Code
 
-**Status:** Planned
+**Status:** Next
 **Priority:** Medium-high
 
 ### Objective
@@ -500,16 +531,14 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Explicitly pin Android API and minimum API settings.
-2. Document separate debug and release build procedures.
-3. Document secure release signing without storing secrets in the
-   repository.
-4. Add an adaptive icon and review APK asset size.
-5. Standardize the release checklist, artifact names, checksums, changelog,
-   and release notes.
-6. Build the next official APK with the permanent certificate and test an
-   in-place upgrade from `v0.4.0`.
-7. Begin Phase 5 architecture simplification after the Phase 4 gate passes.
+1. Begin Phase 5 with behavior-preserving tests around the largest screen
+   workflows.
+2. Move transaction creation, editing, deletion, and validation into clear
+   service boundaries.
+3. Standardize repository results, errors, and transaction handling.
+4. Reduce tuple-position dependencies and repeated screen logic.
+5. Keep every architecture checkpoint protected by the automatic checks
+   established in Phase 3.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

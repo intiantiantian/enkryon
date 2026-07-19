@@ -3,16 +3,20 @@
 All notable Enkryon changes are recorded here. Entries describe changes
 that affect users, stored data, compatibility, privacy, or releases.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and Enkryon uses semantic `MAJOR.MINOR.PATCH` versions.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Before version 1.0, Enkryon uses `major.phase.subphase` as its roadmap
+version reference.
 
 ## [Unreleased]
+
+## [0.4.8] - 2026-07-19
 
 ### Added
 
 - Adaptive Android launcher icon resources.
 - Repeatable Android build, signing, verification, and checksum procedures.
 - Automated Android configuration and packaging checks.
+- A standardized Android release checklist and release-record format.
 
 ### Changed
 
@@ -20,6 +24,9 @@ and Enkryon uses semantic `MAJOR.MINOR.PATCH` versions.
 - Release APKs exclude repository screenshots and duplicated source assets.
 - Android automatic backup is explicitly disabled pending Enkryon's
   user-controlled backup and restore feature.
+- The release version advanced to `0.4.8` for Phase 4 subphase 8.
+- The permanently signed APK was verified as an in-place upgrade from
+  official `v0.4.0` without losing the controlled financial dataset.
 
 ## [0.4.0] - 2026-07-17
 
