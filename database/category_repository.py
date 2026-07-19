@@ -58,127 +58,115 @@ def category_name_exists_for_type(cursor, name, transaction_type, exclude_catego
 
 
 def insert_category(group_id, name):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     name = (name or "").strip()
 
     if not name:
-        connection.close()
         return False, "empty"
 
     try:
-        cursor.execute(
-            "SELECT transaction_type FROM category_groups WHERE group_id = ?",
-            (group_id,)
-        )
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                '''
+                SELECT transaction_type
+                FROM category_groups
+                WHERE group_id = ?
+                ''',
+                (group_id,)
+            )
 
-        group = cursor.fetchone()
+            group = cursor.fetchone()
 
-        if group is None:
-            return False, "group_not_found"
+            if group is None:
+                return False, "group_not_found"
 
-        transaction_type = group[0]
+            transaction_type = group[0]
 
-        if category_name_exists_for_type(cursor, name, transaction_type):
-            return False, "duplicate"
+            if category_name_exists_for_type(
+                cursor,
+                name,
+                transaction_type,
+            ):
+                return False, "duplicate"
 
-        cursor.execute('''
-            INSERT INTO categories (group_id, name)
-            VALUES (?, ?)
-        ''', (group_id, name))
+            cursor.execute('''
+                INSERT INTO categories (group_id, name)
+                VALUES (?, ?)
+            ''', (group_id, name))
 
-        connection.commit()
-        return True, None
-
-    except sqlite3.Error as e:
-        print(e)
+            connection.commit()
+            return True, None
+    except sqlite3.Error:
         return False, "error"
-
-    finally:
-        connection.close()
 
 
 def update_category(category_id, name):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     name = (name or "").strip()
 
     if not name:
-        connection.close()
         return False, "empty"
 
     try:
-        cursor.execute('''
-            SELECT category_groups.transaction_type
-            FROM categories
-            INNER JOIN category_groups
-                ON categories.group_id = category_groups.group_id
-            WHERE categories.category_id = ?
-        ''', (category_id,))
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute('''
+                SELECT category_groups.transaction_type
+                FROM categories
+                INNER JOIN category_groups
+                    ON categories.group_id = category_groups.group_id
+                WHERE categories.category_id = ?
+            ''', (category_id,))
 
-        category = cursor.fetchone()
+            category = cursor.fetchone()
 
-        if category is None:
-            return False, "not_found"
+            if category is None:
+                return False, "not_found"
 
-        transaction_type = category[0]
+            transaction_type = category[0]
 
-        if category_name_exists_for_type(
-            cursor,
-            name,
-            transaction_type,
-            exclude_category_id=category_id
-        ):
-            return False, "duplicate"
+            if category_name_exists_for_type(
+                cursor,
+                name,
+                transaction_type,
+                exclude_category_id=category_id
+            ):
+                return False, "duplicate"
 
-        cursor.execute('''
-            UPDATE categories
-            SET name = ?
-            WHERE category_id = ?
-        ''', (name, category_id))
+            cursor.execute('''
+                UPDATE categories
+                SET name = ?
+                WHERE category_id = ?
+            ''', (name, category_id))
 
-        connection.commit()
-        return True, None
-
-    except sqlite3.Error as e:
-        print(e)
+            connection.commit()
+            return True, None
+    except sqlite3.Error:
         return False, "error"
-
-    finally:
-        connection.close()
 
 
 def delete_category(category_id):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     try:
-        cursor.execute(
-            "SELECT COUNT(*) FROM transactions WHERE category_id = ?",
-            (category_id,)
-        )
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT COUNT(*) FROM transactions WHERE category_id = ?",
+                (category_id,)
+            )
 
-        transaction_count = cursor.fetchone()[0]
+            transaction_count = cursor.fetchone()[0]
 
-        if transaction_count > 0:
-            return False, "referenced"
+            if transaction_count > 0:
+                return False, "referenced"
 
-        cursor.execute(
-            "DELETE FROM categories WHERE category_id = ?",
-            (category_id,)
-        )
+            cursor.execute(
+                "DELETE FROM categories WHERE category_id = ?",
+                (category_id,)
+            )
 
-        connection.commit()
-        return True, None
-
-    except sqlite3.Error as e:
-        print(e)
+            connection.commit()
+            return True, None
+    except sqlite3.Error:
         return False, "error"
-
-    finally:
-        connection.close()
 
 
 def get_all_categories():
