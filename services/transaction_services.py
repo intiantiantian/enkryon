@@ -1,4 +1,82 @@
-from database.transaction_repository import delete_transaction, get_transactions
+from typing import NamedTuple
+
+from database.transaction_repository import (
+    delete_transaction,
+    get_transactions,
+    insert_transaction,
+    update_transaction,
+)
+from utils.transaction_payload import build_transaction_payload
+from utils.transaction_validation import validate_transaction_form
+
+
+class TransactionSaveResult(NamedTuple):
+    success: bool
+    message: str
+
+
+def save_transaction(
+    *,
+    account_id,
+    amount,
+    transaction_type,
+    category_id,
+    date_label,
+    time_label,
+    notes_label,
+    transaction_id=None,
+):
+    is_valid, message = validate_transaction_form(
+        account_id=account_id,
+        amount=amount,
+        transaction_type=transaction_type,
+        category_id=category_id,
+    )
+
+    if not is_valid:
+        return TransactionSaveResult(False, message)
+
+    payload = build_transaction_payload(
+        account_id=account_id,
+        amount=amount,
+        category_id=category_id,
+        date_label=date_label,
+        time_label=time_label,
+        notes_label=notes_label,
+    )
+
+    if transaction_id is None:
+        insert_transaction(
+            payload["account_id"],
+            payload["amount_centavos"],
+            payload["category_id"],
+            payload["date_time"],
+            payload["notes"],
+        )
+        return TransactionSaveResult(
+            True,
+            "Transaction added successfully.",
+        )
+
+    updated = update_transaction(
+        payload["account_id"],
+        payload["amount_centavos"],
+        payload["category_id"],
+        payload["date_time"],
+        payload["notes"],
+        transaction_id,
+    )
+
+    if not updated:
+        return TransactionSaveResult(
+            False,
+            "Transaction could not be updated.",
+        )
+
+    return TransactionSaveResult(
+        True,
+        "Transaction updated successfully.",
+    )
 
 def get_empty_transaction_state(transaction_filter=None, compact=False):
     if transaction_filter == "income":

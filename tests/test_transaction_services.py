@@ -5,6 +5,225 @@ import pytest
 from services import transaction_services
 
 
+def make_transaction_payload():
+    return {
+        "account_id": 2,
+        "amount_centavos": 12345,
+        "category_id": 8,
+        "date_time": "2026-07-19 19:30:00",
+        "notes": "Dinner",
+    }
+
+
+def test_save_transaction_returns_validation_failure(
+    monkeypatch,
+):
+    validate_transaction_form = Mock(
+        return_value=(
+            False,
+            "Please select an account.",
+        )
+    )
+    build_transaction_payload = Mock()
+    insert_transaction = Mock()
+    update_transaction = Mock()
+
+    monkeypatch.setattr(
+        transaction_services,
+        "validate_transaction_form",
+        validate_transaction_form,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "build_transaction_payload",
+        build_transaction_payload,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "insert_transaction",
+        insert_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "update_transaction",
+        update_transaction,
+    )
+
+    result = transaction_services.save_transaction(
+        account_id=None,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+    )
+
+    assert result == (
+        transaction_services.TransactionSaveResult(
+            success=False,
+            message="Please select an account.",
+        )
+    )
+    validate_transaction_form.assert_called_once_with(
+        account_id=None,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+    )
+    build_transaction_payload.assert_not_called()
+    insert_transaction.assert_not_called()
+    update_transaction.assert_not_called()
+
+
+def test_save_transaction_creates_valid_transaction(
+    monkeypatch,
+):
+    payload = make_transaction_payload()
+    validate_transaction_form = Mock(
+        return_value=(True, None)
+    )
+    build_transaction_payload = Mock(
+        return_value=payload
+    )
+    insert_transaction = Mock()
+    update_transaction = Mock()
+
+    monkeypatch.setattr(
+        transaction_services,
+        "validate_transaction_form",
+        validate_transaction_form,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "build_transaction_payload",
+        build_transaction_payload,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "insert_transaction",
+        insert_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "update_transaction",
+        update_transaction,
+    )
+
+    result = transaction_services.save_transaction(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+    )
+
+    assert result == (
+        transaction_services.TransactionSaveResult(
+            success=True,
+            message="Transaction added successfully.",
+        )
+    )
+    build_transaction_payload.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+    )
+    insert_transaction.assert_called_once_with(
+        2,
+        12345,
+        8,
+        "2026-07-19 19:30:00",
+        "Dinner",
+    )
+    update_transaction.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("repository_result", "expected_result"),
+    [
+        (
+            True,
+            transaction_services.TransactionSaveResult(
+                success=True,
+                message=(
+                    "Transaction updated successfully."
+                ),
+            ),
+        ),
+        (
+            False,
+            transaction_services.TransactionSaveResult(
+                success=False,
+                message=(
+                    "Transaction could not be updated."
+                ),
+            ),
+        ),
+    ],
+)
+def test_save_transaction_returns_update_result(
+    monkeypatch,
+    repository_result,
+    expected_result,
+):
+    payload = make_transaction_payload()
+
+    monkeypatch.setattr(
+        transaction_services,
+        "validate_transaction_form",
+        Mock(return_value=(True, None)),
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "build_transaction_payload",
+        Mock(return_value=payload),
+    )
+
+    insert_transaction = Mock()
+    update_transaction = Mock(
+        return_value=repository_result
+    )
+
+    monkeypatch.setattr(
+        transaction_services,
+        "insert_transaction",
+        insert_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "update_transaction",
+        update_transaction,
+    )
+
+    result = transaction_services.save_transaction(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=17,
+    )
+
+    assert result == expected_result
+    insert_transaction.assert_not_called()
+    update_transaction.assert_called_once_with(
+        2,
+        12345,
+        8,
+        "2026-07-19 19:30:00",
+        "Dinner",
+        17,
+    )
+
+
 @pytest.mark.parametrize(
     (
         "transaction_filter",
