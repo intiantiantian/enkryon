@@ -76,19 +76,35 @@ def test_save_transaction_returns_validation_failure(
     update_transaction.assert_not_called()
 
 
-def test_save_transaction_creates_valid_transaction(
+@pytest.mark.parametrize(
+    ("repository_result", "expected_result"),
+    [
+        (
+            True,
+            transaction_services.TransactionSaveResult(
+                success=True,
+                message="Transaction added successfully.",
+            ),
+        ),
+        (
+            False,
+            transaction_services.TransactionSaveResult(
+                success=False,
+                message="Transaction could not be added.",
+            ),
+        ),
+    ],
+)
+def test_save_transaction_returns_create_result(
     monkeypatch,
+    repository_result,
+    expected_result,
 ):
     payload = make_transaction_payload()
-    validate_transaction_form = Mock(
-        return_value=(True, None)
-    )
-    build_transaction_payload = Mock(
-        return_value=payload
-    )
-    insert_transaction = Mock()
+    validate_transaction_form = Mock(return_value=(True, None))
+    build_transaction_payload = Mock(return_value=payload)
+    insert_transaction = Mock(return_value=repository_result)
     update_transaction = Mock()
-
     monkeypatch.setattr(
         transaction_services,
         "validate_transaction_form",
@@ -120,12 +136,7 @@ def test_save_transaction_creates_valid_transaction(
         notes_label="Dinner",
     )
 
-    assert result == (
-        transaction_services.TransactionSaveResult(
-            success=True,
-            message="Transaction added successfully.",
-        )
-    )
+    assert result == expected_result
     build_transaction_payload.assert_called_once_with(
         account_id=2,
         amount="123.45",

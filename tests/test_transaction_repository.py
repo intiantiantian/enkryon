@@ -27,7 +27,7 @@ def create_transaction_test_data():
 def test_insert_transaction_and_get_by_id():
     create_transaction_test_data()
 
-    insert_transaction(
+    result = insert_transaction(
         account_id=1,
         amount_centavos=1000,
         category_id=1,
@@ -37,6 +37,7 @@ def test_insert_transaction_and_get_by_id():
 
     transaction = get_transaction_by_id(1)
 
+    assert result is True
     assert isinstance(transaction, TransactionDetailRecord)
     assert transaction == TransactionDetailRecord(
         transaction_id=1,
@@ -71,6 +72,7 @@ def test_get_transactions_orders_latest_first():
         transaction.transaction_id
         for transaction in transactions
     ] == [2, 3, 1]
+
 
 def test_get_transactions_can_filter_by_account():
     create_transaction_test_data()
@@ -116,6 +118,7 @@ def test_get_transactions_can_limit_results():
         for transaction in transactions
     ] == [3, 2]
 
+
 def test_update_transaction():
     create_transaction_test_data()
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Original")
@@ -147,6 +150,21 @@ def test_update_transaction():
     )
 
 
+def test_update_missing_transaction_returns_false():
+    create_transaction_test_data()
+
+    result = update_transaction(
+        account_id=1,
+        amount_centavos=750,
+        category_id=1,
+        date_time="2026-07-15 12:30:00",
+        notes="Missing",
+        transaction_id=999,
+    )
+
+    assert result is False
+
+
 def test_delete_transaction():
     create_transaction_test_data()
     insert_transaction(1, 1000, 1, "2026-07-15 08:00:00", "Income")
@@ -155,6 +173,12 @@ def test_delete_transaction():
 
     assert result is True
     assert get_transactions() == []
+
+
+def test_delete_missing_transaction_returns_false():
+    result = delete_transaction(999)
+
+    assert result is False
 
 
 def test_get_total_centavos_by_type():

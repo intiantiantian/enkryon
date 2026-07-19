@@ -52,13 +52,20 @@ def save_transaction(
     )
 
     if transaction_id is None:
-        insert_transaction(
+        created = insert_transaction(
             payload["account_id"],
             payload["amount_centavos"],
             payload["category_id"],
             payload["date_time"],
             payload["notes"],
         )
+
+        if not created:
+            return TransactionSaveResult(
+                False,
+                "Transaction could not be added.",
+            )
+
         return TransactionSaveResult(
             True,
             "Transaction added successfully.",
@@ -84,6 +91,7 @@ def save_transaction(
         "Transaction updated successfully.",
     )
 
+
 def get_empty_transaction_state(transaction_filter=None, compact=False):
     if transaction_filter == "income":
         return {
@@ -108,12 +116,14 @@ def get_empty_transaction_state(transaction_filter=None, compact=False):
         "message": "Go back to Dashboard and tap + Add Transaction."
     }
 
+
 def get_transactions_for_view(account_id=None, transaction_filter=None, limit=None):
     return get_transactions(
         account_id=account_id,
         transaction_type=transaction_filter,
         limit=limit
     )
+
 
 def get_transaction_list_data(
     account_id=None,
@@ -136,6 +146,7 @@ def get_transaction_list_data(
         "transactions": transactions,
         "empty_state": empty_state,
     }
+
 
 def get_transaction_for_edit(transaction_id):
     return get_transaction_by_id(transaction_id)

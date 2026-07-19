@@ -39,26 +39,29 @@ def insert_transaction(
     date_time,
     notes,
 ):
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('''
-        INSERT INTO transactions (
-            account_id,
-            amount_centavos,
-            category_id,
-            date_time,
-            notes
-        )
-        VALUES (?, ?, ?, ?, ?)
-    ''', (
-        account_id,
-        amount_centavos,
-        category_id,
-        date_time,
-        notes,
-    ))
-    connection.commit()
-    connection.close()
+    try:
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute('''
+                INSERT INTO transactions (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time,
+                    notes
+                )
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes,
+            ))
+            connection.commit()
+            return True
+    except sqlite3.Error:
+        return False
 
 
 def get_transactions(limit=None, account_id=None, transaction_type=None):
@@ -150,50 +153,54 @@ def update_transaction(
     notes,
     transaction_id,
 ):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     try:
-        cursor.execute(
-            '''
-            UPDATE transactions
-            SET account_id = ?,
-                amount_centavos = ?,
-                category_id = ?,
-                date_time = ?,
-                notes = ?
-            WHERE id = ?
-            ''',
-            (
-                account_id,
-                amount_centavos,
-                category_id,
-                date_time,
-                notes,
-                transaction_id,
-            ),
-        )
-        connection.commit()
-        return True
-    except sqlite3.Error as error:
-        print(error)
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                '''
+                UPDATE transactions
+                SET account_id = ?,
+                    amount_centavos = ?,
+                    category_id = ?,
+                    date_time = ?,
+                    notes = ?
+                WHERE id = ?
+                ''',
+                (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time,
+                    notes,
+                    transaction_id,
+                ),
+            )
+
+            if cursor.rowcount == 0:
+                return False
+
+            connection.commit()
+            return True
+    except sqlite3.Error:
         return False
-    finally:
-        connection.close()
 
 
 def delete_transaction(transaction_id):
-    connection = connect_database()
-    cursor = connection.cursor()
     try:
-        cursor.execute('DELETE FROM transactions WHERE id = ?', (transaction_id,))
-        connection.commit()
-        return True
-    except sqlite3.Error as e:
-        print(e)
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                'DELETE FROM transactions WHERE id = ?',
+                (transaction_id,)
+            )
+
+            if cursor.rowcount == 0:
+                return False
+
+            connection.commit()
+            return True
+    except sqlite3.Error:
         return False
-    finally:
-        connection.close()
 
 
 def get_total_centavos(transaction_type, account_id=None):
@@ -221,7 +228,6 @@ def get_total_centavos(transaction_type, account_id=None):
 
             return int(amount_centavos or 0)
     except sqlite3.Error as error:
-        print(error)
         return False
 
 
