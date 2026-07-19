@@ -1,6 +1,7 @@
 import sqlite3
 
 from .connection import connect_database
+from .records import CategoryGroupRecord
 
 def create_category_groups_table(connection=None):
     owns_connection = connection is None
@@ -161,7 +162,10 @@ def get_all_category_groups():
     connection = connect_database()
     cursor = connection.cursor()
     cursor.execute('SELECT * FROM category_groups ORDER BY name')
-    category_groups = cursor.fetchall()
+    category_groups = [
+        CategoryGroupRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return category_groups
 
@@ -170,6 +174,9 @@ def get_category_groups_by_type(transaction_type):
     connection = connect_database()
     cursor = connection.cursor()
     cursor.execute('SELECT * FROM category_groups WHERE transaction_type = ? ORDER BY name COLLATE NOCASE', (transaction_type,))
-    category_groups = cursor.fetchall()
+    category_groups = [
+        CategoryGroupRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return category_groups

@@ -1,6 +1,7 @@
 import sqlite3
 
 from .connection import connect_database
+from .records import AccountRecord
 
 def create_accounts_table(connection=None):
     owns_connection = connection is None
@@ -48,7 +49,10 @@ def get_all_accounts():
     connection = connect_database()
     cursor = connection.cursor()
     cursor.execute('SELECT * FROM accounts ORDER BY name COLLATE NOCASE')
-    accounts = cursor.fetchall()
+    accounts = [
+        AccountRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return accounts
 
@@ -62,10 +66,13 @@ def get_account_by_id(account_id):
         (account_id,)
     )
 
-    account = cursor.fetchone()
+    row = cursor.fetchone()
     connection.close()
 
-    return account
+    if row is None:
+        return None
+
+    return AccountRecord(*row)
 
 
 def insert_account(name):

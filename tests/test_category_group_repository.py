@@ -4,6 +4,7 @@ from database.category_group_repository import (
     insert_category_group,
     update_category_group,
 )
+from database.records import CategoryGroupRecord
 
 
 def test_insert_category_group():
@@ -11,8 +12,13 @@ def test_insert_category_group():
 
     assert result is True
     assert reason is None
-    assert get_category_groups_by_type("expense") == [(1, "Food", "expense")]
-
+    assert get_category_groups_by_type("expense") == [
+        CategoryGroupRecord(
+            group_id=1,
+            name="Food",
+            transaction_type="expense",
+        )
+    ]
 
 def test_reject_empty_category_group_name():
     result, reason = insert_category_group("   ", "expense")
@@ -29,8 +35,13 @@ def test_reject_duplicate_category_group_name_for_same_type():
 
     assert result is False
     assert reason == "duplicate"
-    assert get_category_groups_by_type("expense") == [(1, "Food", "expense")]
-
+    assert get_category_groups_by_type("expense") == [
+        CategoryGroupRecord(
+            group_id=1,
+            name="Food",
+            transaction_type="expense",
+        )
+    ]
 
 def test_allow_same_category_group_name_for_different_type():
     insert_category_group("Bonus", "income")
@@ -39,8 +50,20 @@ def test_allow_same_category_group_name_for_different_type():
 
     assert result is True
     assert reason is None
-    assert get_category_groups_by_type("income") == [(1, "Bonus", "income")]
-    assert get_category_groups_by_type("expense") == [(2, "Bonus", "expense")]
+    assert get_category_groups_by_type("income") == [
+        CategoryGroupRecord(
+            group_id=1,
+            name="Bonus",
+            transaction_type="income",
+        )
+    ]
+    assert get_category_groups_by_type("expense") == [
+        CategoryGroupRecord(
+            group_id=2,
+            name="Bonus",
+            transaction_type="expense",
+        )
+    ]
 
 
 def test_update_category_group():
@@ -50,8 +73,13 @@ def test_update_category_group():
 
     assert result is True
     assert reason is None
-    assert get_category_groups_by_type("expense") == [(1, "Meals", "expense")]
-
+    assert get_category_groups_by_type("expense") == [
+        CategoryGroupRecord(
+            group_id=1,
+            name="Meals",
+            transaction_type="expense",
+        )
+    ]
 
 def test_delete_unused_category_group():
     insert_category_group("Food", "expense")

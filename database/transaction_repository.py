@@ -1,5 +1,7 @@
 import sqlite3
 from .connection import connect_database
+from .records import TransactionDetailRecord, TransactionListRecord
+
 
 def create_transactions_table(connection=None):
     owns_connection = connection is None
@@ -29,6 +31,7 @@ def create_transactions_table(connection=None):
         if owns_connection:
             connection.close()
 
+
 def insert_transaction(
     account_id,
     amount_centavos,
@@ -56,6 +59,7 @@ def insert_transaction(
     ))
     connection.commit()
     connection.close()
+
 
 def get_transactions(limit=None, account_id=None, transaction_type=None):
     connection = connect_database()
@@ -95,7 +99,10 @@ def get_transactions(limit=None, account_id=None, transaction_type=None):
         params.append(limit)
 
     cursor.execute(query, tuple(params))
-    transactions = cursor.fetchall()
+    transactions = [
+        TransactionListRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return transactions
 
@@ -119,9 +126,13 @@ def get_transaction_by_id(transaction_id):
                    INNER JOIN category_groups ON categories.group_id = category_groups.group_id
                    WHERE transactions.id = ?
                    ''', (transaction_id,))
-    transaction = cursor.fetchone()
+    row = cursor.fetchone()
     connection.close()
-    return transaction
+
+    if row is None:
+        return None
+
+    return TransactionDetailRecord(*row)
 
 def update_transaction(
     account_id,

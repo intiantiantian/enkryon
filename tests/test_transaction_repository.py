@@ -10,6 +10,7 @@ from database.transaction_repository import (
     insert_transaction,
     update_transaction,
 )
+from database.records import TransactionDetailRecord
 
 
 def create_transaction_test_data():
@@ -36,18 +37,18 @@ def test_insert_transaction_and_get_by_id():
 
     transaction = get_transaction_by_id(1)
 
-    assert transaction == (
-        1,
-        1,
-        1000.0,
-        1,
-        "2026-07-15 08:00:00",
-        "Allowance",
-        "Cash",
-        "Paycheck",
-        1,
-        "Salary",
-        "income",
+    assert transaction == TransactionDetailRecord(
+        transaction_id=1,
+        account_id=1,
+        amount_centavos=1000,
+        category_id=1,
+        date_time="2026-07-15 08:00:00",
+        notes="Allowance",
+        account_name="Cash",
+        category_name="Paycheck",
+        group_id=1,
+        group_name="Salary",
+        transaction_type="income",
     )
 
 
@@ -60,8 +61,10 @@ def test_get_transactions_orders_latest_first():
 
     transactions = get_transactions()
 
-    assert [transaction[0] for transaction in transactions] == [2, 3, 1]
-
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [2, 3, 1]
 
 def test_get_transactions_can_filter_by_account():
     create_transaction_test_data()
@@ -72,8 +75,8 @@ def test_get_transactions_can_filter_by_account():
     transactions = get_transactions(account_id=2)
 
     assert len(transactions) == 1
-    assert transactions[0][1] == "Savings"
-    assert transactions[0][4] == 500.0
+    assert transactions[0].account_name == "Savings"
+    assert transactions[0].amount_centavos == 500
 
 
 def test_get_transactions_can_filter_by_transaction_type():
@@ -86,10 +89,10 @@ def test_get_transactions_can_filter_by_transaction_type():
     expense_transactions = get_transactions(transaction_type="expense")
 
     assert len(income_transactions) == 1
-    assert income_transactions[0][7] == "income"
+    assert income_transactions[0].transaction_type == "income"
 
     assert len(expense_transactions) == 1
-    assert expense_transactions[0][7] == "expense"
+    assert expense_transactions[0].transaction_type == "expense"
 
 
 def test_get_transactions_can_limit_results():
@@ -102,8 +105,10 @@ def test_get_transactions_can_limit_results():
     transactions = get_transactions(limit=2)
 
     assert len(transactions) == 2
-    assert [transaction[0] for transaction in transactions] == [3, 2]
-
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [3, 2]
 
 def test_update_transaction():
     create_transaction_test_data()
@@ -121,18 +126,18 @@ def test_update_transaction():
     transaction = get_transaction_by_id(1)
 
     assert result is True
-    assert transaction == (
-        1,
-        2,
-        750.0,
-        2,
-        "2026-07-15 12:30:00",
-        "Updated",
-        "Savings",
-        "Lunch",
-        2,
-        "Food",
-        "expense",
+    assert transaction == TransactionDetailRecord(
+        transaction_id=1,
+        account_id=2,
+        amount_centavos=750,
+        category_id=2,
+        date_time="2026-07-15 12:30:00",
+        notes="Updated",
+        account_name="Savings",
+        category_name="Lunch",
+        group_id=2,
+        group_name="Food",
+        transaction_type="expense",
     )
 
 

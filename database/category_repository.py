@@ -1,6 +1,7 @@
 import sqlite3
 
 from .connection import connect_database
+from .records import CategoryRecord
 
 def create_categories_table(connection=None):
     owns_connection = connection is None
@@ -184,7 +185,10 @@ def get_all_categories():
         INNER JOIN category_groups ON categories.group_id = category_groups.group_id
         ORDER BY category_groups.name, categories.name
     ''')
-    categories = cursor.fetchall()
+    categories = [
+        CategoryRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return categories
 
@@ -214,6 +218,9 @@ def get_categories_by_type(transaction_type):
         WHERE category_groups.transaction_type = ?
         ORDER BY category_groups.name, categories.name
     ''', (transaction_type,))
-    categories_by_type = cursor.fetchall()
+    categories_by_type = [
+        CategoryRecord(*row)
+        for row in cursor.fetchall()
+    ]
     connection.close()
     return categories_by_type

@@ -6,6 +6,7 @@ from database.category_repository import (
     insert_category,
     update_category,
 )
+from database.records import CategoryRecord
 
 
 def test_insert_category():
@@ -16,7 +17,13 @@ def test_insert_category():
     assert result is True
     assert reason is None
     assert get_categories_by_group(1) == [
-        (1, 1, "Lunch", "Food", "expense")
+        CategoryRecord(
+            category_id=1,
+            group_id=1,
+            name="Lunch",
+            group_name="Food",
+            transaction_type="expense",
+        )
     ]
 
 
@@ -58,10 +65,22 @@ def test_allow_same_category_name_for_different_transaction_type():
     assert result is True
     assert reason is None
     assert get_categories_by_type("expense") == [
-        (1, 1, "Bonus", "Food", "expense")
+        CategoryRecord(
+            category_id=1,
+            group_id=1,
+            name="Bonus",
+            group_name="Food",
+            transaction_type="expense",
+        )
     ]
     assert get_categories_by_type("income") == [
-        (2, 2, "Bonus", "Salary", "income")
+        CategoryRecord(
+            category_id=2,
+            group_id=2,
+            name="Bonus",
+            group_name="Salary",
+            transaction_type="income",
+        )
     ]
 
 
@@ -74,7 +93,13 @@ def test_update_category():
     assert result is True
     assert reason is None
     assert get_categories_by_group(1) == [
-        (1, 1, "Dinner", "Food", "expense")
+        CategoryRecord(
+            category_id=1,
+            group_id=1,
+            name="Dinner",
+            group_name="Food",
+            transaction_type="expense",
+        )
     ]
 
 
