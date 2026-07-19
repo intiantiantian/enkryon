@@ -14,6 +14,11 @@ Enkryon-vX.Y.Z.apk.sha256
 Enkryon-vX.Y.Z-release-notes.md
 ```
 
+Before version 1.0, Enkryon versions use `major.phase.subphase` as the
+roadmap reference. Phase 4 subphase 8 therefore prepares `v0.4.8` from the
+official `v0.4.0` baseline. Moving to Phase 5 resets the subphase segment
+and produces `v0.5.0`.
+
 `main.py` is the version source. The secure release helper reads that value,
 verifies the permanent Enkryon certificate and APK alignment, then creates
 the standardized APK and checksum in `bin/`.
