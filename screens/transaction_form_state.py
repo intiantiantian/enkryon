@@ -20,12 +20,14 @@ class TransactionFormState:
     notes: str = ""
     transaction_id: int | None = None
 
+
     @classmethod
     def empty(cls, date_label, time_label):
         return cls(
             date_label=date_label,
             time_label=time_label,
         )
+
 
     @classmethod
     def from_transaction(cls, transaction: TransactionDetailRecord):
@@ -48,6 +50,7 @@ class TransactionFormState:
             transaction_id=transaction.transaction_id,
         )
 
+
     def to_save_arguments(self):
         return {
             "account_id": self.account_id,
@@ -59,3 +62,28 @@ class TransactionFormState:
             "notes_label": self.notes,
             "transaction_id": self.transaction_id,
         }
+
+
+    def select_account(self, account_id, account_name):
+        self.account_id = account_id
+        self.account_name = account_name
+
+    def select_transaction_type(self, transaction_type):
+        self.transaction_type = transaction_type
+        self.group_id = None
+        self.group_name = "Select Category Group"
+        self.category_id = None
+        self.category_name = "No Category Group Selected"
+
+    def select_group(self, group_id, group_name):
+        self.group_id = group_id
+        self.group_name = group_name
+        self.category_id = None
+        self.category_name = "Select Category"
+
+    def select_category(self, category_id, category_name):
+        self.category_id = category_id
+        self.category_name = category_name
+
+    def set_notes(self, notes):
+        self.notes = notes if notes and notes.strip() else ""

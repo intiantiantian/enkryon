@@ -170,8 +170,7 @@ class AddTransactionScreen(Screen):
 
 
     def select_account(self, account_id, account_name):
-        self.form_state.account_id = account_id
-        self.form_state.account_name = account_name
+        self.form_state.select_account(account_id, account_name)
         self.render_form_state()
         self.account_menu.dismiss()
 
@@ -182,17 +181,7 @@ class AddTransactionScreen(Screen):
 
 
     def update_groups_button(self, transaction_type):
-        self.form_state.transaction_type = transaction_type
-        self.form_state.group_id = None
-        self.form_state.group_name = 'Select Category Group'
-        self.form_state.category_id = None
-        self.form_state.category_name = 'No Category Group Selected'
-        self.render_form_state()
-
-
-    def update_categories_button(self):
-        self.form_state.category_id = None
-        self.form_state.category_name = 'Select Category'
+        self.form_state.select_transaction_type(transaction_type)
         self.render_form_state()
 
 
@@ -235,9 +224,8 @@ class AddTransactionScreen(Screen):
 
 
     def select_group(self, group_id, group_name):
-        self.ids.group_label.text = group_name
-        self.form_state.group_id = group_id
-        self.update_categories_button()
+        self.form_state.select_group(group_id, group_name)
+        self.render_form_state()
         self.groups_menu.dismiss()
 
 
@@ -278,8 +266,7 @@ class AddTransactionScreen(Screen):
 
 
     def select_category(self, category_id, category_name):
-        self.form_state.category_id = category_id
-        self.form_state.category_name = category_name
+        self.form_state.select_category(category_id, category_name)
         self.render_form_state()
         self.categories_menu.dismiss()
 
@@ -365,7 +352,7 @@ class AddTransactionScreen(Screen):
 
 
     def set_notes(self, notes):
-        self.form_state.notes = notes if notes and notes.strip() else ''
+        self.form_state.set_notes(notes)
 
         if self.form_state.notes:
             self.ids.notes_label.text = self.form_state.notes
