@@ -12,8 +12,9 @@ from services.transaction_services import (
     save_transaction as save_transaction_workflow,
 )
 
+from .transaction_form_state import TransactionFormState
+
 from utils.amount_input import apply_amount_key
-from utils.money import centavos_to_peso_text
 from utils.snackbar import show_snackbar
 from utils.transaction_datetime import (
     format_date_label,
@@ -39,8 +40,7 @@ class AddTransactionScreen(Screen):
             "", "0", "00", "",
         ]
 
-        self.amount = '0'
-        self.transaction_type = None
+        self.form_state = TransactionFormState()
         self.build_keypad()
 
 
@@ -50,20 +50,22 @@ class AddTransactionScreen(Screen):
 
 
     def press_key(self, key):
-        self.amount = apply_amount_key(self.amount, key)
+        self.form_state.amount = apply_amount_key(
+            self.form_state.amount,
+            key,
+        )
         self.update_amount_label()
 
 
     def update_amount_label(self):
-        self.ids.amount_label.text = f'₱ {self.amount}'
+        self.ids.amount_label.text = f'₱ {self.form_state.amount}'
 
 
     def on_pre_enter(self):
 
-        if getattr(self, 'editing_transaction_id', None):
+        if self.form_state.transaction_id is not None:
             return
-        
-        self.transaction_type = None
+
         self.reset_form()
 
 
@@ -93,35 +95,49 @@ class AddTransactionScreen(Screen):
 
 
     def clear(self):
-        self.amount = '0'
+        self.form_state.amount = '0'
         self.update_amount_label()
 
 
     def reset_form(self):
-        self.ids.income_button.set_selected(False)
-        self.ids.expense_button.set_selected(False)
-    
-        self.selected_account_id = None
-        self.ids.account_selector.text = 'Select Account'
+        date_label, time_label = get_current_transaction_datetime_labels()
+        self.form_state = TransactionFormState.empty(
+            date_label,
+            time_label,
+        )
+        self.render_form_state()
 
-        self.selected_group_id = None
-        self.ids.group_label.text = 'No Transaction Type Selected'
-        self.ids.group_selector.disabled = True
 
-        self.selected_category_id = None
-        self.ids.category_label.text = 'No Category Group Selected'
-        self.ids.category_selector.disabled = True
+    def render_form_state(self):
+        state = self.form_state
 
-        self.set_current_date_time()
-        self.clear()
+        self.ids.income_button.set_selected(
+            state.transaction_type == 'income'
+        )
+        self.ids.expense_button.set_selected(
+            state.transaction_type == 'expense'
+        )
 
-        self.set_notes('')
+        self.ids.account_selector.text = state.account_name
+
+        self.ids.group_label.text = state.group_name
+        self.ids.group_selector.disabled = state.transaction_type is None
+
+        self.ids.category_label.text = state.category_name
+        self.ids.category_selector.disabled = state.group_id is None
+
+        self.ids.date_label.text = state.date_label
+        self.ids.time_label.text = state.time_label
+
+        self.update_amount_label()
+        self.set_notes(state.notes)
 
 
     def open_account_menu(self):
         accounts = get_all_accounts()
         if not accounts:
-            self.ids.account_selector.text = 'No Accounts'
+            self.form_state.account_name = 'No Accounts'
+            self.ids.account_selector.text = self.form_state.account_name
             return
 
         menu_items = []
@@ -154,8 +170,9 @@ class AddTransactionScreen(Screen):
 
 
     def select_account(self, account_id, account_name):
-        self.ids.account_selector.text = account_name
-        self.selected_account_id = account_id
+        self.form_state.account_id = account_id
+        self.form_state.account_name = account_name
+        self.render_form_state()
         self.account_menu.dismiss()
 
 
@@ -165,30 +182,27 @@ class AddTransactionScreen(Screen):
 
 
     def update_groups_button(self, transaction_type):
-        self.transaction_type = transaction_type
-        self.selected_group_id = None
-        self.selected_category_id = None
-
-        self.ids.income_button.set_selected(transaction_type == 'income')
-        self.ids.expense_button.set_selected(transaction_type == 'expense')
-
-        self.ids.group_selector.disabled = False
-        self.ids.group_label.text = 'Select Category Group'
-
-        self.ids.category_selector.disabled = True
-        self.ids.category_label.text = 'No Category Group Selected'
+        self.form_state.transaction_type = transaction_type
+        self.form_state.group_id = None
+        self.form_state.group_name = 'Select Category Group'
+        self.form_state.category_id = None
+        self.form_state.category_name = 'No Category Group Selected'
+        self.render_form_state()
 
 
     def update_categories_button(self):
-        self.ids.category_selector.disabled = False
-        self.ids.category_label.text = 'Select Category'
-        self.selected_category_id = None
+        self.form_state.category_id = None
+        self.form_state.category_name = 'Select Category'
+        self.render_form_state()
 
 
     def open_groups_menu(self):
-        groups = get_category_groups_by_type(self.transaction_type)
+        groups = get_category_groups_by_type(
+            self.form_state.transaction_type
+        )
         if not groups:
-            self.ids.group_label.text = 'No Category Groups Created'
+            self.form_state.group_name = 'No Category Groups Created'
+            self.ids.group_label.text = self.form_state.group_name
             return
 
         menu_items = []
@@ -221,17 +235,17 @@ class AddTransactionScreen(Screen):
 
 
     def select_group(self, group_id, group_name):
-        self.update_categories_button()
-
         self.ids.group_label.text = group_name
-        self.selected_group_id = group_id
+        self.form_state.group_id = group_id
+        self.update_categories_button()
         self.groups_menu.dismiss()
 
 
     def open_categories_menu(self):
-        categories = get_categories_by_group(self.selected_group_id)
+        categories = get_categories_by_group(self.form_state.group_id)
         if not categories:
-            self.ids.category_label.text = 'No Category Created'
+            self.form_state.category_name = 'No Category Created'
+            self.ids.category_label.text = self.form_state.category_name
             return
         
         menu_items = []
@@ -264,8 +278,9 @@ class AddTransactionScreen(Screen):
 
 
     def select_category(self, category_id, category_name):
-        self.ids.category_label.text = category_name
-        self.selected_category_id = category_id
+        self.form_state.category_id = category_id
+        self.form_state.category_name = category_name
+        self.render_form_state()
         self.categories_menu.dismiss()
 
 
@@ -279,42 +294,41 @@ class AddTransactionScreen(Screen):
 
     def set_current_date_time(self):
         date_label, time_label = get_current_transaction_datetime_labels()
-        self.ids.date_label.text = date_label
-        self.ids.time_label.text = time_label
+        self.form_state.date_label = date_label
+        self.form_state.time_label = time_label
+        self.ids.date_label.text = self.form_state.date_label
+        self.ids.time_label.text = self.form_state.time_label
 
 
     def open_date_picker(self):
-        selected_date = parse_date_label(self.ids.date_label.text)
-        DatePickerDialog(callback=self.set_date, initial_date=selected_date).open()
+        selected_date = parse_date_label(self.form_state.date_label)
+        DatePickerDialog(
+            callback=self.set_date,
+            initial_date=selected_date,
+        ).open()
 
 
     def open_time_picker(self):
-        current_time = parse_time_label(self.ids.time_label.text)
-        TimePickerDialog(callback=self.set_time, initial_time=current_time).open()
+        current_time = parse_time_label(self.form_state.time_label)
+        TimePickerDialog(
+            callback=self.set_time,
+            initial_time=current_time,
+        ).open()
 
 
     def set_date(self, selected_date):
-        self.ids.date_label.text = format_date_label(selected_date)
+        self.form_state.date_label = format_date_label(selected_date)
+        self.ids.date_label.text = self.form_state.date_label
 
 
     def set_time(self, selected_time):
-        self.ids.time_label.text = format_time_label(selected_time)
+        self.form_state.time_label = format_time_label(selected_time)
+        self.ids.time_label.text = self.form_state.time_label
 
 
     def save_transaction(self):
         result = save_transaction_workflow(
-            account_id=self.selected_account_id,
-            amount=self.amount,
-            transaction_type=self.transaction_type,
-            category_id=self.selected_category_id,
-            date_label=self.ids.date_label.text,
-            time_label=self.ids.time_label.text,
-            notes_label=self.ids.notes_label.text,
-            transaction_id=getattr(
-                self,
-                "editing_transaction_id",
-                None,
-            ),
+            **self.form_state.to_save_arguments()
         )
 
         show_snackbar(result.message)
@@ -322,70 +336,39 @@ class AddTransactionScreen(Screen):
         if not result.success:
             return
 
-        self.editing_transaction_id = None
+        self.form_state.transaction_id = None
 
-        dashboard = self.manager.get_screen("dashboard")
+        dashboard = self.manager.get_screen('dashboard')
         dashboard.load_dashboard()
-        self.manager.current = "dashboard"
+        self.manager.current = 'dashboard'
 
 
     def load_transaction(self, transaction_id):
-        self.reset_form()
-
         transaction = get_transaction_for_edit(transaction_id)
-
-        self.editing_transaction_id = transaction.transaction_id
-
-        self.set_transaction_type(transaction.transaction_type)
-
-        self.selected_account_id = transaction.account_id
-        self.selected_group_id = transaction.group_id
-        self.selected_category_id = transaction.category_id
-
-        self.ids.account_selector.text = transaction.account_name
-        self.ids.group_label.text = transaction.group_name
-        self.ids.category_label.text = transaction.category_name
-        self.ids.category_selector.disabled = False
-
-        self.amount = centavos_to_peso_text(
-            transaction.amount_centavos
+        self.form_state = TransactionFormState.from_transaction(
+            transaction
         )
-        self.update_amount_label()
-
-        self.set_notes(transaction.notes)
-
-        date_label, time_label = split_database_datetime(
-            transaction.date_time
-        )
-
-        self.ids.date_label.text = date_label
-        self.ids.time_label.text = time_label
+        self.render_form_state()
 
 
     def set_transaction_type(self, transaction_type):
-
-        self.transaction_type = transaction_type
-
-        self.ids.income_button.set_selected(transaction_type == 'income')
-        self.ids.expense_button.set_selected(transaction_type == 'expense')
-
         self.update_groups_button(transaction_type)
 
 
     def add_notes(self):
         InputDialog(
-            title = 'Notes',
-            hint_text = 'Enter notes...',
-            text = self.ids.notes_label.text
-                if self.ids.notes_label.text != 'Add notes'
-                else '',
-            callback = self.set_notes
+            title='Notes',
+            hint_text='Enter notes...',
+            text=self.form_state.notes,
+            callback=self.set_notes,
         ).open()
 
 
     def set_notes(self, notes):
-        if notes.strip():
-            self.ids.notes_label.text = notes
+        self.form_state.notes = notes if notes and notes.strip() else ''
+
+        if self.form_state.notes:
+            self.ids.notes_label.text = self.form_state.notes
             self.ids.notes_label.theme_text_color = 'Primary'
         else:
             self.ids.notes_label.text = 'Add notes'

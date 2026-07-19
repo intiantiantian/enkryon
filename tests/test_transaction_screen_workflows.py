@@ -9,35 +9,34 @@ from database.records import TransactionDetailRecord
 from screens.add_transaction import AddTransactionScreen
 from screens.dashboard import DashboardScreen
 from screens.transactions import TransactionsScreen
+from screens.transaction_form_state import TransactionFormState
 
 from services.transaction_services import TransactionSaveResult, TransactionDeleteResult
 
 
-def make_label(text=""):
-    return SimpleNamespace(text=text)
-
-
-def make_save_screen(*, editing_transaction_id=None):
+def make_save_screen(*, transaction_id=None):
     dashboard = SimpleNamespace(load_dashboard=Mock())
     manager = SimpleNamespace(
         current="add_transaction",
         get_screen=Mock(return_value=dashboard),
     )
     screen = SimpleNamespace(
-        amount="123.45",
-        ids=SimpleNamespace(
-            date_label=make_label("July 19, 2026"),
-            notes_label=make_label("Dinner"),
-            time_label=make_label("7:30 PM"),
+        form_state=TransactionFormState(
+            amount="123.45",
+            transaction_type="expense",
+            account_id=2,
+            account_name="Cash",
+            group_id=5,
+            group_name="Food",
+            category_id=8,
+            category_name="Dining",
+            date_label="July 19, 2026",
+            time_label="7:30 PM",
+            notes="Dinner",
+            transaction_id=transaction_id,
         ),
         manager=manager,
-        selected_account_id=2,
-        selected_category_id=8,
-        transaction_type="expense",
     )
-
-    if editing_transaction_id is not None:
-        screen.editing_transaction_id = editing_transaction_id
 
     return screen, dashboard
 
@@ -130,7 +129,7 @@ def test_save_transaction_creates_transaction_and_refreshes_dashboard(
         "Transaction added successfully."
     )
 
-    assert screen.editing_transaction_id is None
+    assert screen.form_state.transaction_id is None
 
     screen.manager.get_screen.assert_called_once_with(
         "dashboard"
@@ -155,7 +154,7 @@ def test_save_transaction_updates_transaction_and_clears_edit_state(
         )
     )
     screen, dashboard = make_save_screen(
-        editing_transaction_id=17
+        transaction_id=17
     )
 
     AddTransactionScreen.save_transaction(screen)
@@ -171,7 +170,7 @@ def test_save_transaction_updates_transaction_and_clears_edit_state(
         transaction_id=17,
     )
 
-    assert screen.editing_transaction_id is None
+    assert screen.form_state.transaction_id is None
 
     show_snackbar.assert_called_once_with(
         "Transaction updated successfully."
@@ -196,7 +195,7 @@ def test_save_transaction_keeps_edit_state_when_update_fails(
         )
     )
     screen, dashboard = make_save_screen(
-        editing_transaction_id=17
+        transaction_id=17
     )
 
     AddTransactionScreen.save_transaction(screen)
@@ -212,7 +211,7 @@ def test_save_transaction_keeps_edit_state_when_update_fails(
         transaction_id=17,
     )
 
-    assert screen.editing_transaction_id == 17
+    assert screen.form_state.transaction_id == 17
 
     show_snackbar.assert_called_once_with(
         "Transaction could not be updated."
@@ -238,70 +237,34 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         group_name="Food",
         transaction_type="expense",
     )
-    get_transaction_for_edit = Mock(
-        return_value=transaction
-    )
-    centavos_to_peso_text = Mock(return_value="123.45")
-    split_database_datetime = Mock(
-        return_value=("July 19, 2026", "7:30 PM")
-    )
-
+    get_transaction_for_edit = Mock(return_value=transaction)
     monkeypatch.setattr(
         add_transaction_module,
         "get_transaction_for_edit",
         get_transaction_for_edit,
     )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "centavos_to_peso_text",
-        centavos_to_peso_text,
-    )
-    monkeypatch.setattr(
-        add_transaction_module,
-        "split_database_datetime",
-        split_database_datetime,
-    )
-
     screen = SimpleNamespace(
-        ids=SimpleNamespace(
-            account_selector=make_label(),
-            category_label=make_label(),
-            category_selector=SimpleNamespace(disabled=True),
-            date_label=make_label(),
-            group_label=make_label(),
-            time_label=make_label(),
-        ),
-        reset_form=Mock(),
-        set_notes=Mock(),
-        set_transaction_type=Mock(),
-        update_amount_label=Mock(),
+        render_form_state=Mock(),
     )
 
     AddTransactionScreen.load_transaction(screen, 17)
 
     get_transaction_for_edit.assert_called_once_with(17)
-    screen.reset_form.assert_called_once_with()
-    screen.set_transaction_type.assert_called_once_with("expense")
-
-    assert screen.editing_transaction_id == 17
-    assert screen.selected_account_id == 2
-    assert screen.selected_group_id == 5
-    assert screen.selected_category_id == 8
-    assert screen.ids.account_selector.text == "Cash"
-    assert screen.ids.group_label.text == "Food"
-    assert screen.ids.category_label.text == "Dining"
-    assert screen.ids.category_selector.disabled is False
-    assert screen.amount == "123.45"
-
-    centavos_to_peso_text.assert_called_once_with(12345)
-    screen.update_amount_label.assert_called_once_with()
-    screen.set_notes.assert_called_once_with("Dinner")
-    split_database_datetime.assert_called_once_with(
-        "2026-07-19 19:30:00"
+    assert screen.form_state == TransactionFormState(
+        amount="123.45",
+        transaction_type="expense",
+        account_id=2,
+        account_name="Cash",
+        group_id=5,
+        group_name="Food",
+        category_id=8,
+        category_name="Dining",
+        date_label="2026-07-19",
+        time_label="07:30 PM",
+        notes="Dinner",
+        transaction_id=17,
     )
-
-    assert screen.ids.date_label.text == "July 19, 2026"
-    assert screen.ids.time_label.text == "7:30 PM"
+    screen.render_form_state.assert_called_once_with()
 
 
 @pytest.mark.parametrize(
