@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 19, 2026
+Updated: July 20, 2026
 Current release: `v0.4.8`
-Current position: Phase 4 is complete; Phase 5 is next
+Current position: Phase 5 is complete; Phase 6 is next
 
 ## Purpose
 
@@ -28,12 +28,12 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The suite contains `125` passing tests. The application-wide branch-coverage baseline is `51%`, with stronger coverage around migrations, repositories, exact money handling, validation, services, and Android release configuration. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
+| Automated tests | The suite contains `252` passing tests covering migrations, repositories, managed connections, named records, form state, workflow services, shared screen actions, and Android release configuration. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
 | Versioning | `main.py` defines `0.4.8`; Buildozer, artifact names, checksums, and release records use the same value. | The roadmap version and Android artifact now agree. |
 | Android release | The permanently signed `Enkryon-v0.4.8.apk` passed checksum, signature, alignment, packaging, clean-launch, and in-place upgrade checks from official `v0.4.0`. | Phase 4's Android release gate is complete. |
 | Android packaging | Development files and duplicated source assets are excluded. The verified APK targets API 36, supports API 24 and later, contains ARM64 and ARMv7, and disables Android auto-backup. | Packaging and privacy behavior are explicit and test-protected. |
 | Automated checks on GitHub | GitHub Actions installs the pinned development environment, compiles the source, and runs all tests with coverage on pushes, pull requests, and manual runs. | Broken correctness checks are visible before release preparation. |
-| Architecture | Repositories, services, screens, utilities, widgets, and theme modules exist. Screens still contain substantial workflow logic, especially the add-transaction screen. | Continue architecture cleanup after automatic quality checks are established. |
+| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, transaction form state is explicit, and shared screen helpers own repeated result and list actions. | Phase 6 can improve the interface without moving financial or persistence rules back into screens. |
 | Backup and recovery | The app can clear all data, but it has no user-controlled backup and restore flow. | Recovery must be added before Enkryon leaves alpha. |
 | Search and advanced filters | Transaction-type filtering exists. Search, date range, account, category, and combined filters are not yet complete. | Complete these in Phase 8 rather than mixing them into reliability work. |
 
@@ -45,8 +45,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 2. Exact Money and Safe Database Upgrades | Prevent rounding errors and upgrade existing databases without losing data. | Completed |
 | 3. Automatic Quality Checks | Test every change automatically so defects are caught before release. | Completed |
 | 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Completed |
-| 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Next |
-| 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Planned |
+| 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Completed |
+| 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Next |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Planned |
 | 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Planned |
 | 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Planned |
@@ -320,25 +320,25 @@ without losing user data.
 
 ## Phase 5 — Simpler, More Maintainable Code
 
-**Status:** Next
+**Status:** Completed
 **Priority:** Medium-high
 
 ### Objective
 
 Make changes safer by moving business rules out of large screen files and giving screens, services, repositories, utilities, and widgets one clear responsibility each.
 
-### Work plan
+### Completed work
 
-1. Split `screens/add_transaction.py` into smaller form-state, selection, date/time, and save/update responsibilities.
-2. Move transaction creation, editing, deletion, and validation workflows into services.
-3. Keep screens focused on navigation, reading user input, showing results, and rendering state.
-4. Standardize repository results and errors so the app can distinguish duplicates, referenced records, missing records, validation failures, and database failures.
-5. Replace `print()` and unclear Boolean failure results with explicit, testable error handling.
-6. Use context-managed database connections and consistent transaction handling.
-7. Introduce small named or typed records so screen code does not rely on tuple positions.
-8. Remove repeated dialog, deletion, filtering, refresh, and navigation logic.
-9. Continue replacing repeated visual structures with shared widgets and design values.
-10. Protect every refactor with behavior-preserving tests.
+1. Added characterization tests around transaction, account, category, and settings screen workflows before changing their architecture.
+2. Replaced positional database tuples with named account, category-group, category, transaction, and transaction-detail records.
+3. Moved transaction validation, payload construction, creation, editing, deletion, and view preparation behind transaction services.
+4. Extracted explicit transaction form state and centralized its dependent selection transitions.
+5. Added account and category services that normalize input and translate repository outcomes into clear action results.
+6. Added context-managed database connections with rollback, close, foreign-key, and failure-path tests.
+7. Standardized repository write outcomes for duplicates, referenced records, missing records, validation failures, and database failures.
+8. Consolidated shared transaction filtering, editing, deletion, confirmation dialogs, refresh behavior, and action-result rendering.
+9. Expanded the behavior-preserving suite from `125` tests at the Phase 5 baseline to `252` tests at closeout.
+10. Recorded the completed boundaries and evidence in the architecture guide and Phase 5 verification report.
 
 ### Deliverables
 
@@ -350,13 +350,11 @@ Make changes safer by moving business rules out of large screen files and giving
 
 ### Completion gate
 
-Phase 5 is complete when screens contain no raw persistence or financial rules, core workflows can be tested without rendering the interface, failures have clear meanings, and repeated behaviors have one maintained implementation.
-
----
+**Passed.** Screens coordinate interface state instead of owning financial or persistence rules, core workflows are tested without rendering the interface, repository and service failures have explicit meanings, and repeated transaction-list and action-result behavior has one maintained implementation.
 
 ## Phase 6 — Clear, Accessible, Responsive User Experience
 
-**Status:** Planned
+**Status:** Next
 **Priority:** Medium-high
 
 ### Objective
@@ -531,14 +529,11 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Begin Phase 5 with behavior-preserving tests around the largest screen
-   workflows.
-2. Move transaction creation, editing, deletion, and validation into clear
-   service boundaries.
-3. Standardize repository results, errors, and transaction handling.
-4. Reduce tuple-position dependencies and repeated screen logic.
-5. Keep every architecture checkpoint protected by the automatic checks
-   established in Phase 3.
+1. Begin Phase 6 with a screen-by-screen experience checklist and a supported-device and font-size test matrix.
+2. Preserve unfinished transaction-form state when users temporarily manage accounts or categories.
+3. Test navigation, scrolling, safe areas, touch targets, contrast, long content, and destructive actions across the supported matrix.
+4. Complete the customized card-based overlays and improve transaction rows, empty states, and Settings information.
+5. Replace repository screenshots only after the supported-device checks pass.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

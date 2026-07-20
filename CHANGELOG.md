@@ -9,6 +9,37 @@ version reference.
 
 ## [Unreleased]
 
+### Added
+
+- Named account, category-group, category, and transaction records between
+  repositories and interface code.
+- Explicit transaction form state with tested dependent-selection
+  transitions.
+- Account and category workflow services with clear, testable action
+  results.
+- Behavior-preserving tests for screen workflows, managed connections,
+  repository failures, form state, and shared interface actions.
+
+### Changed
+
+- Transaction creation, editing, deletion, validation, and view preparation
+  now run through transaction services.
+- Database reads and writes use managed connections with consistent commit,
+  rollback, cleanup, and foreign-key behavior.
+- Repository write outcomes distinguish validation, duplicate, referenced,
+  missing-record, and database failures.
+- Dashboard and Transaction History share filtering, edit navigation,
+  deletion, confirmation-dialog, and refresh behavior.
+- Account, category, and transaction screens share action-result rendering
+  instead of repeating snackbar and refresh sequencing.
+
+### Fixed
+
+- Failed transaction inserts, updates, and deletions no longer appear
+  successful to calling services.
+- Settings reports a clear-data success message only after the repository
+  confirms that data was cleared.
+
 ## [0.4.8] - 2026-07-19
 
 ### Added

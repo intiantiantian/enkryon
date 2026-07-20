@@ -152,6 +152,11 @@ Repository modules separate database operations from the user interface to
 improve maintainability and testing. See the
 [database architecture guide](docs/development/database.md) for details.
 
+Named records carry database results across layer boundaries. Managed
+connections protect commits, rollbacks, and cleanup, while account,
+category, and transaction services own workflow rules and return explicit,
+testable results to the interface.
+
 ---
 
 ## Development and Quality Checks
@@ -197,7 +202,11 @@ Development follows a reliability-first sequence:
 - Phase 4 established repeatable, permanently signed Android releases and
   proved an in-place upgrade from official `v0.4.0` to `v0.4.8` without
   data loss.
-- Phase 5 is next and focuses on simplifying screen and business logic.
+- Phase 5 simplified the architecture with named records, managed database
+  connections, explicit transaction form state, workflow services, and
+  shared screen-action helpers.
+- Phase 6 is next and focuses on accessibility, responsive layouts, clear
+  navigation, and comfortable interaction across supported phones.
 - Later phases cover usability, recovery, search, and version 1.0
   validation before major feature expansion.
 
