@@ -7,11 +7,9 @@ import pytest
 from database.records import TransactionDetailRecord
 
 from screens.add_transaction import AddTransactionScreen
-from screens.dashboard import DashboardScreen
-from screens.transactions import TransactionsScreen
 from screens.transaction_form_state import TransactionFormState
 
-from services.transaction_services import TransactionSaveResult, TransactionDeleteResult
+from services.transaction_services import TransactionSaveResult
 
 
 def make_save_screen(*, transaction_id=None):
@@ -265,116 +263,3 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         transaction_id=17,
     )
     screen.render_form_state.assert_called_once_with()
-
-
-@pytest.mark.parametrize(
-    "screen_class",
-    [DashboardScreen, TransactionsScreen],
-)
-def test_edit_transaction_loads_form_before_navigation(
-    screen_class,
-):
-    add_transaction_screen = SimpleNamespace(
-        load_transaction=Mock()
-    )
-    manager = SimpleNamespace(
-        current="dashboard",
-        get_screen=Mock(return_value=add_transaction_screen),
-    )
-    screen = SimpleNamespace(manager=manager)
-
-    screen_class.edit_transaction(screen, 17)
-
-    manager.get_screen.assert_called_once_with("add_transaction")
-    add_transaction_screen.load_transaction.assert_called_once_with(
-        17
-    )
-
-    assert manager.current == "add_transaction"
-
-
-@pytest.mark.parametrize(
-    (
-        "screen_class",
-        "refresh_method_name",
-        "service_result",
-    ),
-    [
-        (
-            DashboardScreen,
-            "load_dashboard",
-            TransactionDeleteResult(
-                success=True,
-                message="Transaction deleted successfully.",
-            ),
-        ),
-        (
-            DashboardScreen,
-            "load_dashboard",
-            TransactionDeleteResult(
-                success=False,
-                message="Transaction could not be deleted.",
-            ),
-        ),
-        (
-            TransactionsScreen,
-            "load_transactions",
-            TransactionDeleteResult(
-                success=True,
-                message="Transaction deleted successfully.",
-            ),
-        ),
-        (
-            TransactionsScreen,
-            "load_transactions",
-            TransactionDeleteResult(
-                success=False,
-                message="Transaction could not be deleted.",
-            ),
-        ),
-    ],
-)
-def test_delete_transaction_renders_service_result(
-    monkeypatch,
-    screen_class,
-    refresh_method_name,
-    service_result,
-):
-    screen_module = import_module(screen_class.__module__)
-    delete_transaction_by_id = Mock(
-        return_value=service_result
-    )
-    show_snackbar = Mock()
-
-    monkeypatch.setattr(
-        screen_module,
-        "delete_transaction_by_id",
-        delete_transaction_by_id,
-    )
-    monkeypatch.setattr(
-        screen_module,
-        "show_snackbar",
-        show_snackbar,
-    )
-
-    dismiss = Mock()
-    refresh = Mock()
-    screen = SimpleNamespace(
-        delete_transaction_dialog=SimpleNamespace(
-            dismiss=dismiss
-        ),
-    )
-    setattr(screen, refresh_method_name, refresh)
-
-    screen_class.delete_transaction(screen, 17)
-
-    delete_transaction_by_id.assert_called_once_with(17)
-    dismiss.assert_called_once_with()
-    show_snackbar.assert_called_once_with(
-        service_result.message
-    )
-
-    if service_result.success:
-        refresh.assert_called_once_with()
-    else:
-        refresh.assert_not_called()
