@@ -28,8 +28,12 @@ class SettingsScreen(Screen):
         self.dialog.open()
 
     def perform_clear_data(self):
-        clear_database()
+        cleared = clear_database()
         self.dialog.dismiss()
+
+        if not cleared:
+            show_snackbar("Data could not be deleted.")
+            return
 
         dashboard = self.manager.get_screen("dashboard")
         dashboard.load_dashboard()

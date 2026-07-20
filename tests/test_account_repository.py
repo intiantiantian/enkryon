@@ -5,13 +5,18 @@ from database.account_repository import (
     insert_account,
     update_account,
 )
+from database.records import AccountRecord
 
 
 def test_insert_account():
     result = insert_account("Cash")
+    accounts = get_all_accounts()
 
     assert result is True
-    assert get_all_accounts() == [(1, "Cash")]
+    assert isinstance(accounts[0], AccountRecord)
+    assert accounts == [
+        AccountRecord(account_id=1, name="Cash")
+    ]
 
 
 def test_get_account_by_id():
@@ -19,8 +24,11 @@ def test_get_account_by_id():
 
     account = get_account_by_id(1)
 
-    assert account == (1, "Cash")
-
+    assert isinstance(account, AccountRecord)
+    assert account == AccountRecord(
+        account_id=1,
+        name="Cash",
+    )
 
 def test_update_account():
     insert_account("Cash")
@@ -28,8 +36,10 @@ def test_update_account():
     result = update_account(1, "Wallet")
 
     assert result is True
-    assert get_account_by_id(1) == (1, "Wallet")
-
+    assert get_account_by_id(1) == AccountRecord(
+        account_id=1,
+        name="Wallet",
+    )
 
 def test_delete_unused_account():
     insert_account("Cash")
@@ -47,8 +57,9 @@ def test_reject_exact_duplicate_account_name():
     result = insert_account(" cash ")
 
     assert result is False
-    assert get_all_accounts() == [(1, "Cash")]
-
+    assert get_all_accounts() == [
+        AccountRecord(account_id=1, name="Cash")
+    ]
 
 def test_reject_blank_account_name():
     result = insert_account("   ")
@@ -64,4 +75,7 @@ def test_reject_duplicate_account_name_when_updating():
     result = update_account(2, " cash ")
 
     assert result is False
-    assert get_account_by_id(2) == (2, "Savings")
+    assert get_account_by_id(2) == AccountRecord(
+        account_id=2,
+        name="Savings",
+    )

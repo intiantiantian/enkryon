@@ -2,10 +2,10 @@ import sqlite3
 
 import pytest
 
+from database import connection as database_connection
 from database import account_repository
 from database import category_group_repository
 from database import category_repository
-from database import settings_repository
 from database import transaction_repository
 from database.schema import initialize_database
 from database import migrations
@@ -21,11 +21,11 @@ def test_database(tmp_path, monkeypatch):
         return connection
 
     repositories = [
+        database_connection,
         account_repository,
         category_group_repository,
         category_repository,
         migrations,
-        settings_repository,
         transaction_repository,
     ]
 

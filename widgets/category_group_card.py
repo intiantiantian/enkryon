@@ -13,8 +13,8 @@ class CategoryGroupCard(MDCard):
         self.expanded = False
 
     def set_group(self, group):
-        self.group_id = group[0]
-        self.ids.group_name.text = group[1]
+        self.group_id = group.group_id
+        self.ids.group_name.text = group.name
 
     def edit_group(self):
         self.screen.edit_group(

@@ -1,13 +1,19 @@
-from .connection import connect_database
+import sqlite3
+
+from .connection import managed_connection
+
 
 def clear_database():
-    conn = connect_database()
-    cursor = conn.cursor()
+    try:
+        with managed_connection() as connection:
+            cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM transactions")
-    cursor.execute("DELETE FROM categories")
-    cursor.execute("DELETE FROM category_groups")
-    cursor.execute("DELETE FROM accounts")
+            cursor.execute("DELETE FROM transactions")
+            cursor.execute("DELETE FROM categories")
+            cursor.execute("DELETE FROM category_groups")
+            cursor.execute("DELETE FROM accounts")
 
-    conn.commit()
-    conn.close()
+            connection.commit()
+            return True
+    except sqlite3.Error:
+        return False

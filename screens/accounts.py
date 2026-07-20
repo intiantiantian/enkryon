@@ -5,29 +5,37 @@ from kivymd.uix.button import MDFlatButton
 
 from widgets.account_card import AccountCard
 
-from utils.snackbar import show_snackbar
+from .action_results import render_action_result
 
-from database.account_repository import get_all_accounts, insert_account, update_account, delete_account
-
+from services.account_services import (
+    create_account as create_account_workflow,
+    get_accounts_for_view,
+    remove_account as remove_account_workflow,
+    rename_account as rename_account_workflow,
+)
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
+
 
 class AccountsScreen(Screen):
 
     def go_to_dashboard(self):
         self.manager.current = 'dashboard'
 
+
     def go_to_add_transaction(self):
         self.manager.current = 'add_transaction'
+
 
     def on_pre_enter(self):
         self.rename_dialog = None
         self.load_accounts()
 
+
     def load_accounts(self):
         self.ids.accounts_container.clear_widgets()
 
-        accounts = get_all_accounts()
+        accounts = get_accounts_for_view()
 
         if not accounts:
             self.ids.accounts_container.add_widget(
@@ -44,6 +52,7 @@ class AccountsScreen(Screen):
             card.set_account(account)
             self.ids.accounts_container.add_widget(card)
 
+
     def add_account(self):
         InputDialog(
             title="New Account",
@@ -51,20 +60,16 @@ class AccountsScreen(Screen):
             callback=self.save_account
         ).open()
 
+
     def save_account(self, account_name):
+        result = create_account_workflow(account_name)
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
 
-        if not account_name:
-            show_snackbar("Account name cannot be empty.")
-            return
 
-        success = insert_account(account_name)
-
-        if success:
-            show_snackbar(f"Account '{account_name}' added successfully.")
-            self.load_accounts()
-        else:
-            show_snackbar(f"Account '{account_name}' already exists.")
-            
     def open_rename_dialog(self, account_id, account_name):
 
         if self.rename_dialog:
@@ -90,40 +95,33 @@ class AccountsScreen(Screen):
         )
         self.rename_dialog.open()
 
+
     def close_rename_dialog(self, *args):
         self.rename_dialog.dismiss()
         self.rename_dialog = None
 
+
     def rename_account(self, account_id):
+        new_name = self.rename_dialog.content_cls.text
+        result = rename_account_workflow(account_id, new_name)
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+            before_refresh=self.close_rename_dialog,
+        )
 
-        new_name = self.rename_dialog.content_cls.text.strip()
-        if not new_name:
-            show_snackbar("New account name cannot be empty.")
-            return
-        
-        success = update_account(account_id, new_name)
-
-        if success:
-            show_snackbar(f"Account renamed to '{new_name}' successfully.")
-            self.close_rename_dialog()
-            self.load_accounts()
-        else:
-            show_snackbar(f"Account name '{new_name}' already exists.")
 
     def perform_delete_account(self, account_id):
         self.close_delete_dialog()
 
-        success, reason = delete_account(account_id)
+        result = remove_account_workflow(account_id)
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
 
-        if success:
-            show_snackbar("Account deleted successfully.")
-            self.load_accounts()
-            return
-
-        if reason == "referenced":
-            show_snackbar("Cannot delete account because it has existing transactions.")
-        else:
-            show_snackbar("Account could not be deleted.")
 
     def confirm_delete_account(self, account_id):
         self.delete_dialog = MDDialog(
@@ -140,6 +138,7 @@ class AccountsScreen(Screen):
             ]
         )
         self.delete_dialog.open()
+
 
     def close_delete_dialog(self, *args):
         self.delete_dialog.dismiss()

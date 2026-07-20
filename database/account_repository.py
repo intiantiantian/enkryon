@@ -1,6 +1,7 @@
 import sqlite3
 
-from .connection import connect_database
+from .connection import connect_database, managed_connection
+from .records import AccountRecord
 
 def create_accounts_table(connection=None):
     owns_connection = connection is None
@@ -45,115 +46,103 @@ def account_name_exists(
 
 
 def get_all_accounts():
-    connection = connect_database()
-    cursor = connection.cursor()
-    cursor.execute('SELECT * FROM accounts ORDER BY name COLLATE NOCASE')
-    accounts = cursor.fetchall()
-    connection.close()
-    return accounts
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            'SELECT * FROM accounts ORDER BY name COLLATE NOCASE'
+        )
+        return [AccountRecord(*row) for row in cursor.fetchall()]
 
 
 def get_account_by_id(account_id):
-    connection = connect_database()
-    cursor = connection.cursor()
+    with managed_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT * FROM accounts WHERE id = ?",
+            (account_id,)
+        )
+        row = cursor.fetchone()
 
-    cursor.execute(
-        "SELECT * FROM accounts WHERE id = ?",
-        (account_id,)
-    )
+    if row is None:
+        return None
 
-    account = cursor.fetchone()
-    connection.close()
-
-    return account
+    return AccountRecord(*row)
 
 
 def insert_account(name):
-    connection = connect_database()
-    cursor = connection.cursor()
     name = (name or "").strip()
 
     if not name:
-        connection.close()
         return False
 
     try:
-        if account_name_exists(cursor, name):
-            return False
+        with managed_connection() as connection:
+            cursor = connection.cursor()
 
-        cursor.execute(
-            "INSERT INTO accounts (name) VALUES (?)",
-            (name,),
-        )
-        connection.commit()
-        return True
-    except sqlite3.Error as error:
-        print(error)
+            if account_name_exists(cursor, name):
+                return False
+
+            cursor.execute(
+                "INSERT INTO accounts (name) VALUES (?)",
+                (name,),
+            )
+            connection.commit()
+            return True
+    except sqlite3.Error:
         return False
-    finally:
-        connection.close()
 
 
 def update_account(account_id, name):
-    connection = connect_database()
-    cursor = connection.cursor()
     name = (name or "").strip()
 
     if not name:
-        connection.close()
         return False
 
     try:
-        if account_name_exists(
-            cursor,
-            name,
-            exclude_account_id=account_id,
-        ):
-            return False
+        with managed_connection() as connection:
+            cursor = connection.cursor()
 
-        cursor.execute(
-            "UPDATE accounts SET name = ? WHERE id = ?",
-            (name, account_id),
-        )
+            if account_name_exists(
+                cursor,
+                name,
+                exclude_account_id=account_id,
+            ):
+                return False
 
-        if cursor.rowcount == 0:
-            return False
+            cursor.execute(
+                "UPDATE accounts SET name = ? WHERE id = ?",
+                (name, account_id),
+            )
 
-        connection.commit()
-        return True
-    except sqlite3.Error as error:
-        print(error)
+            if cursor.rowcount == 0:
+                return False
+
+            connection.commit()
+            return True
+    except sqlite3.Error:
         return False
-    finally:
-        connection.close()
 
 
 def delete_account(account_id):
-    connection = connect_database()
-    cursor = connection.cursor()
-
     try:
-        cursor.execute(
-            "SELECT COUNT(*) FROM transactions WHERE account_id = ?",
-            (account_id,)
-        )
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT COUNT(*) FROM transactions WHERE account_id = ?",
+                (account_id,)
+            )
 
-        transaction_count = cursor.fetchone()[0]
+            transaction_count = cursor.fetchone()[0]
 
-        if transaction_count > 0:
-            return False, "referenced"
+            if transaction_count > 0:
+                return False, "referenced"
 
-        cursor.execute(
-            "DELETE FROM accounts WHERE id = ?",
-            (account_id,)
-        )
+            cursor.execute(
+                "DELETE FROM accounts WHERE id = ?",
+                (account_id,)
+            )
 
-        connection.commit()
-        return True, None
-
-    except sqlite3.Error as e:
-        print(e)
+            connection.commit()
+            return True, None
+    except sqlite3.Error:
         return False, "error"
-
-    finally:
-        connection.close()

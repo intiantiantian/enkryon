@@ -215,17 +215,21 @@ Is this a visual design constant?
 
 ## Current Refactor Direction
 
-The current priority is not to redesign the app yet.
+Phase 5 completed the current architecture separation:
 
-The correct order is:
+1. Repository queries return named records rather than positional tuples.
+2. Managed connections centralize foreign-key setup, rollback, and cleanup.
+3. Transaction form state owns dependent account, type, group, category,
+   date, time, notes, and edit-state transitions.
+4. Transaction, account, and category services own workflow validation and
+   translate repository outcomes into explicit results.
+5. Screens coordinate input, navigation, dialogs, messages, and rendering.
+6. Shared transaction-list actions own repeated filtering, editing,
+   deletion, confirmation-dialog, and refresh behavior.
+7. Shared action-result rendering owns snackbar and refresh sequencing.
 
-1. Keep database access safe.
-2. Clarify architecture boundaries.
-3. Remove unused imports and dead code.
-4. Separate service logic from UI rendering.
-5. Consolidate repeated snackbar behavior.
-6. Add basic repository tests.
-7. Start the design system.
+Phase 6 may change layouts and interaction patterns, but it should preserve
+these boundaries and keep persistence and financial rules out of screens.
 
 ## Rule for Future Commits
 

@@ -97,7 +97,7 @@ mistaken for current defects.
 
 | Phase 1.2 observation | Current status |
 |---|---|
-| `screens/add_transaction.py` is still large. | Still open; assigned to Phase 5 architecture work. |
+| `screens/add_transaction.py` is still large. | Resolved in Phase 5 by extracting transaction form state, save/edit workflows, validation, payload creation, and shared action behavior; the remaining screen code coordinates keypad, menu, picker, and rendering interactions. |
 | Money is stored as `REAL`. | Resolved in Phase 2; amounts now use integer centavos. |
 | Account duplicate validation is not case-insensitive. | Resolved in Phase 2 through normalized application and database rules. |
 | No migration system exists. | Resolved in Phase 2 with ordered, transactional migrations. |

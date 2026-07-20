@@ -8,11 +8,10 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_4_is_closed_and_phase_5_is_next():
+def test_phase_4_remains_closed_after_phase_5():
     roadmap = read_project_file("ROADMAP.md")
 
     assert "Current release: `v0.4.8`" in roadmap
-    assert "Current position: Phase 4 is complete; Phase 5 is next" in roadmap
     assert "**Status:** Completed in `v0.4.8`" in roadmap
     assert "**Passed.** Another developer can reproduce" in roadmap
 

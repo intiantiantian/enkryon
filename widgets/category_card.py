@@ -8,8 +8,8 @@ class CategoryCard(MDCard):
         self.group_card = None
     
     def set_category(self, category):
-        self.ids.category_name.text = category[2]
-        self.category_id = category[0]
+        self.ids.category_name.text = category.name
+        self.category_id = category.category_id
 
     def edit_category(self):
         self.screen.edit_category(

@@ -2,10 +2,17 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 
-from utils.snackbar import show_snackbar
+from .action_results import render_action_result
 
-from database.category_group_repository import delete_category_group, get_category_groups_by_type, insert_category_group, update_category_group
-from database.category_repository import insert_category, update_category, delete_category
+from services.category_services import (
+    create_category as create_category_workflow,
+    create_group as create_group_workflow,
+    get_groups_for_view,
+    remove_category as remove_category_workflow,
+    remove_group as remove_group_workflow,
+    rename_category as rename_category_workflow,
+    rename_group as rename_group_workflow,
+)
 
 from widgets.input_dialog import InputDialog
 from widgets.category_group_card import CategoryGroupCard
@@ -15,6 +22,7 @@ class CategoriesScreen(Screen):
     
     def go_to_dashboard(self):
         self.manager.current = 'dashboard'
+
 
     def on_pre_enter(self):
         self.rename_dialog = None
@@ -30,10 +38,11 @@ class CategoriesScreen(Screen):
 
         self.load_groups()
 
+
     def load_groups(self):
         self.ids.groups_container.clear_widgets()
 
-        groups = get_category_groups_by_type(self.current_transaction_type)
+        groups = get_groups_for_view(self.current_transaction_type)
 
         if not groups:
             label = (
@@ -56,8 +65,9 @@ class CategoriesScreen(Screen):
             card.set_group(group)
             self.ids.groups_container.add_widget(card)
 
-            if group[0] in self.expanded_groups:
+            if group.group_id in self.expanded_groups:
                 card.toggle_group()
+
 
     def set_transaction_type(self, transaction_type):
         self.current_transaction_type = transaction_type
@@ -67,6 +77,7 @@ class CategoriesScreen(Screen):
 
         self.load_groups()
 
+
     def add_group(self):
         InputDialog(
             title="New Category Group",
@@ -74,45 +85,27 @@ class CategoriesScreen(Screen):
             callback=self.save_group
         ).open()
         
-    def save_group(self, group_name):
-        group_name = (group_name or "").strip()
 
-        success, reason = insert_category_group(
+    def save_group(self, group_name):
+        result = create_group_workflow(
             group_name,
-            self.current_transaction_type
+            self.current_transaction_type,
+        )
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
         )
 
-        if success:
-            show_snackbar(f"Group '{group_name}' added successfully.")
-            self.load_groups()
-            return
-
-        if reason == "empty":
-            show_snackbar("Group name cannot be empty.")
-        elif reason == "duplicate":
-            show_snackbar(f"Group name '{group_name}' already exists for this type.")
-        else:
-            show_snackbar("Group could not be added.")
 
     def rename_group(self, group_id, new_name):
-        new_name = (new_name or "").strip()
+        result = rename_group_workflow(group_id, new_name)
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
-        success, reason = update_category_group(group_id, new_name)
-
-        if success:
-            show_snackbar(f"Group renamed to '{new_name}' successfully.")
-            self.load_groups()
-            return
-
-        if reason == "empty":
-            show_snackbar("New group name cannot be empty.")
-        elif reason == "duplicate":
-            show_snackbar(f"Group name '{new_name}' already exists for this type.")
-        elif reason == "not_found":
-            show_snackbar("Group no longer exists.")
-            self.load_groups()
-        else:
-            show_snackbar("Group could not be renamed.")
 
     def edit_group(self, group_id, group_name):
         InputDialog(
@@ -122,21 +115,18 @@ class CategoriesScreen(Screen):
             callback=lambda name:
                 self.rename_group(group_id, name)
         ).open()
-    
+
+
     def perform_delete_group(self, group_id):
         self.close_delete_dialog()
 
-        success, reason = delete_category_group(group_id)
+        result = remove_group_workflow(group_id)
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
-        if success:
-            show_snackbar("Group deleted successfully.")
-            self.load_groups()
-            return
-
-        if reason == "has_categories":
-            show_snackbar("Cannot delete group because it still contains categories.")
-        else:
-            show_snackbar("Group could not be deleted.")
 
     def confirm_delete_group(self, group_id):
         self.delete_dialog = MDDialog(
@@ -154,10 +144,12 @@ class CategoriesScreen(Screen):
         )
         self.delete_dialog.open()
 
+
     def close_delete_dialog(self, *args):
         if self.delete_dialog:
             self.delete_dialog.dismiss()
             self.delete_dialog = None
+
 
     def add_category(self, group_id):
         InputDialog(
@@ -166,45 +158,24 @@ class CategoriesScreen(Screen):
             callback=lambda name: self.save_category(group_id, name)
         ).open()
 
+
     def save_category(self, group_id, category_name):
-        category_name = (category_name or "").strip()
+        result = create_category_workflow(group_id, category_name)
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
-        success, reason = insert_category(group_id, category_name)
-
-        if success:
-            show_snackbar(f"Category '{category_name}' added successfully.")
-            self.load_groups()
-            return
-
-        if reason == "empty":
-            show_snackbar("Category name cannot be empty.")
-        elif reason == "duplicate":
-            show_snackbar(f"Category name '{category_name}' already exists for this type.")
-        elif reason == "group_not_found":
-            show_snackbar("Category group no longer exists.")
-            self.load_groups()
-        else:
-            show_snackbar("Category could not be added.")
 
     def rename_category(self, category_id, new_name):
-        new_name = (new_name or "").strip()
+        result = rename_category_workflow(category_id, new_name)
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
-        success, reason = update_category(category_id, new_name)
-
-        if success:
-            show_snackbar(f"Category renamed to '{new_name}' successfully.")
-            self.load_groups()
-            return
-
-        if reason == "empty":
-            show_snackbar("New category name cannot be empty.")
-        elif reason == "duplicate":
-            show_snackbar(f"Category name '{new_name}' already exists for this type.")
-        elif reason == "not_found":
-            show_snackbar("Category no longer exists.")
-            self.load_groups()
-        else:
-            show_snackbar("Category could not be renamed.")
 
     def edit_category(self, category_id, category_name):
         InputDialog(
@@ -214,20 +185,17 @@ class CategoriesScreen(Screen):
             callback=lambda name: self.rename_category(category_id, name)
         ).open()
 
+
     def perform_delete_category(self, category_id):
         self.close_delete_category_dialog()
 
-        success, reason = delete_category(category_id)
+        result = remove_category_workflow(category_id)
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
-        if success:
-            show_snackbar("Category deleted successfully.")
-            self.load_groups()
-            return
-
-        if reason == "referenced":
-            show_snackbar("Cannot delete category because it has existing transactions.")
-        else:
-            show_snackbar("Category could not be deleted.")
 
     def confirm_delete_category(self, category_id):
         self.delete_category_dialog = MDDialog(
@@ -244,6 +212,7 @@ class CategoriesScreen(Screen):
             ]
         )
         self.delete_category_dialog.open()
+
 
     def close_delete_category_dialog(self, *args):
         if self.delete_category_dialog:
