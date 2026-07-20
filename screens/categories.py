@@ -2,7 +2,7 @@ from kivy.uix.screenmanager import Screen
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 
-from utils.snackbar import show_snackbar
+from .action_results import render_action_result
 
 from services.category_services import (
     create_category as create_category_workflow,
@@ -91,18 +91,20 @@ class CategoriesScreen(Screen):
             group_name,
             self.current_transaction_type,
         )
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def rename_group(self, group_id, new_name):
         result = rename_group_workflow(group_id, new_name)
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def edit_group(self, group_id, group_name):
@@ -119,10 +121,11 @@ class CategoriesScreen(Screen):
         self.close_delete_dialog()
 
         result = remove_group_workflow(group_id)
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def confirm_delete_group(self, group_id):
@@ -158,18 +161,20 @@ class CategoriesScreen(Screen):
 
     def save_category(self, group_id, category_name):
         result = create_category_workflow(group_id, category_name)
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def rename_category(self, category_id, new_name):
         result = rename_category_workflow(category_id, new_name)
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def edit_category(self, category_id, category_name):
@@ -185,10 +190,11 @@ class CategoriesScreen(Screen):
         self.close_delete_category_dialog()
 
         result = remove_category_workflow(category_id)
-        show_snackbar(result.message)
-
-        if result.refresh_required:
-            self.load_groups()
+        render_action_result(
+            result,
+            refresh=self.load_groups,
+            refresh_required=result.refresh_required,
+        )
 
 
     def confirm_delete_category(self, category_id):

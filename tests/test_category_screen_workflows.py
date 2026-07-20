@@ -8,6 +8,8 @@ from screens.categories import CategoriesScreen
 from services.category_services import CategoryActionResult
 
 
+action_results_module = import_module("screens.action_results")
+
 ACTION_RESULTS = [
     pytest.param(
         CategoryActionResult(True, "Action succeeded.", True),
@@ -37,7 +39,7 @@ def patch_category_action(
     show_snackbar = Mock()
     monkeypatch.setattr(categories_module, action_name, action)
     monkeypatch.setattr(
-        categories_module,
+        action_results_module,
         "show_snackbar",
         show_snackbar,
     )

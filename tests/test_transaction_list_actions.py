@@ -12,6 +12,9 @@ from screens.transactions import TransactionsScreen
 from services.transaction_services import TransactionDeleteResult
 
 
+action_results_module = import_module("screens.action_results")
+
+
 @pytest.mark.parametrize(
     (
         "transaction_type",
@@ -91,7 +94,7 @@ def test_delete_transaction_renders_service_result(
         delete_transaction_by_id,
     )
     monkeypatch.setattr(
-        actions_module,
+        action_results_module,
         "show_snackbar",
         show_snackbar,
     )

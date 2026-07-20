@@ -8,6 +8,9 @@ from screens.accounts import AccountsScreen
 from services.account_services import AccountActionResult
 
 
+action_results_module = import_module("screens.action_results")
+
+
 def patch_account_action(
     monkeypatch,
     action_name,
@@ -18,7 +21,7 @@ def patch_account_action(
     show_snackbar = Mock()
     monkeypatch.setattr(accounts_module, action_name, action)
     monkeypatch.setattr(
-        accounts_module,
+        action_results_module,
         "show_snackbar",
         show_snackbar,
     )

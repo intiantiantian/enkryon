@@ -5,7 +5,7 @@ from kivymd.uix.button import MDFlatButton
 
 from widgets.account_card import AccountCard
 
-from utils.snackbar import show_snackbar
+from .action_results import render_action_result
 
 from services.account_services import (
     create_account as create_account_workflow,
@@ -63,11 +63,12 @@ class AccountsScreen(Screen):
 
     def save_account(self, account_name):
         result = create_account_workflow(account_name)
-        show_snackbar(result.message)
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
 
-        if result.success:
-            self.load_accounts()
-            
 
     def open_rename_dialog(self, account_id, account_name):
 
@@ -103,21 +104,23 @@ class AccountsScreen(Screen):
     def rename_account(self, account_id):
         new_name = self.rename_dialog.content_cls.text
         result = rename_account_workflow(account_id, new_name)
-        show_snackbar(result.message)
-
-        if result.success:
-            self.close_rename_dialog()
-            self.load_accounts()
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+            before_refresh=self.close_rename_dialog,
+        )
 
 
     def perform_delete_account(self, account_id):
         self.close_delete_dialog()
 
         result = remove_account_workflow(account_id)
-        show_snackbar(result.message)
-
-        if result.success:
-            self.load_accounts()
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
 
 
     def confirm_delete_account(self, account_id):

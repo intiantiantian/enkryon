@@ -2,8 +2,8 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
 from services.transaction_services import delete_transaction_by_id
-from utils.snackbar import show_snackbar
 
+from .action_results import render_action_result
 
 class TransactionListActionsMixin:
 
@@ -20,19 +20,23 @@ class TransactionListActionsMixin:
 
         self.refresh_transaction_list()
 
+
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen("add_transaction")
         screen.load_transaction(transaction_id)
         self.manager.current = "add_transaction"
 
+
     def delete_transaction(self, transaction_id):
         result = delete_transaction_by_id(transaction_id)
         self.delete_transaction_dialog.dismiss()
 
-        show_snackbar(result.message)
+        render_action_result(
+            result,
+            refresh=self.refresh_after_transaction_delete,
+            refresh_required=result.success,
+        )
 
-        if result.success:
-            self.refresh_after_transaction_delete()
 
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(
@@ -52,6 +56,7 @@ class TransactionListActionsMixin:
             ]
         )
         self.delete_transaction_dialog.open()
+
 
     def refresh_after_transaction_delete(self):
         self.refresh_transaction_list()

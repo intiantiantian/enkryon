@@ -13,16 +13,15 @@ from services.transaction_services import (
 )
 
 from .transaction_form_state import TransactionFormState
+from .action_results import render_action_result
 
 from utils.amount_input import apply_amount_key
-from utils.snackbar import show_snackbar
 from utils.transaction_datetime import (
     format_date_label,
     format_time_label,
     get_current_transaction_datetime_labels,
     parse_date_label,
     parse_time_label,
-    split_database_datetime,
 )
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
@@ -318,7 +317,7 @@ class AddTransactionScreen(Screen):
             **self.form_state.to_save_arguments()
         )
 
-        show_snackbar(result.message)
+        render_action_result(result)
 
         if not result.success:
             return

@@ -12,6 +12,9 @@ from screens.transaction_form_state import TransactionFormState
 from services.transaction_services import TransactionSaveResult
 
 
+action_results_module = import_module("screens.action_results")
+
+
 def make_save_screen(*, transaction_id=None):
     dashboard = SimpleNamespace(load_dashboard=Mock())
     manager = SimpleNamespace(
@@ -54,7 +57,7 @@ def patch_save_workflow(monkeypatch, result):
         save_transaction_workflow,
     )
     monkeypatch.setattr(
-        add_transaction_module,
+        action_results_module,
         "show_snackbar",
         show_snackbar,
     )
