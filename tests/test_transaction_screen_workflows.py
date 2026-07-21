@@ -266,3 +266,65 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         transaction_id=17,
     )
     screen.render_form_state.assert_called_once_with()
+
+def test_open_add_account_screen_preserves_in_progress_form():
+    form_state = TransactionFormState(
+        amount="800",
+        transaction_type="income",
+    )
+    account_menu = SimpleNamespace(dismiss=Mock())
+    screen = SimpleNamespace(
+        form_state=form_state,
+        manager=SimpleNamespace(current="add_transaction"),
+        account_menu=account_menu,
+    )
+
+    AddTransactionScreen.open_add_account_screen(screen)
+
+    assert screen.manager.current == "accounts"
+    assert screen.form_state is form_state
+    account_menu.dismiss.assert_called_once_with()
+
+
+def test_open_manage_category_screen_preserves_in_progress_form():
+    form_state = TransactionFormState(
+        amount="800",
+        transaction_type="income",
+    )
+    groups_menu = SimpleNamespace(dismiss=Mock())
+    categories_menu = SimpleNamespace(dismiss=Mock())
+    screen = SimpleNamespace(
+        form_state=form_state,
+        manager=SimpleNamespace(current="add_transaction"),
+        groups_menu=groups_menu,
+        categories_menu=categories_menu,
+    )
+
+    AddTransactionScreen.open_manage_category_screen(screen)
+
+    assert screen.manager.current == "categories"
+    assert screen.form_state is form_state
+    groups_menu.dismiss.assert_called_once_with()
+    categories_menu.dismiss.assert_called_once_with()
+
+
+def test_add_transaction_pre_enter_resets_non_edit_form():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=None),
+        reset_form=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_called_once_with()
+
+
+def test_add_transaction_pre_enter_preserves_edit_form():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=17),
+        reset_form=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_not_called()
