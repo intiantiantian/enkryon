@@ -120,13 +120,20 @@ def test_save_account_renders_service_result(
         "create_account_workflow",
         result,
     )
-    screen = SimpleNamespace(load_accounts=Mock())
+    account_created_callback = Mock()
+    screen = SimpleNamespace(
+        load_accounts=Mock(),
+        account_created_callback=account_created_callback,
+    )
 
     AccountsScreen.save_account(screen, " Cash ")
 
     create_account_workflow.assert_called_once_with(" Cash ")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_accounts.call_count == int(success)
+    assert account_created_callback.call_args_list == (
+        [call("Cash")] if success else []
+    )
 
 
 @pytest.mark.parametrize("success", [True, False])

@@ -177,11 +177,33 @@ class AddTransactionScreen(Screen):
         self.account_menu.dismiss()
 
 
+    def select_created_account(self, account_name):
+        normalized_name = account_name.strip().casefold()
+        account = next(
+            (
+                account
+                for account in get_all_accounts()
+                if account.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if account is None:
+            return
+
+        self.form_state.select_account(account.account_id, account.name)
+        self.render_form_state()
+
+
     def open_add_account_screen(self):
         self.preserve_form_on_next_enter = True
 
         accounts_screen = self.manager.get_screen("accounts")
         accounts_screen.return_screen = "add_transaction"
+
+        accounts_screen.account_created_callback = (
+            self.select_created_account
+        )
 
         self.account_menu.dismiss()
         self.manager.current = "accounts"
@@ -235,6 +257,27 @@ class AddTransactionScreen(Screen):
         self.groups_menu.dismiss()
 
 
+    def select_created_group(self, transaction_type, group_name):
+        normalized_name = group_name.strip().casefold()
+        group = next(
+            (
+                group
+                for group in get_category_groups_by_type(
+                    transaction_type
+                )
+                if group.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if group is None:
+            return
+
+        self.form_state.select_transaction_type(transaction_type)
+        self.form_state.select_group(group.group_id, group.name)
+        self.render_form_state()
+
+
     def open_categories_menu(self):
         categories = get_categories_by_group(self.form_state.group_id)
         if not categories:
@@ -276,11 +319,50 @@ class AddTransactionScreen(Screen):
         self.categories_menu.dismiss()
 
 
+    def select_created_category(self, group_id, category_name):
+        normalized_name = category_name.strip().casefold()
+        category = next(
+            (
+                category
+                for category in get_categories_by_group(group_id)
+                if category.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if category is None:
+            return
+
+        self.form_state.select_transaction_type(
+            category.transaction_type
+        )
+        self.form_state.select_group(
+            category.group_id,
+            category.group_name,
+        )
+        self.form_state.select_category(
+            category.category_id,
+            category.name,
+        )
+        self.render_form_state()
+
+
     def open_manage_category_screen(self):
         self.preserve_form_on_next_enter = True
 
         categories_screen = self.manager.get_screen("categories")
         categories_screen.return_screen = "add_transaction"
+
+        categories_screen.group_created_callback = (
+            self.select_created_group
+        )
+        categories_screen.category_created_callback = (
+            self.select_created_category
+        )
+        categories_screen.initial_transaction_type = (
+            self.form_state.transaction_type
+        )
+        categories_screen.initial_group_id = self.form_state.group_id
 
         if hasattr(self, "groups_menu"):
             self.groups_menu.dismiss()

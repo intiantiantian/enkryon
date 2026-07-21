@@ -20,11 +20,13 @@ from widgets.empty_state import EmptyState
 class AccountsScreen(Screen):
 
     return_screen = "dashboard"
+    account_created_callback = None
 
 
     def go_back(self):
         destination = self.return_screen
         self.return_screen = "dashboard"
+        self.account_created_callback = None
         self.manager.current = destination
 
 
@@ -73,6 +75,9 @@ class AccountsScreen(Screen):
             refresh=self.load_accounts,
             refresh_required=result.success,
         )
+        callback = getattr(self, "account_created_callback", None)
+        if result.success and callback is not None:
+            callback((account_name or "").strip())
 
 
     def open_rename_dialog(self, account_id, account_name):

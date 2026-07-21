@@ -4,7 +4,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from database.records import TransactionDetailRecord
+from database.records import (
+    AccountRecord,
+    CategoryGroupRecord,
+    CategoryRecord,
+    TransactionDetailRecord,
+)
 
 from screens.add_transaction import AddTransactionScreen
 from screens.transaction_form_state import TransactionFormState
@@ -282,6 +287,7 @@ def test_open_add_account_screen_preserves_in_progress_form():
         form_state=form_state,
         manager=manager,
         account_menu=account_menu,
+        select_created_account=Mock(),
     )
 
     AddTransactionScreen.open_add_account_screen(screen)
@@ -292,6 +298,10 @@ def test_open_add_account_screen_preserves_in_progress_form():
     manager.get_screen.assert_called_once_with("accounts")
     assert accounts_screen.return_screen == "add_transaction"
     assert screen.preserve_form_on_next_enter is True
+    assert (
+        accounts_screen.account_created_callback
+        is screen.select_created_account
+    )
 
 
 def test_open_manage_category_screen_preserves_in_progress_form():
@@ -311,6 +321,8 @@ def test_open_manage_category_screen_preserves_in_progress_form():
         manager=manager,
         groups_menu=groups_menu,
         categories_menu=categories_menu,
+        select_created_group=Mock(),
+        select_created_category=Mock(),
     )
 
     AddTransactionScreen.open_manage_category_screen(screen)
@@ -322,6 +334,16 @@ def test_open_manage_category_screen_preserves_in_progress_form():
     manager.get_screen.assert_called_once_with("categories")
     assert categories_screen.return_screen == "add_transaction"
     assert screen.preserve_form_on_next_enter is True
+    assert (
+        categories_screen.group_created_callback
+        is screen.select_created_group
+    )
+    assert (
+        categories_screen.category_created_callback
+        is screen.select_created_category
+    )
+    assert categories_screen.initial_transaction_type == "income"
+    assert categories_screen.initial_group_id is None
 
 
 def test_add_transaction_pre_enter_resets_non_edit_form():
@@ -388,6 +410,7 @@ def test_empty_account_menu_offers_add_account(monkeypatch):
         form_state=TransactionFormState(),
         ids=SimpleNamespace(
             account_selector=account_selector,
+            account_label=SimpleNamespace(text=""),
         ),
         open_add_account_screen=open_add_account_screen,
     )
@@ -395,7 +418,7 @@ def test_empty_account_menu_offers_add_account(monkeypatch):
     AddTransactionScreen.open_account_menu(screen)
 
     get_all_accounts.assert_called_once_with()
-    assert account_selector.text == "No Accounts"
+    assert screen.ids.account_label.text == "No Accounts"
     assert screen.account_menu is menu
     menu.open.assert_called_once_with()
 
@@ -513,3 +536,112 @@ def test_empty_category_menu_offers_category_management(
     menu_items[0]["on_release"]()
 
     open_manage_category_screen.assert_called_once_with()
+
+
+def test_created_account_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        Mock(
+            return_value=[
+                AccountRecord(account_id=9, name="Savings")
+            ]
+        ),
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(account_name="No Accounts"),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_account(screen, "Savings")
+
+    assert screen.form_state.account_id == 9
+    assert screen.form_state.account_name == "Savings"
+    screen.render_form_state.assert_called_once_with()
+
+
+def test_created_group_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_groups = Mock(
+        return_value=[
+            CategoryGroupRecord(
+                group_id=6,
+                name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            group_name="No Category Groups Created",
+        ),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_group(
+        screen,
+        "expense",
+        "Food",
+    )
+
+    get_groups.assert_called_once_with("expense")
+    assert screen.form_state.transaction_type == "expense"
+    assert screen.form_state.group_id == 6
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id is None
+    assert screen.form_state.category_name == "Select Category"
+    screen.render_form_state.assert_called_once_with()
+
+
+def test_created_category_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_categories = Mock(
+        return_value=[
+            CategoryRecord(
+                category_id=12,
+                group_id=6,
+                name="Dining",
+                group_name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            category_name="No Category Created",
+        ),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_category(
+        screen,
+        6,
+        "Dining",
+    )
+
+    get_categories.assert_called_once_with(6)
+    assert screen.form_state.transaction_type == "expense"
+    assert screen.form_state.group_id == 6
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id == 12
+    assert screen.form_state.category_name == "Dining"
+    screen.render_form_state.assert_called_once_with()

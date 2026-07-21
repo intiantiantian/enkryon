@@ -21,25 +21,46 @@ from widgets.empty_state import EmptyState
 class CategoriesScreen(Screen):
     
     return_screen = "dashboard"
+    group_created_callback = None
+    category_created_callback = None
+    initial_transaction_type = None
+    initial_group_id = None
 
 
     def go_back(self):
         destination = self.return_screen
         self.return_screen = "dashboard"
+        self.group_created_callback = None
+        self.category_created_callback = None
         self.manager.current = destination
 
 
     def on_pre_enter(self):
+        initial_transaction_type = getattr(
+            self,
+            "initial_transaction_type",
+            None,
+        )
+        initial_group_id = getattr(self, "initial_group_id", None)
+        self.initial_transaction_type = None
+        self.initial_group_id = None
+
         self.rename_dialog = None
         self.rename_category_dialog = None
         self.delete_dialog = None
         self.delete_category_dialog = None
 
-        self.current_transaction_type = 'income'
+        self.current_transaction_type = (
+            initial_transaction_type or 'income'
+        )
         self.ids.income_button.set_selected(self.current_transaction_type == 'income')
         self.ids.expense_button.set_selected(self.current_transaction_type == 'expense')
 
-        self.expanded_groups = set()
+        self.expanded_groups = (
+            {initial_group_id}
+            if initial_group_id is not None
+            else set()
+        )
 
         self.load_groups()
 
@@ -101,6 +122,12 @@ class CategoriesScreen(Screen):
             refresh=self.load_groups,
             refresh_required=result.refresh_required,
         )
+        callback = getattr(self, "group_created_callback", None)
+        if result.success and callback is not None:
+            callback(
+                self.current_transaction_type,
+                (group_name or "").strip(),
+            )
 
 
     def rename_group(self, group_id, new_name):
@@ -160,7 +187,7 @@ class CategoriesScreen(Screen):
         InputDialog(
             title="New Category",
             hint_text="Category name...",
-            callback=lambda name: self.save_category(group_id, name)
+            callback=lambda name: self.save_category(group_id, name),
         ).open()
 
 
@@ -171,6 +198,17 @@ class CategoriesScreen(Screen):
             refresh=self.load_groups,
             refresh_required=result.refresh_required,
         )
+
+        callback = getattr(
+            self,
+            "category_created_callback",
+            None,
+        )
+        if result.success and callback is not None:
+            callback(
+                group_id,
+                (category_name or "").strip(),
+            )
 
 
     def rename_category(self, category_id, new_name):

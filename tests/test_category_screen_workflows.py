@@ -167,12 +167,21 @@ def test_save_group_renders_service_result(
         current_transaction_type="expense",
         load_groups=Mock(),
     )
+    group_created_callback = Mock()
+    screen = SimpleNamespace(
+        current_transaction_type="expense",
+        load_groups=Mock(),
+        group_created_callback=group_created_callback,
+    )
 
     CategoriesScreen.save_group(screen, " Food ")
 
     create_group_workflow.assert_called_once_with(" Food ", "expense")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+    assert group_created_callback.call_args_list == (
+        [call("expense", "Food")] if result.success else []
+    )
 
 
 @pytest.mark.parametrize(
@@ -239,13 +248,20 @@ def test_save_category_renders_service_result(
         "create_category_workflow",
         result,
     )
-    screen = SimpleNamespace(load_groups=Mock())
+    category_created_callback = Mock()
+    screen = SimpleNamespace(
+        load_groups=Mock(),
+        category_created_callback=category_created_callback,
+    )
 
     CategoriesScreen.save_category(screen, 7, " Dining ")
 
     create_category_workflow.assert_called_once_with(7, " Dining ")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+    assert category_created_callback.call_args_list == (
+        [call(7, "Dining")] if result.success else []
+    )
 
 
 @pytest.mark.parametrize(
@@ -313,3 +329,52 @@ def test_category_back_returns_to_origin_once(return_screen):
 
     assert manager.current == return_screen
     assert screen.return_screen == "dashboard"
+
+
+def test_category_entry_restores_transaction_context():
+    income_button = SimpleNamespace(set_selected=Mock())
+    expense_button = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        initial_transaction_type="expense",
+        initial_group_id=7,
+        ids=SimpleNamespace(
+            income_button=income_button,
+            expense_button=expense_button,
+        ),
+        load_groups=Mock(),
+    )
+
+    CategoriesScreen.on_pre_enter(screen)
+
+    assert screen.current_transaction_type == "expense"
+    assert screen.expanded_groups == {7}
+    assert screen.initial_transaction_type is None
+    assert screen.initial_group_id is None
+    income_button.set_selected.assert_called_once_with(False)
+    expense_button.set_selected.assert_called_once_with(True)
+    screen.load_groups.assert_called_once_with()
+
+
+def test_add_category_opens_creation_dialog(monkeypatch):
+    categories_module = import_module("screens.categories")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        categories_module,
+        "InputDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(save_category=Mock())
+
+    CategoriesScreen.add_category(screen, 7)
+
+    dialog_factory.assert_called_once()
+    dialog.open.assert_called_once_with()
+
+    dialog_options = dialog_factory.call_args.kwargs
+    assert dialog_options["title"] == "New Category"
+    assert dialog_options["hint_text"] == "Category name..."
+
+    dialog_options["callback"](" Dining ")
+
+    screen.save_category.assert_called_once_with(7, " Dining ")
