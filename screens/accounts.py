@@ -15,6 +15,7 @@ from services.account_services import (
 )
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
+from widgets.delete_confirmation import open_permanent_delete_confirmation
 
 
 class AccountsScreen(Screen):
@@ -134,21 +135,16 @@ class AccountsScreen(Screen):
 
 
     def confirm_delete_account(self, account_id):
-        self.delete_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this account? Accounts with existing transactions cannot be deleted.",            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_delete_dialog
-                ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_delete_account(account_id)
-                )
-            ]
+        self.delete_dialog = open_permanent_delete_confirmation(
+            title="Delete account?",
+            message=(
+                "Unused accounts are deleted permanently. "
+                "Accounts with existing transactions cannot be deleted."
+            ),
+            cancel_callback=self.close_delete_dialog,
+            delete_callback=lambda *_:
+                self.perform_delete_account(account_id),
         )
-        self.delete_dialog.open()
-
 
     def close_delete_dialog(self, *args):
         self.delete_dialog.dismiss()

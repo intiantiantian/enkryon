@@ -1,6 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
 
 from .action_results import render_action_result
 
@@ -17,6 +15,9 @@ from services.category_services import (
 from widgets.input_dialog import InputDialog
 from widgets.category_group_card import CategoryGroupCard
 from widgets.empty_state import EmptyState
+from widgets.delete_confirmation import (
+    open_permanent_delete_confirmation,
+)
 
 class CategoriesScreen(Screen):
     
@@ -161,20 +162,16 @@ class CategoriesScreen(Screen):
 
 
     def confirm_delete_group(self, group_id):
-        self.delete_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this group? Groups with existing categories cannot be deleted.",            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_delete_dialog
-                ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_delete_group(group_id)
-                )
-            ]
+        self.delete_dialog = open_permanent_delete_confirmation(
+            title="Delete category group?",
+            message=(
+                "Empty category groups are deleted permanently. "
+                "Groups containing categories cannot be deleted."
+            ),
+            cancel_callback=self.close_delete_dialog,
+            delete_callback=lambda *_:
+                self.perform_delete_group(group_id),
         )
-        self.delete_dialog.open()
 
 
     def close_delete_dialog(self, *args):
@@ -241,20 +238,19 @@ class CategoriesScreen(Screen):
 
 
     def confirm_delete_category(self, category_id):
-        self.delete_category_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this category? Categories with existing transactions cannot be deleted.",            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_delete_category_dialog
+        self.delete_category_dialog = (
+            open_permanent_delete_confirmation(
+                title="Delete category?",
+                message=(
+                    "Unused categories are deleted permanently. "
+                    "Categories with existing transactions cannot be "
+                    "deleted."
                 ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_delete_category(category_id)
-                )
-            ]
+                cancel_callback=self.close_delete_category_dialog,
+                delete_callback=lambda *_:
+                    self.perform_delete_category(category_id),
+            )
         )
-        self.delete_category_dialog.open()
 
 
     def close_delete_category_dialog(self, *args):

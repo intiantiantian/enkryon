@@ -378,3 +378,73 @@ def test_add_category_opens_creation_dialog(monkeypatch):
     dialog_options["callback"](" Dining ")
 
     screen.save_category.assert_called_once_with(7, " Dining ")
+
+
+@pytest.mark.parametrize(
+    (
+        "method_name",
+        "dialog_attribute",
+        "title",
+        "message",
+        "cancel_method",
+        "delete_method",
+    ),
+    [
+        (
+            "confirm_delete_group",
+            "delete_dialog",
+            "Delete category group?",
+            (
+                "Empty category groups are deleted permanently. "
+                "Groups containing categories cannot be deleted."
+            ),
+            "close_delete_dialog",
+            "perform_delete_group",
+        ),
+        (
+            "confirm_delete_category",
+            "delete_category_dialog",
+            "Delete category?",
+            (
+                "Unused categories are deleted permanently. "
+                "Categories with existing transactions cannot be deleted."
+            ),
+            "close_delete_category_dialog",
+            "perform_delete_category",
+        ),
+    ],
+)
+def test_delete_prompts_use_standard_confirmation(
+    monkeypatch,
+    method_name,
+    dialog_attribute,
+    title,
+    message,
+    cancel_method,
+    delete_method,
+):
+    categories_module = import_module("screens.categories")
+    dialog = object()
+    confirmation = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        categories_module,
+        "open_permanent_delete_confirmation",
+        confirmation,
+    )
+    cancel_callback = Mock()
+    delete_callback_target = Mock()
+    screen = SimpleNamespace()
+    setattr(screen, cancel_method, cancel_callback)
+    setattr(screen, delete_method, delete_callback_target)
+
+    getattr(CategoriesScreen, method_name)(screen, 17)
+
+    assert getattr(screen, dialog_attribute) is dialog
+    options = confirmation.call_args.kwargs
+    assert options["title"] == title
+    assert options["message"] == message
+    assert options["cancel_callback"] is cancel_callback
+
+    options["delete_callback"]()
+
+    delete_callback_target.assert_called_once_with(17)

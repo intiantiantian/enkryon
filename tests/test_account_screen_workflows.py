@@ -208,3 +208,35 @@ def test_account_back_returns_to_origin_once(return_screen):
 
     assert manager.current == return_screen
     assert screen.return_screen == "dashboard"
+
+
+def test_confirm_delete_account_uses_standard_confirmation(
+    monkeypatch,
+):
+    accounts_module = import_module("screens.accounts")
+    dialog = object()
+    confirmation = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        accounts_module,
+        "open_permanent_delete_confirmation",
+        confirmation,
+    )
+    screen = SimpleNamespace(
+        close_delete_dialog=Mock(),
+        perform_delete_account=Mock(),
+    )
+
+    AccountsScreen.confirm_delete_account(screen, 7)
+
+    assert screen.delete_dialog is dialog
+    options = confirmation.call_args.kwargs
+    assert options["title"] == "Delete account?"
+    assert options["message"] == (
+        "Unused accounts are deleted permanently. "
+        "Accounts with existing transactions cannot be deleted."
+    )
+    assert options["cancel_callback"] is screen.close_delete_dialog
+
+    options["delete_callback"]()
+
+    screen.perform_delete_account.assert_called_once_with(7)
