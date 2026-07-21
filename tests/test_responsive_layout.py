@@ -156,3 +156,32 @@ def test_settings_content_remains_scrollable_and_contained():
     assert "max_lines: 1" in clear_data_label
     assert "shorten: True" in clear_data_label
     assert "shorten_from: 'right'" in clear_data_label
+
+
+def test_add_transaction_account_selector_constrains_long_names():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        project_root / "screens" / "add_transaction.py"
+    ).read_text(encoding="utf-8")
+
+    selector_block = layout.split(
+        "id: account_selector",
+        maxsplit=1,
+    )[1].split(
+        "id: amount_label",
+        maxsplit=1,
+    )[0]
+
+    assert "id: account_label" in selector_block
+    assert "height: '48dp'" in selector_block
+    assert "max_lines: 1" in selector_block
+    assert "shorten: True" in selector_block
+    assert "shorten_from: 'right'" in selector_block
+
+    assert screen_source.count(
+        "self.ids.account_label.text"
+    ) == 2
+    assert "self.ids.account_selector.text" not in screen_source

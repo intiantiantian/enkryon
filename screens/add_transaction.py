@@ -121,7 +121,7 @@ class AddTransactionScreen(Screen):
             state.transaction_type == 'expense'
         )
 
-        self.ids.account_selector.text = state.account_name
+        self.ids.account_label.text = state.account_name
 
         self.ids.group_label.text = state.group_name
         self.ids.group_selector.disabled = state.transaction_type is None
@@ -140,7 +140,7 @@ class AddTransactionScreen(Screen):
         accounts = get_all_accounts()
         if not accounts:
             self.form_state.account_name = 'No Accounts'
-            self.ids.account_selector.text = self.form_state.account_name
+            self.ids.account_label.text = self.form_state.account_name
 
         menu_items = []
 
