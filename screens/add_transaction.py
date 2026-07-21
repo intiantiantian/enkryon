@@ -370,4 +370,4 @@ class AddTransactionScreen(Screen):
             self.ids.notes_label.theme_text_color = 'Primary'
         else:
             self.ids.notes_label.text = 'Add notes'
-            self.ids.notes_label.theme_text_color = 'Hint'
+            self.ids.notes_label.theme_text_color = 'Custom'
