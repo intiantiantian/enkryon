@@ -67,7 +67,7 @@
                     cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                     size_hint_y: None
                     height: self.minimum_height
-                    row_default_height: '200dp'
+                    row_default_height: dp(200) * max(1, Metrics.fontscale)
                     row_force_default: True
                     spacing: '10dp'
 

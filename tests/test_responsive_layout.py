@@ -185,3 +185,23 @@ def test_add_transaction_account_selector_constrains_long_names():
         "self.ids.account_label.text"
     ) == 2
     assert "self.ids.account_selector.text" not in screen_source
+
+
+def test_dashboard_summary_row_grows_with_font_scale():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+
+    summary_grid = layout.split(
+        "GridLayout:",
+        maxsplit=1,
+    )[1].split(
+        "EnkryonPrimaryButton:",
+        maxsplit=1,
+    )[0]
+
+    assert (
+        "row_default_height: dp(200) * max(1, Metrics.fontscale)"
+        in summary_grid
+    )
