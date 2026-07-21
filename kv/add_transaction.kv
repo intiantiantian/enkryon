@@ -1,3 +1,9 @@
+#:import Window kivy.core.window.Window
+#:import Metrics kivy.metrics.Metrics
+#:import dp kivy.metrics.dp
+#:import should_stack_controls utils.responsive_layout.should_stack_controls
+
+
 <AddTransactionScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -124,10 +130,12 @@
                     padding: '20dp'
                     spacing: '20dp'
 
-                    BoxLayout:
-                        orientation: 'horizontal'
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                         size_hint_y: None
-                        height: '64dp'
+                        height: self.minimum_height
+                        row_default_height: '64dp'
+                        row_force_default: True
                         spacing: '20dp'
 
                         OutlinedCard:
@@ -143,6 +151,11 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                         OutlinedCard:
                             id: category_selector
@@ -157,11 +170,18 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
-                    BoxLayout:
-                        orientation: 'horizontal'
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                         size_hint_y: None
-                        height: '64dp'
+                        height: self.minimum_height
+                        row_default_height: '64dp'
+                        row_force_default: True
                         spacing: '20dp'
 
                         OutlinedCard:
@@ -177,6 +197,11 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                         OutlinedCard:
                             id: time_selector
@@ -191,6 +216,11 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                 OutlinedCard:
                     orientation: 'vertical'
