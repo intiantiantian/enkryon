@@ -92,3 +92,39 @@ def test_category_cards_constrain_long_names():
         assert "max_lines: 1" in name_block
         assert "shorten: True" in name_block
         assert "shorten_from: 'right'" in name_block
+
+
+def test_transaction_list_uses_responsive_filters_and_cards():
+    project_root = Path(__file__).resolve().parents[1]
+    transactions_layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+    widgets_layout = (
+        project_root / "kv" / "widgets.kv"
+    ).read_text(encoding="utf-8")
+
+    assert transactions_layout.count(
+        "should_stack_controls("
+    ) == 1
+    assert "row_default_height: '44dp'" in transactions_layout
+    assert "row_force_default: True" in transactions_layout
+
+    transaction_card = widgets_layout.split(
+        "<TransactionCard>",
+        maxsplit=1,
+    )[1].split(
+        "<EmptyState>",
+        maxsplit=1,
+    )[0]
+
+    assert transaction_card.count(
+        "text_size: self.size"
+    ) == 6
+    assert transaction_card.count("max_lines: 1") == 6
+    assert transaction_card.count("shorten: True") == 6
+    assert transaction_card.count(
+        "shorten_from: 'right'"
+    ) == 5
+    assert transaction_card.count(
+        "shorten_from: 'left'"
+    ) == 1
