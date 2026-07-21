@@ -1,5 +1,6 @@
 import configparser
 from pathlib import Path
+from xml.etree import ElementTree
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -55,3 +56,38 @@ def test_android_build_toolchain_versions_are_pinned():
         "buildozer==1.6.0",
         "Cython==0.29.37",
     }
+
+
+def test_android_16_back_compatibility_opt_out_is_packaged():
+    project_root = Path(__file__).resolve().parents[1]
+    manifest_arguments_path = (
+        project_root
+        / "src"
+        / "android"
+        / "extra_manifest_application_arguments.xml"
+    )
+    expected_setting = (
+        "android.extra_manifest_application_arguments = "
+        "./src/android/extra_manifest_application_arguments.xml"
+    )
+
+    buildozer_spec = (
+        project_root / "buildozer.spec"
+    ).read_text(encoding="utf-8")
+
+    assert expected_setting in buildozer_spec.splitlines()
+
+    manifest_arguments = manifest_arguments_path.read_text(
+        encoding="utf-8"
+    ).strip()
+    application = ElementTree.fromstring(
+        '<application '
+        'xmlns:android="http://schemas.android.com/apk/res/android" '
+        f'{manifest_arguments} />'
+    )
+
+    android_attribute = (
+        "{http://schemas.android.com/apk/res/android}"
+        "enableOnBackInvokedCallback"
+    )
+    assert application.attrib[android_attribute] == "false"
