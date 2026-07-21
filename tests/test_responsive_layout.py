@@ -128,3 +128,31 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert transaction_card.count(
         "shorten_from: 'left'"
     ) == 1
+
+
+def test_settings_content_remains_scrollable_and_contained():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "settings.kv"
+    ).read_text(encoding="utf-8")
+
+    scroll_content = layout.split(
+        "ScrollView:",
+        maxsplit=1,
+    )[1].split(
+        "OutlinedCard:",
+        maxsplit=1,
+    )[0]
+
+    assert "size_hint_y: None" in scroll_content
+    assert "height: self.minimum_height" in scroll_content
+
+    clear_data_label = layout.split(
+        "text: 'Clear All Data'",
+        maxsplit=1,
+    )[1]
+
+    assert "text_size: self.width, self.height" in clear_data_label
+    assert "max_lines: 1" in clear_data_label
+    assert "shorten: True" in clear_data_label
+    assert "shorten_from: 'right'" in clear_data_label
