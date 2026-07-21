@@ -50,6 +50,7 @@ def _contrast_ratio(foreground, background):
         (Colors.BRAND_PRIMARY, Colors.BRAND_ACCENT_SOFT),
         (Colors.INCOME, Colors.SURFACE),
         (Colors.EXPENSE, Colors.SURFACE),
+        (Colors.ERROR, Colors.SURFACE),
     ],
 )
 def test_text_color_pairs_meet_wcag_aa_contrast(
@@ -87,3 +88,33 @@ def test_notes_placeholder_uses_readable_text_token():
         "self.ids.notes_label.theme_text_color = 'Hint'"
         not in screen_source
     )
+
+
+def test_contrast_sensitive_controls_use_verified_tokens():
+    project_root = Path(__file__).resolve().parents[1]
+    picker_layout = (
+        project_root / "kv" / "date_time_pickers.kv"
+    ).read_text(encoding="utf-8")
+    settings_layout = (
+        project_root / "kv" / "settings.kv"
+    ).read_text(encoding="utf-8")
+
+    assert picker_layout.count(
+        "get_color_from_hex(Colors.TEXT_ON_PRIMARY)"
+    ) == 3
+    assert (
+        "get_color_from_hex(Colors.BRAND_PRIMARY_DARK)"
+        not in picker_layout
+    )
+
+    clear_data_label = settings_layout.split(
+        "text: 'Clear All Data'",
+        maxsplit=1,
+    )[1]
+
+    assert "theme_text_color: 'Custom'" in clear_data_label
+    assert (
+        "text_color: get_color_from_hex(Colors.ERROR)"
+        in clear_data_label
+    )
+    assert "theme_text_color: 'Error'" not in clear_data_label
