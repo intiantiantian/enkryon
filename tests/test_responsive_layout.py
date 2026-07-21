@@ -33,3 +33,14 @@ def test_transaction_selectors_use_responsive_grids():
 
     assert layout.count("should_stack_controls(") == 2
     assert layout.count("row_force_default: True") >= 2
+
+
+def test_dashboard_uses_responsive_grids():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+
+    assert layout.count("should_stack_controls(") == 4
+    assert layout.count("row_force_default: True") >= 4
+    assert layout.count("shorten_from: 'right'") >= 2
