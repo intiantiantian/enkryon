@@ -296,3 +296,20 @@ def test_delete_category_renders_service_result(
     remove_category_workflow.assert_called_once_with(11)
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+
+
+@pytest.mark.parametrize(
+    "return_screen",
+    ["dashboard", "add_transaction"],
+)
+def test_category_back_returns_to_origin_once(return_screen):
+    manager = SimpleNamespace(current="categories")
+    screen = SimpleNamespace(
+        manager=manager,
+        return_screen=return_screen,
+    )
+
+    CategoriesScreen.go_back(screen)
+
+    assert manager.current == return_screen
+    assert screen.return_screen == "dashboard"

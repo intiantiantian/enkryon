@@ -184,3 +184,20 @@ def test_delete_account_renders_service_result(
     remove_account_workflow.assert_called_once_with(7)
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_accounts.call_count == int(success)
+
+
+@pytest.mark.parametrize(
+    "return_screen",
+    ["dashboard", "add_transaction"],
+)
+def test_account_back_returns_to_origin_once(return_screen):
+    manager = SimpleNamespace(current="accounts")
+    screen = SimpleNamespace(
+        manager=manager,
+        return_screen=return_screen,
+    )
+
+    AccountsScreen.go_back(screen)
+
+    assert manager.current == return_screen
+    assert screen.return_screen == "dashboard"

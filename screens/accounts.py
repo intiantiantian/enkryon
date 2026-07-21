@@ -19,8 +19,13 @@ from widgets.empty_state import EmptyState
 
 class AccountsScreen(Screen):
 
-    def go_to_dashboard(self):
-        self.manager.current = 'dashboard'
+    return_screen = "dashboard"
+
+
+    def go_back(self):
+        destination = self.return_screen
+        self.return_screen = "dashboard"
+        self.manager.current = destination
 
 
     def go_to_add_transaction(self):

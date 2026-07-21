@@ -40,6 +40,7 @@ class AddTransactionScreen(Screen):
         ]
 
         self.form_state = TransactionFormState()
+        self.preserve_form_on_next_enter = False
         self.build_keypad()
 
 
@@ -61,6 +62,9 @@ class AddTransactionScreen(Screen):
 
 
     def on_pre_enter(self):
+        if getattr(self, "preserve_form_on_next_enter", False):
+            self.preserve_form_on_next_enter = False
+            return
 
         if self.form_state.transaction_id is not None:
             return
@@ -137,7 +141,6 @@ class AddTransactionScreen(Screen):
         if not accounts:
             self.form_state.account_name = 'No Accounts'
             self.ids.account_selector.text = self.form_state.account_name
-            return
 
         menu_items = []
 
@@ -175,8 +178,13 @@ class AddTransactionScreen(Screen):
 
 
     def open_add_account_screen(self):
-        self.manager.current = 'accounts'
+        self.preserve_form_on_next_enter = True
+
+        accounts_screen = self.manager.get_screen("accounts")
+        accounts_screen.return_screen = "add_transaction"
+
         self.account_menu.dismiss()
+        self.manager.current = "accounts"
 
 
     def update_groups_button(self, transaction_type):
@@ -191,7 +199,6 @@ class AddTransactionScreen(Screen):
         if not groups:
             self.form_state.group_name = 'No Category Groups Created'
             self.ids.group_label.text = self.form_state.group_name
-            return
 
         menu_items = []
 
@@ -233,7 +240,6 @@ class AddTransactionScreen(Screen):
         if not categories:
             self.form_state.category_name = 'No Category Created'
             self.ids.category_label.text = self.form_state.category_name
-            return
         
         menu_items = []
 
@@ -271,11 +277,17 @@ class AddTransactionScreen(Screen):
 
 
     def open_manage_category_screen(self):
-        self.manager.current = 'categories'
+        self.preserve_form_on_next_enter = True
+
+        categories_screen = self.manager.get_screen("categories")
+        categories_screen.return_screen = "add_transaction"
+
         if hasattr(self, "groups_menu"):
             self.groups_menu.dismiss()
         if hasattr(self, "categories_menu"):
             self.categories_menu.dismiss()
+
+        self.manager.current = "categories"
 
 
     def set_current_date_time(self):

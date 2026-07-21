@@ -273,17 +273,25 @@ def test_open_add_account_screen_preserves_in_progress_form():
         transaction_type="income",
     )
     account_menu = SimpleNamespace(dismiss=Mock())
+    accounts_screen = SimpleNamespace(return_screen="dashboard")
+    manager = SimpleNamespace(
+        current="add_transaction",
+        get_screen=Mock(return_value=accounts_screen),
+    )
     screen = SimpleNamespace(
         form_state=form_state,
-        manager=SimpleNamespace(current="add_transaction"),
+        manager=manager,
         account_menu=account_menu,
     )
 
     AddTransactionScreen.open_add_account_screen(screen)
 
-    assert screen.manager.current == "accounts"
+    assert manager.current == "accounts"
     assert screen.form_state is form_state
     account_menu.dismiss.assert_called_once_with()
+    manager.get_screen.assert_called_once_with("accounts")
+    assert accounts_screen.return_screen == "add_transaction"
+    assert screen.preserve_form_on_next_enter is True
 
 
 def test_open_manage_category_screen_preserves_in_progress_form():
@@ -293,19 +301,27 @@ def test_open_manage_category_screen_preserves_in_progress_form():
     )
     groups_menu = SimpleNamespace(dismiss=Mock())
     categories_menu = SimpleNamespace(dismiss=Mock())
+    categories_screen = SimpleNamespace(return_screen="dashboard")
+    manager = SimpleNamespace(
+        current="add_transaction",
+        get_screen=Mock(return_value=categories_screen),
+    )
     screen = SimpleNamespace(
         form_state=form_state,
-        manager=SimpleNamespace(current="add_transaction"),
+        manager=manager,
         groups_menu=groups_menu,
         categories_menu=categories_menu,
     )
 
     AddTransactionScreen.open_manage_category_screen(screen)
 
-    assert screen.manager.current == "categories"
+    assert manager.current == "categories"
     assert screen.form_state is form_state
     groups_menu.dismiss.assert_called_once_with()
     categories_menu.dismiss.assert_called_once_with()
+    manager.get_screen.assert_called_once_with("categories")
+    assert categories_screen.return_screen == "add_transaction"
+    assert screen.preserve_form_on_next_enter is True
 
 
 def test_add_transaction_pre_enter_resets_non_edit_form():
@@ -328,3 +344,172 @@ def test_add_transaction_pre_enter_preserves_edit_form():
     AddTransactionScreen.on_pre_enter(screen)
 
     screen.reset_form.assert_not_called()
+
+
+def test_add_transaction_pre_enter_preserves_non_edit_form_once():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=None),
+        preserve_form_on_next_enter=True,
+        reset_form=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_not_called()
+    assert screen.preserve_form_on_next_enter is False
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_called_once_with()
+
+
+def test_empty_account_menu_offers_add_account(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_all_accounts = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    account_selector = SimpleNamespace(text="Select Account")
+    open_add_account_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        get_all_accounts,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "MDDropdownMenu",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(),
+        ids=SimpleNamespace(
+            account_selector=account_selector,
+        ),
+        open_add_account_screen=open_add_account_screen,
+    )
+
+    AddTransactionScreen.open_account_menu(screen)
+
+    get_all_accounts.assert_called_once_with()
+    assert account_selector.text == "No Accounts"
+    assert screen.account_menu is menu
+    menu.open.assert_called_once_with()
+
+    menu_items = menu_factory.call_args.kwargs["items"]
+    assert [item["text"] for item in menu_items] == [
+        "Add New Account"
+    ]
+
+    menu_items[0]["on_release"]()
+
+    open_add_account_screen.assert_called_once_with()
+
+
+def test_empty_group_menu_offers_category_management(
+    monkeypatch,
+):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_groups = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    group_selector = object()
+    group_label = SimpleNamespace(text="")
+    open_manage_category_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "MDDropdownMenu",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+        ),
+        ids=SimpleNamespace(
+            group_selector=group_selector,
+            group_label=group_label,
+        ),
+        open_manage_category_screen=(
+            open_manage_category_screen
+        ),
+    )
+
+    AddTransactionScreen.open_groups_menu(screen)
+
+    get_groups.assert_called_once_with("expense")
+    assert group_label.text == "No Category Groups Created"
+    assert screen.groups_menu is menu
+    menu.open.assert_called_once_with()
+
+    menu_items = menu_factory.call_args.kwargs["items"]
+    assert [item["text"] for item in menu_items] == [
+        "Manage Category Groups"
+    ]
+
+    menu_items[0]["on_release"]()
+
+    open_manage_category_screen.assert_called_once_with()
+
+
+def test_empty_category_menu_offers_category_management(
+    monkeypatch,
+):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_categories = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    category_selector = object()
+    category_label = SimpleNamespace(text="")
+    open_manage_category_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "MDDropdownMenu",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(group_id=7),
+        ids=SimpleNamespace(
+            category_selector=category_selector,
+            category_label=category_label,
+        ),
+        open_manage_category_screen=(
+            open_manage_category_screen
+        ),
+    )
+
+    AddTransactionScreen.open_categories_menu(screen)
+
+    get_categories.assert_called_once_with(7)
+    assert category_label.text == "No Category Created"
+    assert screen.categories_menu is menu
+    menu.open.assert_called_once_with()
+
+    menu_items = menu_factory.call_args.kwargs["items"]
+    assert [item["text"] for item in menu_items] == [
+        "Manage Categories"
+    ]
+
+    menu_items[0]["on_release"]()
+
+    open_manage_category_screen.assert_called_once_with()
