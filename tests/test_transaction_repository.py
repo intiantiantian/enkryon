@@ -9,6 +9,7 @@ from database.transaction_repository import (
     get_transactions,
     insert_transaction,
     update_transaction,
+    restore_transaction,
 )
 from database.records import TransactionDetailRecord, TransactionListRecord
 
@@ -242,3 +243,19 @@ def test_referenced_category_cannot_be_deleted():
 
     assert result is False
     assert reason == "referenced"
+
+
+def test_restore_transaction_preserves_original_record():
+    create_transaction_test_data()
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Income",
+    )
+    transaction = get_transaction_by_id(1)
+
+    assert delete_transaction(1) is True
+    assert restore_transaction(transaction) is True
+    assert get_transaction_by_id(1) == transaction

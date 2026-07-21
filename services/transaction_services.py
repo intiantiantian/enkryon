@@ -6,7 +6,10 @@ from database.transaction_repository import (
     get_transactions,
     insert_transaction,
     update_transaction,
+    restore_transaction,
 )
+from database.records import TransactionDetailRecord
+
 from utils.transaction_payload import build_transaction_payload
 from utils.transaction_validation import validate_transaction_form
 
@@ -17,6 +20,12 @@ class TransactionSaveResult(NamedTuple):
 
 
 class TransactionDeleteResult(NamedTuple):
+    success: bool
+    message: str
+    deleted_transaction: TransactionDetailRecord | None = None
+
+
+class TransactionRestoreResult(NamedTuple):
     success: bool
     message: str
 
@@ -153,15 +162,39 @@ def get_transaction_for_edit(transaction_id):
 
 
 def delete_transaction_by_id(transaction_id):
+    transaction = get_transaction_by_id(transaction_id)
+
+    if transaction is None:
+        return TransactionDeleteResult(
+            False,
+            "Transaction could not be deleted.",
+        )
+
     deleted = delete_transaction(transaction_id)
 
     if deleted:
         return TransactionDeleteResult(
             True,
-            "Transaction deleted successfully.",
+            "Transaction deleted.",
+            transaction,
         )
 
     return TransactionDeleteResult(
         False,
         "Transaction could not be deleted.",
+    )
+
+
+def restore_deleted_transaction(transaction):
+    restored = restore_transaction(transaction)
+
+    if restored:
+        return TransactionRestoreResult(
+            True,
+            "Transaction restored.",
+        )
+
+    return TransactionRestoreResult(
+        False,
+        "Transaction could not be restored.",
     )

@@ -1,7 +1,10 @@
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 
-from services.transaction_services import delete_transaction_by_id
+from services.transaction_services import (
+    delete_transaction_by_id,
+    restore_deleted_transaction,
+)
 
 from .action_results import render_action_result
 
@@ -31,6 +34,27 @@ class TransactionListActionsMixin:
         result = delete_transaction_by_id(transaction_id)
         self.delete_transaction_dialog.dismiss()
 
+        snackbar_options = None
+        if result.success:
+            snackbar_options = {
+                "action_text": "UNDO",
+                "action_callback": lambda:
+                    self.undo_transaction_delete(
+                        result.deleted_transaction
+                    ),
+                "duration": 8,
+            }
+
+        render_action_result(
+            result,
+            refresh=self.refresh_after_transaction_delete,
+            refresh_required=result.success,
+            snackbar_options=snackbar_options,
+        )
+
+
+    def undo_transaction_delete(self, transaction):
+        result = restore_deleted_transaction(transaction)
         render_action_result(
             result,
             refresh=self.refresh_after_transaction_delete,
@@ -41,7 +65,10 @@ class TransactionListActionsMixin:
     def confirm_delete_transaction(self, transaction_id):
         self.delete_transaction_dialog = MDDialog(
             title="Confirm Delete",
-            text="Are you sure you want to delete this transaction?",
+            text=(
+                "Delete this transaction? "
+                "You can undo this action for a few seconds."
+            ),
             buttons=[
                 MDFlatButton(
                     text="CANCEL",

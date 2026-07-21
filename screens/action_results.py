@@ -7,8 +7,9 @@ def render_action_result(
     refresh=None,
     refresh_required=False,
     before_refresh=None,
+    snackbar_options=None
 ):
-    show_snackbar(result.message)
+    show_snackbar(result.message, **(snackbar_options or {}))
 
     if not refresh_required:
         return

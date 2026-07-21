@@ -9,8 +9,10 @@ from screens.transaction_list_actions import (
     TransactionListActionsMixin,
 )
 from screens.transactions import TransactionsScreen
-from services.transaction_services import TransactionDeleteResult
-
+from services.transaction_services import (
+    TransactionDeleteResult,
+    TransactionRestoreResult,
+)
 
 action_results_module = import_module("screens.action_results")
 
@@ -85,6 +87,7 @@ def test_delete_transaction_renders_service_result(
     service_result = TransactionDeleteResult(
         success=success,
         message="Transaction deletion result.",
+        deleted_transaction=(object() if success else None),
     )
     delete_transaction_by_id = Mock(return_value=service_result)
     show_snackbar = Mock()
@@ -102,17 +105,28 @@ def test_delete_transaction_renders_service_result(
     screen = SimpleNamespace(
         delete_transaction_dialog=SimpleNamespace(dismiss=dismiss),
         refresh_after_transaction_delete=Mock(),
+        undo_transaction_delete=Mock(),
     )
 
     TransactionListActionsMixin.delete_transaction(screen, 17)
 
     delete_transaction_by_id.assert_called_once_with(17)
     dismiss.assert_called_once_with()
-    show_snackbar.assert_called_once_with(service_result.message)
-    assert (
-        screen.refresh_after_transaction_delete.call_count
-        == int(success)
-    )
+    snackbar_call = show_snackbar.call_args
+    assert snackbar_call.args == (service_result.message,)
+
+    if success:
+        assert snackbar_call.kwargs["action_text"] == "UNDO"
+        assert snackbar_call.kwargs["duration"] == 8
+
+        snackbar_call.kwargs["action_callback"]()
+
+        screen.undo_transaction_delete.assert_called_once_with(
+            service_result.deleted_transaction
+        )
+    else:
+        assert snackbar_call.kwargs == {}
+        screen.undo_transaction_delete.assert_not_called()
 
 
 def test_confirm_delete_transaction_builds_working_dialog(monkeypatch):
@@ -146,7 +160,10 @@ def test_confirm_delete_transaction_builds_working_dialog(monkeypatch):
     assert screen.delete_transaction_dialog is dialog
     dialog_factory.assert_called_once_with(
         title="Confirm Delete",
-        text="Are you sure you want to delete this transaction?",
+        text=(
+            "Delete this transaction? "
+            "You can undo this action for a few seconds."
+        ),
         buttons=[cancel_button, delete_button],
     )
     dialog.open.assert_called_once_with()
@@ -194,3 +211,49 @@ def test_transactions_screen_refreshes_full_transaction_list():
     TransactionsScreen.refresh_transaction_list(screen)
 
     screen.load_transactions.assert_called_once_with()
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_undo_transaction_delete_renders_restore_result(
+    monkeypatch,
+    success,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    transaction = object()
+    service_result = TransactionRestoreResult(
+        success=success,
+        message="Transaction restore result.",
+    )
+    restore_deleted_transaction = Mock(
+        return_value=service_result
+    )
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "restore_deleted_transaction",
+        restore_deleted_transaction,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        refresh_after_transaction_delete=Mock(),
+    )
+
+    TransactionListActionsMixin.undo_transaction_delete(
+        screen,
+        transaction,
+    )
+
+    restore_deleted_transaction.assert_called_once_with(
+        transaction
+    )
+    show_snackbar.assert_called_once_with(service_result.message)
+    assert (
+        screen.refresh_after_transaction_delete.call_count
+        == int(success)
+    )

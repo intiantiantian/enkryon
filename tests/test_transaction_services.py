@@ -412,34 +412,23 @@ def test_get_transaction_for_edit_forwards_transaction_id(
     repository_get_transaction.assert_called_once_with(17)
 
 
-@pytest.mark.parametrize(
-    ("repository_result", "expected_result"),
-    [
-        (
-            True,
-            transaction_services.TransactionDeleteResult(
-                success=True,
-                message="Transaction deleted successfully.",
-            ),
-        ),
-        (
-            False,
-            transaction_services.TransactionDeleteResult(
-                success=False,
-                message="Transaction could not be deleted.",
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("repository_result", [True, False])
 def test_delete_transaction_by_id_returns_repository_result(
     monkeypatch,
     repository_result,
-    expected_result,
 ):
+    transaction = object()
+    repository_get_transaction = Mock(
+        return_value=transaction
+    )
     repository_delete_transaction = Mock(
         return_value=repository_result
     )
-
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        repository_get_transaction,
+    )
     monkeypatch.setattr(
         transaction_services,
         "delete_transaction",
@@ -448,5 +437,74 @@ def test_delete_transaction_by_id_returns_repository_result(
 
     result = transaction_services.delete_transaction_by_id(17)
 
-    assert result == expected_result
+    assert result == transaction_services.TransactionDeleteResult(
+        success=repository_result,
+        message=(
+            "Transaction deleted."
+            if repository_result
+            else "Transaction could not be deleted."
+        ),
+        deleted_transaction=(
+            transaction if repository_result else None
+        ),
+    )
+    repository_get_transaction.assert_called_once_with(17)
     repository_delete_transaction.assert_called_once_with(17)
+
+
+def test_delete_missing_transaction_skips_repository_delete(
+    monkeypatch,
+):
+    repository_get_transaction = Mock(return_value=None)
+    repository_delete_transaction = Mock()
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        repository_get_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "delete_transaction",
+        repository_delete_transaction,
+    )
+
+    result = transaction_services.delete_transaction_by_id(17)
+
+    assert result == transaction_services.TransactionDeleteResult(
+        success=False,
+        message="Transaction could not be deleted.",
+    )
+    repository_get_transaction.assert_called_once_with(17)
+    repository_delete_transaction.assert_not_called()
+
+
+@pytest.mark.parametrize("restored", [True, False])
+def test_restore_deleted_transaction_returns_repository_result(
+    monkeypatch,
+    restored,
+):
+    transaction = object()
+    repository_restore_transaction = Mock(
+        return_value=restored
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "restore_transaction",
+        repository_restore_transaction,
+    )
+
+    result = transaction_services.restore_deleted_transaction(
+        transaction
+    )
+
+    assert result == transaction_services.TransactionRestoreResult(
+        success=restored,
+        message=(
+            "Transaction restored."
+            if restored
+            else "Transaction could not be restored."
+        ),
+    )
+    repository_restore_transaction.assert_called_once_with(
+        transaction
+    )
