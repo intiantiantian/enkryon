@@ -44,3 +44,51 @@ def test_dashboard_uses_responsive_grids():
     assert layout.count("should_stack_controls(") == 4
     assert layout.count("row_force_default: True") >= 4
     assert layout.count("shorten_from: 'right'") >= 2
+
+
+def test_account_cards_constrain_long_names():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "accounts.kv"
+    ).read_text(encoding="utf-8")
+
+    account_name_block = layout.split(
+        "id: account_name",
+        maxsplit=1,
+    )[1].split(
+        "MDIconButton:",
+        maxsplit=1,
+    )[0]
+
+    assert "max_lines: 1" in account_name_block
+    assert "shorten: True" in account_name_block
+    assert "shorten_from: 'right'" in account_name_block
+
+
+def test_category_cards_constrain_long_names():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "categories.kv"
+    ).read_text(encoding="utf-8")
+
+    category_name_block = layout.split(
+        "id: category_name",
+        maxsplit=1,
+    )[1].split(
+        "MDIconButton:",
+        maxsplit=1,
+    )[0]
+
+    group_name_block = layout.split(
+        "id: group_name",
+        maxsplit=1,
+    )[1].split(
+        "MDIconButton:",
+        maxsplit=1,
+    )[0]
+
+    for name_block in (category_name_block, group_name_block):
+        assert "text_size: self.size" in name_block
+        assert "max_lines: 1" in name_block
+        assert "shorten: True" in name_block
+        assert "shorten_from: 'right'" in name_block
