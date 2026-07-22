@@ -108,11 +108,11 @@ def test_contrast_sensitive_controls_use_verified_tokens():
     )
 
     clear_data_label = settings_layout.split(
-        "text: 'Clear All Data'",
+        'text: "Clear All Data"',
         maxsplit=1,
     )[1]
 
-    assert "theme_text_color: 'Custom'" in clear_data_label
+    assert 'theme_text_color: "Custom"' in clear_data_label
     assert (
         "text_color: get_color_from_hex(Colors.ERROR)"
         in clear_data_label

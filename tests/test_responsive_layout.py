@@ -9,9 +9,9 @@ from utils.responsive_layout import should_stack_controls
     ("width_dp", "font_scale"),
     [
         (320, 1.0),
-        (360, 0.9),
+        (359, 0.9),
         (600, 2.0),
-        (400, 1.0),
+        (400, 3.0),
     ],
 )
 def test_controls_stack_for_constrained_layouts(
@@ -22,6 +22,8 @@ def test_controls_stack_for_constrained_layouts(
 
 
 def test_controls_share_a_row_on_wide_standard_layout():
+    assert not should_stack_controls(360, 0.9)
+    assert not should_stack_controls(400, 1.0)
     assert not should_stack_controls(600, 1.0)
 
 
@@ -119,7 +121,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transaction_card.count(
         "text_size: self.size"
-    ) == 6
+    ) == 7
     assert transaction_card.count("max_lines: 1") == 6
     assert transaction_card.count("shorten: True") == 6
     assert transaction_card.count(
@@ -128,6 +130,23 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert transaction_card.count(
         "shorten_from: 'left'"
     ) == 1
+    assert "size_hint: .9, None" in transaction_card
+    assert "size_hint: .8, None" in transaction_card
+    assert "size_hint: 1.1, None" in transaction_card
+    assert "spacing: '8dp'" in transaction_card
+    assert transaction_card.count("pos_hint: {'top': 1}") == 3
+    assert transaction_card.count("adaptive_height: True") == 9
+    assert transaction_card.count("spacing: '4dp'") == 3
+
+    amount_block = transaction_card.split(
+        "id: amount",
+        maxsplit=1,
+    )[1].split(
+        "BoxLayout:",
+        maxsplit=1,
+    )[0]
+
+    assert "font_size: '14sp'" in amount_block
 
 
 def test_settings_content_remains_scrollable_and_contained():
@@ -148,14 +167,14 @@ def test_settings_content_remains_scrollable_and_contained():
     assert "height: self.minimum_height" in scroll_content
 
     clear_data_label = layout.split(
-        "text: 'Clear All Data'",
+        'text: "Clear All Data"',
         maxsplit=1,
     )[1]
 
-    assert "text_size: self.width, self.height" in clear_data_label
-    assert "max_lines: 1" in clear_data_label
-    assert "shorten: True" in clear_data_label
-    assert "shorten_from: 'right'" in clear_data_label
+    assert "text_size: self.width, None" in clear_data_label
+    assert "height: self.texture_size[1]" in clear_data_label
+    assert "shorten: True" not in clear_data_label
+    assert "shorten_from:" not in clear_data_label
 
 
 def test_add_transaction_account_selector_constrains_long_names():
@@ -187,6 +206,62 @@ def test_add_transaction_account_selector_constrains_long_names():
     assert "self.ids.account_selector.text" not in screen_source
 
 
+def test_add_transaction_uses_consistent_spacing_and_balanced_widths():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+
+    scroll_content = layout.split(
+        "ScrollView:",
+        maxsplit=1,
+    )[1]
+    filter_row = layout.split(
+        "id: income_button",
+        maxsplit=1,
+    )[0].rsplit(
+        "BoxLayout:",
+        maxsplit=1,
+    )[1]
+    amount_card = layout.split(
+        "OutlinedCard:",
+        maxsplit=1,
+    )[1].split(
+        "GridLayout:",
+        maxsplit=1,
+    )[0]
+    selector_card = layout.split(
+        "id: keypad_container",
+        maxsplit=1,
+    )[1].split(
+        "id: group_selector",
+        maxsplit=1,
+    )[0]
+    notes_card = layout.split(
+        "text: 'Notes'",
+        maxsplit=1,
+    )[0].rsplit(
+        "OutlinedCard:",
+        maxsplit=1,
+    )[1]
+
+    assert "padding: '16dp'" in scroll_content
+    assert "spacing: '12dp'" in scroll_content
+    assert "padding: '8dp'" in filter_row
+    assert "spacing: '8dp'" in filter_row
+    assert 'padding: "16dp"' in amount_card
+    assert 'spacing: "12dp"' in amount_card
+    assert amount_card.count("size_hint_x: 1") == 2
+    assert "padding: '16dp'" in selector_card
+    assert "spacing: '12dp'" in selector_card
+    assert "padding: dp(16)" in notes_card
+    assert "spacing: '8dp'" in notes_card
+    assert "padding: 20" not in layout
+    assert "spacing: 15" not in layout
+    assert "padding: '20dp'" not in layout
+    assert "spacing: '20dp'" not in layout
+
+
 def test_dashboard_summary_row_grows_with_font_scale():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
@@ -205,3 +280,36 @@ def test_dashboard_summary_row_grows_with_font_scale():
         "row_default_height: dp(200) * max(1, Metrics.fontscale)"
         in summary_grid
     )
+
+
+def test_dashboard_primary_actions_use_shared_button_height():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+
+    for label in (
+        "+ Add Transaction",
+        "Manage Accounts",
+        "Manage Categories",
+    ):
+        button_rule = layout.split(
+            f"text: '{label}'",
+            maxsplit=1,
+        )[0].rsplit(
+            "EnkryonPrimaryButton:",
+            maxsplit=1,
+        )[1]
+
+        assert "size_hint: 1, None" in button_rule
+
+    action_group = layout.split(
+        "text: '+ Add Transaction'",
+        maxsplit=1,
+    )[0].rsplit(
+        "BoxLayout:",
+        maxsplit=1,
+    )[1]
+
+    assert "orientation: 'vertical'" in action_group
+    assert "height: self.minimum_height" in action_group

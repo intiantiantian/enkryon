@@ -106,11 +106,14 @@
         BoxLayout:
             size_hint_y: None
             height: self.minimum_height
+            spacing: '8dp'
 
             BoxLayout:
                 orientation: 'vertical'
-                size_hint: 1, None
+                size_hint: .9, None
+                pos_hint: {'top': 1}
                 adaptive_height: True
+                spacing: '4dp'
 
                 MDLabel:
                     id: account_name
@@ -118,6 +121,7 @@
                     max_lines: 1
                     shorten: True
                     shorten_from: 'right'
+                    adaptive_height: True
 
                 MDLabel:
                     id: date_time
@@ -126,11 +130,14 @@
                     max_lines: 1
                     shorten: True
                     shorten_from: 'right'
+                    adaptive_height: True
 
             BoxLayout:
                 orientation: 'vertical'
-                size_hint: 1, None
+                size_hint: .8, None
+                pos_hint: {'top': 1}
                 adaptive_height: True
+                spacing: '4dp'
 
                 MDLabel:
                     id: group_name
@@ -139,6 +146,7 @@
                     max_lines: 1
                     shorten: True
                     shorten_from: 'right'
+                    adaptive_height: True
 
                 MDLabel:
                     id: category_name
@@ -147,16 +155,18 @@
                     max_lines: 1
                     shorten: True
                     shorten_from: 'right'
+                    adaptive_height: True
 
             BoxLayout:
                 orientation: 'vertical'
-                size_hint: 1, None
+                size_hint: 1.1, None
+                pos_hint: {'top': 1}
                 adaptive_height: True
+                spacing: '4dp'
 
                 BoxLayout:
                     size_hint_y: None
-                    height: '24dp'
-                    spacing: '4dp'
+                    height: self.minimum_height
 
                     MDIcon:
                         id: transaction_type_icon
@@ -170,14 +180,21 @@
 
                     MDLabel:
                         id: transaction_type
+                        adaptive_height: True
                         font_size: '12sp'
+                        text_size: self.size
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
                         theme_text_color: 'Custom'
 
                 MDLabel:
                     id: amount
+                    adaptive_height: True
                     halign: 'right'
                     valign: 'middle'
                     text_size: self.size
+                    font_size: '14sp'
                     max_lines: 1
                     shorten: True
                     shorten_from: 'left'

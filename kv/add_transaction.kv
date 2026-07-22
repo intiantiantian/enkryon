@@ -67,16 +67,15 @@
                 orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
-                padding: 20
-                spacing: 15
+                padding: '16dp'
+                spacing: '12dp'
 
                 BoxLayout:
                     size_hint_y: None
                     height: '56dp'
-                    padding: '10dp'
-
+                    padding: '8dp'
                     orientation: 'horizontal'
-                    spacing: '10dp'
+                    spacing: '8dp'
 
                     EnkryonFilterButton:
                         id: income_button
@@ -94,12 +93,13 @@
                     size_hint_y: None
                     height: "180dp"
                     orientation: "horizontal"
-                    padding: "10dp"
+                    padding: "16dp"
+                    spacing: "12dp"
 
                     AnchorLayout:
                         anchor_x: "center"
                         anchor_y: "top"
-                        size_hint_x: 0.4
+                        size_hint_x: 1
 
                         MDCard:
                             id: account_selector
@@ -113,6 +113,7 @@
 
                             MDLabel:
                                 id: account_label
+                                size_hint_x: 1
                                 text: 'Select Account'
                                 halign: 'center'
                                 valign: 'middle'
@@ -142,8 +143,8 @@
                     orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: '20dp'
-                    spacing: '20dp'
+                    padding: '16dp'
+                    spacing: '12dp'
 
                     GridLayout:
                         cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
@@ -151,7 +152,7 @@
                         height: self.minimum_height
                         row_default_height: '64dp'
                         row_force_default: True
-                        spacing: '20dp'
+                        spacing: '12dp'
 
                         OutlinedCard:
                             id: group_selector
@@ -197,7 +198,7 @@
                         height: self.minimum_height
                         row_default_height: '64dp'
                         row_force_default: True
-                        spacing: '20dp'
+                        spacing: '12dp'
 
                         OutlinedCard:
                             id: date_selector
@@ -242,6 +243,7 @@
                     size_hint_y: None
                     height: self.minimum_height
                     padding: dp(16)
+                    spacing: '8dp'
 
                     MDLabel:
                         text: 'Notes'

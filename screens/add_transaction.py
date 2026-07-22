@@ -64,12 +64,62 @@ class AddTransactionScreen(Screen):
     def on_pre_enter(self):
         if getattr(self, "preserve_form_on_next_enter", False):
             self.preserve_form_on_next_enter = False
+            self.reconcile_preserved_selections()
+            self.render_form_state()
             return
 
         if self.form_state.transaction_id is not None:
             return
 
         self.reset_form()
+
+
+    def reconcile_preserved_selections(self):
+        state = self.form_state
+
+        if state.account_id is not None:
+            accounts_by_id = {
+                account.account_id: account
+                for account in get_all_accounts()
+            }
+            account = accounts_by_id.get(state.account_id)
+            if account is None:
+                state.clear_account_selection()
+            else:
+                state.account_name = account.name
+
+        if state.group_id is None:
+            return
+
+        groups_by_id = (
+            {
+                group.group_id: group
+                for group in get_category_groups_by_type(
+                    state.transaction_type
+                )
+            }
+            if state.transaction_type is not None
+            else {}
+        )
+        group = groups_by_id.get(state.group_id)
+        if group is None:
+            state.clear_group_selection()
+            return
+
+        state.group_name = group.name
+
+        if state.category_id is None:
+            return
+
+        categories_by_id = {
+            category.category_id: category
+            for category in get_categories_by_group(state.group_id)
+        }
+        category = categories_by_id.get(state.category_id)
+        if category is None:
+            state.clear_category_selection()
+        else:
+            state.category_name = category.name
 
 
     def build_keypad(self):

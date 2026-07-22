@@ -68,6 +68,12 @@ class TransactionFormState:
         self.account_id = account_id
         self.account_name = account_name
 
+
+    def clear_account_selection(self):
+        self.account_id = None
+        self.account_name = "Select Account"
+
+
     def select_transaction_type(self, transaction_type):
         self.transaction_type = transaction_type
         self.group_id = None
@@ -81,9 +87,23 @@ class TransactionFormState:
         self.category_id = None
         self.category_name = "Select Category"
 
+
+    def clear_group_selection(self):
+        self.group_id = None
+        self.group_name = "Select Category Group"
+        self.category_id = None
+        self.category_name = "No Category Group Selected"
+
+
     def select_category(self, category_id, category_name):
         self.category_id = category_id
         self.category_name = category_name
+
+
+    def clear_category_selection(self):
+        self.category_id = None
+        self.category_name = "Select Category"
+
 
     def set_notes(self, notes):
         self.notes = notes if notes and notes.strip() else ""

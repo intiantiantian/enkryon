@@ -373,16 +373,122 @@ def test_add_transaction_pre_enter_preserves_non_edit_form_once():
         form_state=TransactionFormState(transaction_id=None),
         preserve_form_on_next_enter=True,
         reset_form=Mock(),
+        reconcile_preserved_selections=Mock(),
+        render_form_state=Mock(),
     )
 
     AddTransactionScreen.on_pre_enter(screen)
 
     screen.reset_form.assert_not_called()
+    screen.reconcile_preserved_selections.assert_called_once_with()
+    screen.render_form_state.assert_called_once_with()
     assert screen.preserve_form_on_next_enter is False
 
     AddTransactionScreen.on_pre_enter(screen)
 
     screen.reset_form.assert_called_once_with()
+
+
+def test_reconcile_preserved_selections_clears_deleted_values(monkeypatch):
+    add_transaction_module = import_module("screens.add_transaction")
+    get_all_accounts = Mock(
+        return_value=[AccountRecord(account_id=9, name="Savings")]
+    )
+    get_groups = Mock(
+        return_value=[
+            CategoryGroupRecord(
+                group_id=5,
+                name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    get_categories = Mock(
+        return_value=[
+            CategoryRecord(
+                category_id=12,
+                group_id=5,
+                name="Groceries",
+                group_name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        get_all_accounts,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            account_id=2,
+            account_name="Cash",
+            group_id=5,
+            group_name="Food",
+            category_id=8,
+            category_name="Dining",
+        )
+    )
+
+    AddTransactionScreen.reconcile_preserved_selections(screen)
+
+    assert screen.form_state.account_id is None
+    assert screen.form_state.account_name == "Select Account"
+    assert screen.form_state.group_id == 5
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id is None
+    assert screen.form_state.category_name == "Select Category"
+    get_all_accounts.assert_called_once_with()
+    get_groups.assert_called_once_with("expense")
+    get_categories.assert_called_once_with(5)
+
+
+def test_reconcile_preserved_selections_clears_deleted_group(monkeypatch):
+    add_transaction_module = import_module("screens.add_transaction")
+    get_groups = Mock(return_value=[])
+    get_categories = Mock()
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            group_id=5,
+            group_name="Food",
+            category_id=8,
+            category_name="Dining",
+        )
+    )
+
+    AddTransactionScreen.reconcile_preserved_selections(screen)
+
+    assert screen.form_state.group_id is None
+    assert screen.form_state.group_name == "Select Category Group"
+    assert screen.form_state.category_id is None
+    assert (
+        screen.form_state.category_name
+        == "No Category Group Selected"
+    )
+    get_groups.assert_called_once_with("expense")
+    get_categories.assert_not_called()
 
 
 def test_empty_account_menu_offers_add_account(monkeypatch):
