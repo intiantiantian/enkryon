@@ -81,7 +81,11 @@ class CategoriesScreen(Screen):
                 EmptyState(
                     icon="folder-outline",
                     title=f"No {label} category groups yet",
-                    message="Tap + to create your first category group."
+                    message=(
+                        f"Create a group to organize your {label} categories."
+                    ),
+                    action_text="ADD GROUP",
+                    action_callback=self.add_group,
                 )
             )
             return

@@ -79,6 +79,7 @@ def test_load_groups_renders_empty_state(
     screen = SimpleNamespace(
         current_transaction_type=transaction_type,
         ids=SimpleNamespace(groups_container=container),
+        add_group=Mock()
     )
 
     CategoriesScreen.load_groups(screen)
@@ -88,7 +89,11 @@ def test_load_groups_renders_empty_state(
     empty_state_factory.assert_called_once_with(
         icon="folder-outline",
         title=f"No {label} category groups yet",
-        message="Tap + to create your first category group.",
+        message=(
+            f"Create a group to organize your {label} categories."
+        ),
+        action_text="ADD GROUP",
+        action_callback=screen.add_group,
     )
     container.add_widget.assert_called_once_with(empty_state)
 

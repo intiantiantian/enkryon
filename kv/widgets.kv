@@ -203,13 +203,26 @@
 <EmptyState>:
     orientation: "vertical"
     size_hint_y: None
-    height: "140dp"
+    height: self.minimum_height
     padding: "16dp"
     spacing: "8dp"
 
+    MDIcon:
+        icon: root.icon
+        size_hint_y: None
+        height: "40dp"
+        halign: "center"
+        font_size: "32sp"
+        theme_text_color: "Custom"
+        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
     MDLabel:
         text: root.title
+        size_hint_y: None
+        height: self.texture_size[1]
+        text_size: self.width, None
         halign: "center"
+        valign: "middle"
         font_size: "16sp"
         bold: True
         theme_text_color: "Custom"
@@ -217,7 +230,21 @@
 
     MDLabel:
         text: root.message
+        size_hint_y: None
+        height: self.texture_size[1]
+        text_size: self.width, None
         halign: "center"
+        valign: "middle"
         font_size: "13sp"
         theme_text_color: "Custom"
         text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+    EnkryonPrimaryButton:
+        text: root.action_text
+        size_hint: None, None
+        width: min(root.width - dp(32), dp(240))
+        height: dp(48) if root.action_text else 0
+        pos_hint: {"center_x": .5}
+        opacity: 1 if root.action_text else 0
+        disabled: not root.action_text
+        on_release: root.perform_action()

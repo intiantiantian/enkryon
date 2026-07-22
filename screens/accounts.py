@@ -48,8 +48,13 @@ class AccountsScreen(Screen):
         if not accounts:
             self.ids.accounts_container.add_widget(
                 EmptyState(
+                    icon="wallet-outline",
                     title="No accounts yet",
-                    message="Tap + to create your first account."
+                    message=(
+                        "Create an account to start tracking your money."
+                    ),
+                    action_text="ADD ACCOUNT",
+                    action_callback=self.add_account,
                 )
             )
             return

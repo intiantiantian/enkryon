@@ -49,6 +49,7 @@ def test_load_accounts_renders_empty_state(monkeypatch):
     )
     screen = SimpleNamespace(
         ids=SimpleNamespace(accounts_container=container),
+        add_account=Mock()
     )
 
     AccountsScreen.load_accounts(screen)
@@ -56,8 +57,11 @@ def test_load_accounts_renders_empty_state(monkeypatch):
     get_accounts_for_view.assert_called_once_with()
     container.clear_widgets.assert_called_once_with()
     empty_state_factory.assert_called_once_with(
+        icon="wallet-outline",
         title="No accounts yet",
-        message="Tap + to create your first account.",
+        message="Create an account to start tracking your money.",
+        action_text="ADD ACCOUNT",
+        action_callback=screen.add_account,
     )
     container.add_widget.assert_called_once_with(empty_state)
 
