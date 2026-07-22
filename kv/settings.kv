@@ -51,27 +51,130 @@
 
         ScrollView:
             size_hint_y: 1
-            
+            do_scroll_x: False
+
             BoxLayout:
-                orientation: 'vertical'
-                padding: '10dp'
-                spacing: '10dp'
+                orientation: "vertical"
                 size_hint_y: None
                 height: self.minimum_height
+                padding: "16dp"
+                spacing: "12dp"
+
+                MDLabel:
+                    text: "About"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    font_size: "18sp"
+                    bold: True
+                    theme_text_color: "Custom"
+                    text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
 
                 OutlinedCard:
+                    orientation: "vertical"
                     size_hint_y: None
-                    height: '56dp'
-                    padding: '10dp'
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "8dp"
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
+
+                    MDLabel:
+                        text: "Enkryon"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "16sp"
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                    MDLabel:
+                        text: "Version {}".format(app.version)
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                    MDLabel:
+                        text: "Simple, local-first personal finance tracking."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "14sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
+
+                MDLabel:
+                    text: "Data & Privacy"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    font_size: "18sp"
+                    bold: True
+                    theme_text_color: "Custom"
+                    text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
+
+                OutlinedCard:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "8dp"
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
+
+                    MDLabel:
+                        text: "Local data and privacy"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "16sp"
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                    MDLabel:
+                        text: "Your accounts, categories, and transactions are stored locally on this device. Enkryon does not require an account or upload your financial data."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "14sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
+
+                    MDLabel:
+                        text: "Android automatic backup is currently disabled. Uninstalling Enkryon, clearing its app data, or choosing Clear All Data can permanently remove your records. Backup and restore are not available yet."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                OutlinedCard:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "4dp"
+                    ripple_behavior: True
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
                     on_release: root.clear_data()
 
                     MDLabel:
-                        text: 'Clear All Data'
-                        theme_text_color: 'Custom'
-                        text_color: get_color_from_hex(Colors.ERROR)
+                        text: "Clear All Data"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        theme_text_color: "Error"
                         bold: True
-                        valign: 'middle'
-                        text_size: self.width, self.height
-                        max_lines: 1
-                        shorten: True
-                        shorten_from: 'right'
+
+                    MDLabel:
+                        text: "Permanently delete every account, category, and transaction stored by Enkryon."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)

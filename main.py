@@ -35,8 +35,10 @@ class EnkryonApp(MDApp):
     def on_start(self):
         Window.bind(on_key_down=self.handle_back_button)
 
+
     def on_stop(self):
         Window.unbind(on_key_down=self.handle_back_button)
+
 
     def handle_back_button(self, _window, key, *_args):
         if key != self.BACK_KEY:
@@ -56,6 +58,9 @@ class EnkryonApp(MDApp):
         current_screen = self.root.current_screen
         getattr(current_screen, navigation_method)()
         return True
+
+
+    version = __version__
 
 
     def build(self):
