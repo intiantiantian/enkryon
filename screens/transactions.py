@@ -1,11 +1,8 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
 
 from .transaction_list_actions import TransactionListActionsMixin
 
 from services.transaction_services import (
-    delete_transaction_by_id,
     get_transaction_list_data,
 )
 
@@ -17,6 +14,10 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
     def go_to_dashboard(self):
         self.manager.current = 'dashboard'
+
+
+    def go_to_add_transaction(self):
+        self.manager.current = "add_transaction"
 
 
     def on_pre_enter(self):
@@ -34,11 +35,17 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
             transaction_filter=self.transaction_filter,
         )
 
+        action_text, action_callback = (
+            self.get_empty_transaction_action()
+        )
+
         render_transaction_list(
             container=self.ids.transactions_container,
             transactions=transaction_list_data["transactions"],
             screen=self,
             empty_state=transaction_list_data["empty_state"],
+            action_text=action_text,
+            action_callback=action_callback,
         )
 
 

@@ -24,6 +24,22 @@ class TransactionListActionsMixin:
         self.refresh_transaction_list()
 
 
+    def get_empty_transaction_action(self):
+        filters_active = (
+            self.transaction_filter is not None
+            or getattr(self, "selected_account_id", None) is not None
+        )
+
+        if filters_active:
+            return "SHOW ALL", self.show_all_transactions
+
+        return "ADD TRANSACTION", self.go_to_add_transaction
+
+
+    def show_all_transactions(self):
+        self.set_transaction_filter(None)
+
+
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen("add_transaction")
         screen.load_transaction(transaction_id)

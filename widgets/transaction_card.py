@@ -81,10 +81,18 @@ class TransactionCard(MDCard):
         self.screen.confirm_delete_transaction(self.transaction_id)
 
 
-def create_transaction_empty_state(empty_state):
+def create_transaction_empty_state(
+    empty_state,
+    *,
+    action_text="",
+    action_callback=None,
+):
     return EmptyState(
+        icon="receipt-text-outline",
         title=empty_state["title"],
-        message=empty_state["message"]
+        message=empty_state["message"],
+        action_text=action_text,
+        action_callback=action_callback,
     )
 
 def create_transaction_card(transaction, screen):

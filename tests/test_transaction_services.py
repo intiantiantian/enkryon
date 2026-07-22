@@ -239,43 +239,62 @@ def test_save_transaction_returns_update_result(
     (
         "transaction_filter",
         "compact",
+        "account_filtered",
         "expected_state",
     ),
     [
         (
             "income",
             False,
+            False,
             {
-                "title": "No income transactions found",
-                "message": "Income transactions will appear here.",
+                "title": "No income transactions",
+                "message": (
+                    "No income transactions match the current view."
+                ),
             },
         ),
         (
             "expense",
             False,
+            False,
             {
-                "title": "No expense transactions found",
-                "message": "Expense transactions will appear here.",
+                "title": "No expense transactions",
+                "message": (
+                    "No expense transactions match the current view."
+                ),
             },
         ),
         (
             None,
             True,
+            True,
+            {
+                "title": "No transactions for this account",
+                "message": (
+                    "This account does not have any transactions yet."
+                ),
+            },
+        ),
+        (
+            None,
+            True,
+            False,
             {
                 "title": "No transactions yet",
                 "message": (
-                    "Tap + Add Transaction to create your first "
-                    "transaction."
+                    "Add a transaction to start tracking your money."
                 ),
             },
         ),
         (
             None,
             False,
+            False,
             {
                 "title": "No transactions yet",
                 "message": (
-                    "Go back to Dashboard and tap + Add Transaction."
+                    "Add a transaction to start building your history."
                 ),
             },
         ),
@@ -284,11 +303,13 @@ def test_save_transaction_returns_update_result(
 def test_get_empty_transaction_state(
     transaction_filter,
     compact,
+    account_filtered,
     expected_state,
 ):
     assert transaction_services.get_empty_transaction_state(
         transaction_filter,
         compact,
+        account_filtered,
     ) == expected_state
 
 
@@ -322,10 +343,11 @@ def test_get_transaction_list_data_combines_service_results(
 ):
     expected_transactions = [(7, "Cash", "Salary")]
     expected_empty_state = {
-        "title": "No income transactions found",
-        "message": "Income transactions will appear here.",
+        "title": "No income transactions",
+        "message": (
+            "No income transactions match the current view."
+        ),
     }
-
     get_transactions_for_view = Mock(
         return_value=expected_transactions
     )
@@ -363,6 +385,7 @@ def test_get_transaction_list_data_combines_service_results(
     get_empty_transaction_state.assert_called_once_with(
         "income",
         True,
+        account_filtered=True,
     )
 
 

@@ -257,3 +257,73 @@ def test_undo_transaction_delete_renders_restore_result(
         screen.refresh_after_transaction_delete.call_count
         == int(success)
     )
+
+
+@pytest.mark.parametrize(
+    (
+        "transaction_filter",
+        "selected_account_id",
+        "expected_text",
+        "callback_name",
+    ),
+    [
+        (None, None, "ADD TRANSACTION", "go_to_add_transaction"),
+        ("income", None, "SHOW ALL", "show_all_transactions"),
+        (None, 7, "SHOW ALL", "show_all_transactions"),
+    ],
+)
+def test_empty_transaction_action_matches_current_view(
+    transaction_filter,
+    selected_account_id,
+    expected_text,
+    callback_name,
+):
+    screen = SimpleNamespace(
+        transaction_filter=transaction_filter,
+        selected_account_id=selected_account_id,
+        go_to_add_transaction=Mock(),
+        show_all_transactions=Mock(),
+    )
+
+    action_text, action_callback = (
+        TransactionListActionsMixin.get_empty_transaction_action(
+            screen
+        )
+    )
+
+    assert action_text == expected_text
+    assert action_callback is getattr(screen, callback_name)
+
+
+def test_show_all_transactions_clears_type_filter():
+    screen = SimpleNamespace(set_transaction_filter=Mock())
+
+    TransactionListActionsMixin.show_all_transactions(screen)
+
+    screen.set_transaction_filter.assert_called_once_with(None)
+
+
+def test_dashboard_show_all_clears_account_and_type_filters():
+    account_label = SimpleNamespace(text="Cash")
+    screen = SimpleNamespace(
+        selected_account_id=7,
+        ids=SimpleNamespace(account_label=account_label),
+        set_transaction_filter=Mock(),
+        load_summary=Mock(),
+    )
+
+    DashboardScreen.show_all_transactions(screen)
+
+    assert screen.selected_account_id is None
+    assert account_label.text == "All Accounts"
+    screen.set_transaction_filter.assert_called_once_with(None)
+    screen.load_summary.assert_called_once_with()
+
+
+def test_transactions_screen_can_open_add_transaction():
+    manager = SimpleNamespace(current="transactions")
+    screen = SimpleNamespace(manager=manager)
+
+    TransactionsScreen.go_to_add_transaction(screen)
+
+    assert manager.current == "add_transaction"

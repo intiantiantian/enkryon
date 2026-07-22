@@ -55,6 +55,13 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         self.manager.current = 'transactions'
 
 
+    def show_all_transactions(self):
+        self.selected_account_id = None
+        self.ids.account_label.text = "All Accounts"
+        self.set_transaction_filter(None)
+        self.load_summary()
+
+
     def reset_dashboard(self):
         self.ids.all_filter.set_selected(self.transaction_filter == None)
         self.ids.income_filter.set_selected(self.transaction_filter == "income")
@@ -119,12 +126,16 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
             limit=3,
             compact_empty_state=True,
         )
-
+        action_text, action_callback = (
+            self.get_empty_transaction_action()
+        )
         render_transaction_list(
             container=self.ids.transactions_container,
             transactions=transaction_list_data["transactions"],
             screen=self,
             empty_state=transaction_list_data["empty_state"],
+            action_text=action_text,
+            action_callback=action_callback,
         )
 
 

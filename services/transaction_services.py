@@ -101,28 +101,48 @@ def save_transaction(
     )
 
 
-def get_empty_transaction_state(transaction_filter=None, compact=False):
+def get_empty_transaction_state(
+    transaction_filter=None,
+    compact=False,
+    account_filtered=False,
+):
     if transaction_filter == "income":
         return {
-            "title": "No income transactions found",
-            "message": "Income transactions will appear here."
+            "title": "No income transactions",
+            "message": (
+                "No income transactions match the current view."
+            ),
         }
 
     if transaction_filter == "expense":
         return {
-            "title": "No expense transactions found",
-            "message": "Expense transactions will appear here."
+            "title": "No expense transactions",
+            "message": (
+                "No expense transactions match the current view."
+            ),
+        }
+
+    if account_filtered:
+        return {
+            "title": "No transactions for this account",
+            "message": (
+                "This account does not have any transactions yet."
+            ),
         }
 
     if compact:
         return {
             "title": "No transactions yet",
-            "message": "Tap + Add Transaction to create your first transaction."
+            "message": (
+                "Add a transaction to start tracking your money."
+            ),
         }
 
     return {
         "title": "No transactions yet",
-        "message": "Go back to Dashboard and tap + Add Transaction."
+        "message": (
+            "Add a transaction to start building your history."
+        ),
     }
 
 
@@ -148,7 +168,8 @@ def get_transaction_list_data(
 
     empty_state = get_empty_transaction_state(
         transaction_filter,
-        compact_empty_state
+        compact_empty_state,
+        account_filtered=account_id is not None,
     )
 
     return {
