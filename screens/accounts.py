@@ -3,8 +3,6 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDFlatButton
 
-from widgets.account_card import AccountCard
-
 from .action_results import render_action_result
 
 from services.account_services import (
@@ -13,9 +11,12 @@ from services.account_services import (
     remove_account as remove_account_workflow,
     rename_account as rename_account_workflow,
 )
+
+from widgets.account_card import AccountCard
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
 from widgets.delete_confirmation import open_permanent_delete_confirmation
+from widgets.overlays import EnkryonConfirmationDialog
 
 
 class AccountsScreen(Screen):
@@ -38,6 +39,7 @@ class AccountsScreen(Screen):
     def on_pre_enter(self):
         self.rename_dialog = None
         self.load_accounts()
+        self.delete_dialog = None
 
 
     def load_accounts(self):
@@ -140,16 +142,20 @@ class AccountsScreen(Screen):
 
 
     def confirm_delete_account(self, account_id):
-        self.delete_dialog = open_permanent_delete_confirmation(
-            title="Delete account?",
+        self.delete_dialog = EnkryonConfirmationDialog(
+            title="Delete Account?",
             message=(
-                "Unused accounts are deleted permanently. "
-                "Accounts with existing transactions cannot be deleted."
+                "Accounts with existing transactions cannot "
+                "be deleted. Delete this account?"
             ),
-            cancel_callback=self.close_delete_dialog,
-            delete_callback=lambda *_:
+            confirm_callback=lambda:
                 self.perform_delete_account(account_id),
+            cancel_callback=self.close_delete_dialog,
         )
+        self.delete_dialog.open()
+
 
     def close_delete_dialog(self, *args):
-        self.delete_dialog.dismiss()
+        if self.delete_dialog:
+            self.delete_dialog.dismiss()
+            self.delete_dialog = None

@@ -20,6 +20,7 @@ from widgets.buttons import (
     EnkryonSecondaryButton,
 )
 from widgets.overlays import (
+    EnkryonConfirmationDialog,
     EnkryonOverlay,
     EnkryonOverlayCard,
     EnkryonSelectionOption,
@@ -30,6 +31,7 @@ _ = (
     EnkryonFilterButton,
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
+    EnkryonConfirmationDialog,
     EnkryonOverlay,
     EnkryonOverlayCard,
     EnkryonSelectionOption,

@@ -18,6 +18,7 @@ from widgets.empty_state import EmptyState
 from widgets.delete_confirmation import (
     open_permanent_delete_confirmation,
 )
+from widgets.overlays import EnkryonConfirmationDialog
 
 class CategoriesScreen(Screen):
     
@@ -166,16 +167,17 @@ class CategoriesScreen(Screen):
 
 
     def confirm_delete_group(self, group_id):
-        self.delete_dialog = open_permanent_delete_confirmation(
-            title="Delete category group?",
+        self.delete_dialog = EnkryonConfirmationDialog(
+            title="Delete Category Group?",
             message=(
-                "Empty category groups are deleted permanently. "
-                "Groups containing categories cannot be deleted."
+                "Groups containing categories cannot be "
+                "deleted. Delete this category group?"
             ),
-            cancel_callback=self.close_delete_dialog,
-            delete_callback=lambda *_:
+            confirm_callback=lambda:
                 self.perform_delete_group(group_id),
+            cancel_callback=self.close_delete_dialog,
         )
+        self.delete_dialog.open()
 
 
     def close_delete_dialog(self, *args):
@@ -243,18 +245,20 @@ class CategoriesScreen(Screen):
 
     def confirm_delete_category(self, category_id):
         self.delete_category_dialog = (
-            open_permanent_delete_confirmation(
-                title="Delete category?",
+            EnkryonConfirmationDialog(
+                title="Delete Category?",
                 message=(
-                    "Unused categories are deleted permanently. "
-                    "Categories with existing transactions cannot be "
-                    "deleted."
+                    "Categories with existing transactions "
+                    "cannot be deleted. Delete this category?"
                 ),
-                cancel_callback=self.close_delete_category_dialog,
-                delete_callback=lambda *_:
+                confirm_callback=lambda:
                     self.perform_delete_category(category_id),
+                cancel_callback=(
+                    self.close_delete_category_dialog
+                ),
             )
         )
+        self.delete_category_dialog.open()
 
 
     def close_delete_category_dialog(self, *args):

@@ -101,9 +101,8 @@ def test_delete_transaction_renders_service_result(
         "show_snackbar",
         show_snackbar,
     )
-    dismiss = Mock()
     screen = SimpleNamespace(
-        delete_transaction_dialog=SimpleNamespace(dismiss=dismiss),
+        close_delete_transaction_dialog=Mock(),
         refresh_after_transaction_delete=Mock(),
         undo_transaction_delete=Mock(),
     )
@@ -111,7 +110,7 @@ def test_delete_transaction_renders_service_result(
     TransactionListActionsMixin.delete_transaction(screen, 17)
 
     delete_transaction_by_id.assert_called_once_with(17)
-    dismiss.assert_called_once_with()
+    screen.close_delete_transaction_dialog.assert_called_once_with()
     snackbar_call = show_snackbar.call_args
     assert snackbar_call.args == (service_result.message,)
 
@@ -129,57 +128,45 @@ def test_delete_transaction_renders_service_result(
         screen.undo_transaction_delete.assert_not_called()
 
 
-def test_confirm_delete_transaction_builds_working_dialog(monkeypatch):
+def test_confirm_delete_transaction_builds_working_dialog(
+    monkeypatch,
+):
     actions_module = import_module(
         "screens.transaction_list_actions"
     )
-    cancel_button = object()
-    delete_button = object()
-    button_factory = Mock(
-        side_effect=[cancel_button, delete_button]
-    )
-    dialog = SimpleNamespace(
-        dismiss=Mock(),
-        open=Mock(),
-    )
+    dialog = SimpleNamespace(open=Mock())
     dialog_factory = Mock(return_value=dialog)
     monkeypatch.setattr(
         actions_module,
-        "MDFlatButton",
-        button_factory,
-    )
-    monkeypatch.setattr(
-        actions_module,
-        "MDDialog",
+        "EnkryonConfirmationDialog",
         dialog_factory,
     )
-    screen = SimpleNamespace(delete_transaction=Mock())
+    screen = SimpleNamespace(
+        delete_transaction=Mock(),
+        close_delete_transaction_dialog=Mock(),
+    )
 
-    TransactionListActionsMixin.confirm_delete_transaction(screen, 17)
+    TransactionListActionsMixin.confirm_delete_transaction(
+        screen,
+        17,
+    )
 
     assert screen.delete_transaction_dialog is dialog
-    dialog_factory.assert_called_once_with(
-        title="Confirm Delete",
-        text=(
-            "Delete this transaction? "
-            "You can undo this action for a few seconds."
-        ),
-        buttons=[cancel_button, delete_button],
-    )
     dialog.open.assert_called_once_with()
 
-    cancel_callback = button_factory.call_args_list[0].kwargs[
-        "on_release"
-    ]
-    delete_callback = button_factory.call_args_list[1].kwargs[
-        "on_release"
-    ]
+    dialog_kwargs = dialog_factory.call_args.kwargs
 
-    cancel_callback(None)
-    delete_callback(None)
+    assert dialog_kwargs["title"] == "Delete Transaction?"
+    assert (
+        dialog_kwargs["message"]
+        == "This transaction will be permanently deleted."
+    )
 
-    dialog.dismiss.assert_called_once_with()
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
     screen.delete_transaction.assert_called_once_with(17)
+    screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
 def test_default_delete_refresh_uses_transaction_list_refresh():

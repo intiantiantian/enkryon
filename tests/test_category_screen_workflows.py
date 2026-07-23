@@ -389,19 +389,19 @@ def test_add_category_opens_creation_dialog(monkeypatch):
     (
         "method_name",
         "dialog_attribute",
-        "title",
-        "message",
-        "cancel_method",
-        "delete_method",
+        "expected_title",
+        "expected_message",
+        "close_method_name",
+        "perform_method_name",
     ),
     [
         (
             "confirm_delete_group",
             "delete_dialog",
-            "Delete category group?",
+            "Delete Category Group?",
             (
-                "Empty category groups are deleted permanently. "
-                "Groups containing categories cannot be deleted."
+                "Groups containing categories cannot be "
+                "deleted. Delete this category group?"
             ),
             "close_delete_dialog",
             "perform_delete_group",
@@ -409,47 +409,55 @@ def test_add_category_opens_creation_dialog(monkeypatch):
         (
             "confirm_delete_category",
             "delete_category_dialog",
-            "Delete category?",
+            "Delete Category?",
             (
-                "Unused categories are deleted permanently. "
-                "Categories with existing transactions cannot be deleted."
+                "Categories with existing transactions cannot "
+                "be deleted. Delete this category?"
             ),
             "close_delete_category_dialog",
             "perform_delete_category",
         ),
     ],
 )
-def test_delete_prompts_use_standard_confirmation(
+def test_delete_prompts_use_custom_confirmation(
     monkeypatch,
     method_name,
     dialog_attribute,
-    title,
-    message,
-    cancel_method,
-    delete_method,
+    expected_title,
+    expected_message,
+    close_method_name,
+    perform_method_name,
 ):
     categories_module = import_module("screens.categories")
-    dialog = object()
-    confirmation = Mock(return_value=dialog)
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
     monkeypatch.setattr(
         categories_module,
-        "open_permanent_delete_confirmation",
-        confirmation,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
     )
-    cancel_callback = Mock()
-    delete_callback_target = Mock()
-    screen = SimpleNamespace()
-    setattr(screen, cancel_method, cancel_callback)
-    setattr(screen, delete_method, delete_callback_target)
+
+    close_callback = Mock()
+    perform_callback = Mock()
+    screen = SimpleNamespace(
+        **{
+            close_method_name: close_callback,
+            perform_method_name: perform_callback,
+        }
+    )
 
     getattr(CategoriesScreen, method_name)(screen, 17)
 
     assert getattr(screen, dialog_attribute) is dialog
-    options = confirmation.call_args.kwargs
-    assert options["title"] == title
-    assert options["message"] == message
-    assert options["cancel_callback"] is cancel_callback
+    dialog.open.assert_called_once_with()
 
-    options["delete_callback"]()
+    dialog_kwargs = dialog_factory.call_args.kwargs
 
-    delete_callback_target.assert_called_once_with(17)
+    assert dialog_kwargs["title"] == expected_title
+    assert dialog_kwargs["message"] == expected_message
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
+    perform_callback.assert_called_once_with(17)
+    close_callback.assert_called_once_with()

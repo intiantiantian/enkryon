@@ -214,33 +214,40 @@ def test_account_back_returns_to_origin_once(return_screen):
     assert screen.return_screen == "dashboard"
 
 
-def test_confirm_delete_account_uses_standard_confirmation(
+def test_confirm_delete_account_uses_custom_confirmation(
     monkeypatch,
 ):
     accounts_module = import_module("screens.accounts")
-    dialog = object()
-    confirmation = Mock(return_value=dialog)
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
     monkeypatch.setattr(
         accounts_module,
-        "open_permanent_delete_confirmation",
-        confirmation,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
     )
     screen = SimpleNamespace(
-        close_delete_dialog=Mock(),
         perform_delete_account=Mock(),
+        close_delete_dialog=Mock(),
     )
 
     AccountsScreen.confirm_delete_account(screen, 7)
 
     assert screen.delete_dialog is dialog
-    options = confirmation.call_args.kwargs
-    assert options["title"] == "Delete account?"
-    assert options["message"] == (
-        "Unused accounts are deleted permanently. "
-        "Accounts with existing transactions cannot be deleted."
-    )
-    assert options["cancel_callback"] is screen.close_delete_dialog
+    dialog.open.assert_called_once_with()
 
-    options["delete_callback"]()
+    dialog_kwargs = dialog_factory.call_args.kwargs
+
+    assert dialog_kwargs["title"] == "Delete Account?"
+    assert (
+        dialog_kwargs["message"]
+        == (
+            "Accounts with existing transactions cannot "
+            "be deleted. Delete this account?"
+        )
+    )
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
 
     screen.perform_delete_account.assert_called_once_with(7)
+    screen.close_delete_dialog.assert_called_once_with()

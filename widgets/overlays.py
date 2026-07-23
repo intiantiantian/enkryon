@@ -26,6 +26,46 @@ class EnkryonOverlayCard(MDCard):
     pass
 
 
+class EnkryonConfirmationDialog(EnkryonOverlay):
+    title = StringProperty("")
+    message = StringProperty("")
+    confirm_text = StringProperty("Delete")
+    cancel_text = StringProperty("Cancel")
+
+    confirm_callback = ObjectProperty(
+        None,
+        allownone=True,
+    )
+    cancel_callback = ObjectProperty(
+        None,
+        allownone=True,
+    )
+
+    max_height = NumericProperty(dp(300))
+    vertical_margin = NumericProperty(dp(16))
+
+    def calculate_height(self, available_height):
+        usable_height = max(
+            0,
+            available_height - (2 * self.vertical_margin),
+        )
+
+        return min(
+            self.max_height,
+            usable_height,
+        )
+
+    def confirm(self):
+        if self.confirm_callback:
+            self.confirm_callback()
+
+    def cancel(self):
+        if self.cancel_callback:
+            self.cancel_callback()
+        else:
+            self.dismiss()
+
+
 class EnkryonSelectionOption(EnkryonOverlayCard):
     text = StringProperty("")
     is_selected = BooleanProperty(False)

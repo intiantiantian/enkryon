@@ -1,10 +1,9 @@
-from kivymd.uix.button import MDFlatButton
-from kivymd.uix.dialog import MDDialog
-
 from services.transaction_services import (
     delete_transaction_by_id,
     restore_deleted_transaction,
 )
+
+from widgets.overlays import EnkryonConfirmationDialog
 
 from .action_results import render_action_result
 
@@ -48,7 +47,7 @@ class TransactionListActionsMixin:
 
     def delete_transaction(self, transaction_id):
         result = delete_transaction_by_id(transaction_id)
-        self.delete_transaction_dialog.dismiss()
+        self.close_delete_transaction_dialog()
 
         snackbar_options = None
         if result.success:
@@ -79,26 +78,27 @@ class TransactionListActionsMixin:
 
 
     def confirm_delete_transaction(self, transaction_id):
-        self.delete_transaction_dialog = MDDialog(
-            title="Confirm Delete",
-            text=(
-                "Delete this transaction? "
-                "You can undo this action for a few seconds."
-            ),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=lambda x:
-                        self.delete_transaction_dialog.dismiss()
+        self.delete_transaction_dialog = (
+            EnkryonConfirmationDialog(
+                title="Delete Transaction?",
+                message=(
+                    "This transaction will be permanently "
+                    "deleted."
                 ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x:
-                        self.delete_transaction(transaction_id)
-                )
-            ]
+                confirm_callback=lambda:
+                    self.delete_transaction(transaction_id),
+                cancel_callback=(
+                    self.close_delete_transaction_dialog
+                ),
+            )
         )
         self.delete_transaction_dialog.open()
+
+
+    def close_delete_transaction_dialog(self, *args):
+        if self.delete_transaction_dialog:
+            self.delete_transaction_dialog.dismiss()
+            self.delete_transaction_dialog = None
 
 
     def refresh_after_transaction_delete(self):

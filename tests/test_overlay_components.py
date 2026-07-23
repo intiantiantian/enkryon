@@ -9,6 +9,7 @@ from pathlib import Path
 from kivy.metrics import dp
 
 from widgets.overlays import (
+    EnkryonConfirmationDialog,
     EnkryonOverlay,
     EnkryonSelectionOption,
     EnkryonSelectionPanel,
@@ -550,3 +551,106 @@ def test_selection_navigation_divider_uses_clear_wrapper():
     assert 'anchor_y: "center"' in option_rule
     assert "size: dp(24), dp(24)" in option_rule
     assert "text_size: self.size" not in option_rule
+
+
+@pytest.mark.parametrize(
+    ("available_height", "expected_height"),
+    [
+        (dp(800), dp(300)),
+        (dp(260), dp(228)),
+    ],
+)
+def test_confirmation_dialog_height_is_responsive(
+    available_height,
+    expected_height,
+):
+    dialog = SimpleNamespace(
+        max_height=dp(300),
+        vertical_margin=dp(16),
+    )
+
+    height = EnkryonConfirmationDialog.calculate_height(
+        dialog,
+        available_height,
+    )
+
+    assert height == pytest.approx(expected_height)
+
+
+def test_confirmation_dialog_routes_callbacks():
+    confirm_callback = Mock()
+    cancel_callback = Mock()
+    dismiss = Mock()
+    dialog = SimpleNamespace(
+        confirm_callback=confirm_callback,
+        cancel_callback=cancel_callback,
+        dismiss=dismiss,
+    )
+
+    EnkryonConfirmationDialog.confirm(dialog)
+    EnkryonConfirmationDialog.cancel(dialog)
+
+    confirm_callback.assert_called_once_with()
+    cancel_callback.assert_called_once_with()
+    dismiss.assert_not_called()
+
+    dialog.cancel_callback = None
+    EnkryonConfirmationDialog.cancel(dialog)
+
+    dismiss.assert_called_once_with()
+
+
+def test_confirmation_prompts_use_custom_overlay():
+    project_root = Path(__file__).resolve().parents[1]
+    overlay_layout = (
+        project_root / "kv" / "overlays.kv"
+    ).read_text()
+    main_source = (
+        project_root / "main.py"
+    ).read_text()
+    sources = {
+        "accounts": (
+            project_root / "screens" / "accounts.py"
+        ).read_text(),
+        "categories": (
+            project_root / "screens" / "categories.py"
+        ).read_text(),
+        "transactions": (
+            project_root
+            / "screens"
+            / "transaction_list_actions.py"
+        ).read_text(),
+        "settings": (
+            project_root / "screens" / "settings.py"
+        ).read_text(),
+    }
+
+    assert "<EnkryonConfirmationDialog>:" in overlay_layout
+    assert (
+        "md_bg_color: get_color_from_hex(Colors.ERROR)"
+        in overlay_layout
+    )
+    assert "EnkryonConfirmationDialog," in main_source
+
+    assert sources["accounts"].count(
+        "EnkryonConfirmationDialog("
+    ) == 1
+    assert sources["categories"].count(
+        "EnkryonConfirmationDialog("
+    ) == 2
+    assert sources["transactions"].count(
+        "EnkryonConfirmationDialog("
+    ) == 1
+    assert sources["settings"].count(
+        "EnkryonConfirmationDialog("
+    ) == 1
+
+    # Account rename remains for the final input-dialog task.
+    assert sources["accounts"].count("MDDialog(") == 1
+
+    for name in (
+        "categories",
+        "transactions",
+        "settings",
+    ):
+        assert "MDDialog" not in sources[name]

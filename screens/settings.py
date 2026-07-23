@@ -1,35 +1,41 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
 
 from database.settings_repository import clear_database
 from utils.snackbar import show_snackbar
+
+from widgets.overlays import EnkryonConfirmationDialog
+
 
 class SettingsScreen(Screen):
 
     def go_to_dashboard(self):
         self.manager.current = 'dashboard'
 
+
     def clear_data(self):
-        self.dialog = MDDialog(
+        self.dialog = EnkryonConfirmationDialog(
             title="Clear All Data?",
-            text="This will permanently delete all accounts, categories, and transactions.",
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=lambda x: self.dialog.dismiss()
-                ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_clear_data()
-                )
-            ]
+            message=(
+                "This permanently deletes all accounts, "
+                "categories, and transactions. This action "
+                "cannot be undone."
+            ),
+            confirm_text="Delete All",
+            confirm_callback=self.perform_clear_data,
+            cancel_callback=self.close_clear_data_dialog,
         )
         self.dialog.open()
 
+
+    def close_clear_data_dialog(self, *args):
+        if self.dialog:
+            self.dialog.dismiss()
+            self.dialog = None
+
+
     def perform_clear_data(self):
         cleared = clear_database()
-        self.dialog.dismiss()
+        self.close_clear_data_dialog()
 
         if not cleared:
             show_snackbar("Data could not be deleted.")
