@@ -508,7 +508,7 @@ def test_empty_account_menu_offers_add_account(monkeypatch):
     )
     monkeypatch.setattr(
         add_transaction_module,
-        "MDDropdownMenu",
+        "EnkryonSelectionPanel",
         menu_factory,
     )
 
@@ -528,10 +528,12 @@ def test_empty_account_menu_offers_add_account(monkeypatch):
     assert screen.account_menu is menu
     menu.open.assert_called_once_with()
 
-    menu_items = menu_factory.call_args.kwargs["items"]
-    assert [item["text"] for item in menu_items] == [
-        "Add New Account"
-    ]
+    panel_kwargs = menu_factory.call_args.kwargs
+
+    assert panel_kwargs["title"] == "Select Account"
+    assert panel_kwargs["selected_text"] == screen.form_state.account_name
+
+    menu_items = panel_kwargs["options"]
 
     menu_items[0]["on_release"]()
 
@@ -558,7 +560,7 @@ def test_empty_group_menu_offers_category_management(
     )
     monkeypatch.setattr(
         add_transaction_module,
-        "MDDropdownMenu",
+        "EnkryonSelectionPanel",
         menu_factory,
     )
 
@@ -582,7 +584,7 @@ def test_empty_group_menu_offers_category_management(
     assert screen.groups_menu is menu
     menu.open.assert_called_once_with()
 
-    menu_items = menu_factory.call_args.kwargs["items"]
+    menu_items = menu_factory.call_args.kwargs["options"]
     assert [item["text"] for item in menu_items] == [
         "Manage Category Groups"
     ]
@@ -612,7 +614,7 @@ def test_empty_category_menu_offers_category_management(
     )
     monkeypatch.setattr(
         add_transaction_module,
-        "MDDropdownMenu",
+        "EnkryonSelectionPanel",
         menu_factory,
     )
 
@@ -634,7 +636,7 @@ def test_empty_category_menu_offers_category_management(
     assert screen.categories_menu is menu
     menu.open.assert_called_once_with()
 
-    menu_items = menu_factory.call_args.kwargs["items"]
+    menu_items = menu_factory.call_args.kwargs["options"]
     assert [item["text"] for item in menu_items] == [
         "Manage Categories"
     ]

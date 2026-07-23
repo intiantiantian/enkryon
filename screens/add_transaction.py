@@ -1,5 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
 
@@ -26,6 +25,7 @@ from utils.transaction_datetime import (
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
+from widgets.overlays import EnkryonSelectionPanel
 
 class AddTransactionScreen(Screen):
 
@@ -209,13 +209,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Add New Account",
-                "on_release": lambda: self.open_add_account_screen()
+                "is_navigation": True,
+                "on_release": lambda: self.open_add_account_screen(),
             }
         )
 
-        self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_selector,
-            items=menu_items,
+        self.account_menu = EnkryonSelectionPanel(
+            title="Select Account",
+            selected_text=self.form_state.account_name,
+            options=menu_items,
         )
 
         self.account_menu.open()
@@ -289,13 +291,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Manage Category Groups",
+                "is_navigation": True,
                 "on_release": lambda: self.open_manage_category_screen()
             }
         )
 
-        self.groups_menu = MDDropdownMenu(
-            caller=self.ids.group_selector,
-            items=menu_items,
+        self.groups_menu = EnkryonSelectionPanel(
+            title="Select Group",
+            selected_text=self.form_state.group_name,
+            options=menu_items,
         )
 
         self.groups_menu.open()
@@ -351,13 +355,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Manage Categories",
+                "is_navigation": True,
                 "on_release": lambda: self.open_manage_category_screen()
             }
         )
 
-        self.categories_menu = MDDropdownMenu(
-            caller=self.ids.category_selector,
-            items=menu_items,
+        self.categories_menu = EnkryonSelectionPanel(
+            title="Select Category",
+            selected_text=self.form_state.category_name,
+            options=menu_items,
         )
 
         self.categories_menu.open()

@@ -8,8 +8,11 @@ from pathlib import Path
 
 from kivy.metrics import dp
 
-from widgets.overlays import EnkryonOverlay
-
+from widgets.overlays import (
+    EnkryonOverlay,
+    EnkryonSelectionOption,
+    EnkryonSelectionPanel,
+)
 from widgets.date_time_pickers import (
     DatePickerDialog,
     TimePickerDialog,
@@ -360,3 +363,190 @@ def test_time_picker_scroll_debounce_runs_snap():
     callback(0)
 
     picker.snap_to_center.assert_called_once_with(wheel)
+
+
+@pytest.mark.parametrize(
+    (
+        "option_count",
+        "available_height",
+        "expected_height",
+    ),
+    [
+        (2, dp(800), dp(196)),
+        (20, dp(800), dp(560)),
+        (20, dp(400), dp(368)),
+    ],
+)
+def test_selection_panel_height_is_responsive(
+    option_count,
+    available_height,
+    expected_height,
+):
+    panel = SimpleNamespace(
+        options=[object()] * option_count,
+        max_height=dp(560),
+        vertical_margin=dp(16),
+        panel_chrome_height=dp(88),
+        option_height=dp(52),
+        option_spacing=dp(4),
+        navigation_inset=dp(12),
+    )
+
+    height = EnkryonSelectionPanel.calculate_height(
+        panel,
+        available_height,
+    )
+
+    assert height == pytest.approx(expected_height)
+
+
+def test_selection_panel_populates_and_marks_selected_option():
+    cash_callback = Mock()
+    add_callback = Mock()
+    container = SimpleNamespace(
+        clear_widgets=Mock(),
+        add_widget=Mock(),
+    )
+    panel = SimpleNamespace(
+        selected_text="Cash",
+        options=[
+            {
+                "text": "Cash",
+                "on_release": cash_callback,
+            },
+            {
+                "text": "Add New Account",
+                "is_navigation": True,
+                "on_release": add_callback,
+            },
+        ],
+        ids=SimpleNamespace(
+            options_container=container,
+        ),
+    )
+    cash_widget = object()
+    add_widget = object()
+
+    with patch(
+        "widgets.overlays.EnkryonSelectionOption",
+        side_effect=[cash_widget, add_widget],
+    ) as option_class:
+        EnkryonSelectionPanel.populate_options(panel)
+
+    container.clear_widgets.assert_called_once_with()
+    assert option_class.mock_calls == [
+        call(
+            text="Cash",
+            is_selected=True,
+            is_navigation=False,
+            selection_callback=cash_callback,
+        ),
+        call(
+            text="Add New Account",
+            is_selected=False,
+            is_navigation=True,
+            selection_callback=add_callback,
+        ),
+    ]
+    assert container.add_widget.mock_calls == [
+        call(cash_widget),
+        call(add_widget),
+    ]
+
+
+def test_selection_option_runs_its_callback():
+    callback = Mock()
+    option = SimpleNamespace(
+        selection_callback=callback,
+    )
+
+    EnkryonSelectionOption.activate(option)
+
+    callback.assert_called_once_with()
+
+
+def test_selection_panel_rules_are_registered():
+    project_root = Path(__file__).resolve().parents[1]
+    overlay_layout = (
+        project_root / "kv" / "overlays.kv"
+    ).read_text()
+    main_source = (
+        project_root / "main.py"
+    ).read_text()
+
+    assert "<EnkryonSelectionOption>:" in overlay_layout
+    assert "<EnkryonSelectionPanel>:" in overlay_layout
+    assert "id: options_container" in overlay_layout
+    assert "EnkryonSelectionOption," in main_source
+    assert "EnkryonSelectionPanel," in main_source
+
+
+def test_transaction_selectors_use_custom_panels():
+    project_root = Path(__file__).resolve().parents[1]
+    source = (
+        project_root / "screens" / "add_transaction.py"
+    ).read_text()
+
+    assert "MDDropdownMenu" not in source
+    assert source.count("EnkryonSelectionPanel(") == 3
+    assert source.count('"is_navigation": True') == 3
+
+
+def test_dashboard_selector_uses_custom_panel():
+    project_root = Path(__file__).resolve().parents[1]
+    source = (
+        project_root / "screens" / "dashboard.py"
+    ).read_text()
+
+    assert "MDDropdownMenu" not in source
+    assert source.count("EnkryonSelectionPanel(") == 1
+
+
+def test_selection_panel_height_includes_navigation_divider():
+    panel = SimpleNamespace(
+        options=[
+            {"text": "Cash"},
+            {
+                "text": "Add New Account",
+                "is_navigation": True,
+            },
+        ],
+        max_height=dp(560),
+        vertical_margin=dp(16),
+        panel_chrome_height=dp(88),
+        option_height=dp(52),
+        option_spacing=dp(4),
+        navigation_inset=dp(12),
+    )
+
+    height = EnkryonSelectionPanel.calculate_height(
+        panel,
+        dp(800),
+    )
+
+    assert height == pytest.approx(dp(208))
+
+
+def test_selection_navigation_divider_uses_clear_wrapper():
+    project_root = Path(__file__).resolve().parents[1]
+    overlay_layout = (
+        project_root / "kv" / "overlays.kv"
+    ).read_text()
+
+    option_rule = overlay_layout.split(
+        "<EnkryonSelectionOption>:",
+        1,
+    )[1].split(
+        "<EnkryonSelectionPanel>:",
+        1,
+    )[0]
+
+    assert "md_bg_color: 0, 0, 0, 0" in option_rule
+    assert (
+        "height: dp(12) if root.is_navigation else 0"
+        in option_rule
+    )
+    assert "\n    EnkryonOverlayCard:\n" in option_rule
+    assert 'anchor_y: "center"' in option_rule
+    assert "size: dp(24), dp(24)" in option_rule
+    assert "text_size: self.size" not in option_rule

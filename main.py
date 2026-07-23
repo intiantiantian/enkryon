@@ -19,7 +19,12 @@ from widgets.buttons import (
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
 )
-from widgets.overlays import EnkryonOverlay, EnkryonOverlayCard
+from widgets.overlays import (
+    EnkryonOverlay,
+    EnkryonOverlayCard,
+    EnkryonSelectionOption,
+    EnkryonSelectionPanel,
+)
 
 _ = (
     EnkryonFilterButton,
@@ -27,6 +32,8 @@ _ = (
     EnkryonSecondaryButton,
     EnkryonOverlay,
     EnkryonOverlayCard,
+    EnkryonSelectionOption,
+    EnkryonSelectionPanel,
 )
 
 __version__ = "0.4.8"

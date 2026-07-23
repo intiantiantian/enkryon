@@ -1,5 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.menu import MDDropdownMenu
 
 from database.account_repository import get_all_accounts, get_account_by_id
 from database.transaction_repository import (
@@ -16,6 +15,7 @@ from .transaction_list_actions import (
 )
 
 from widgets.transaction_list import render_transaction_list
+from widgets.overlays import EnkryonSelectionPanel
 
 from utils.money import format_money
 
@@ -166,9 +166,10 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
                 }
             )
 
-        self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_selector,
-            items=menu_items,
+        self.account_menu = EnkryonSelectionPanel(
+            title="Filter by Account",
+            selected_text=self.ids.account_label.text,
+            options=menu_items,
         )
 
         self.account_menu.open()
