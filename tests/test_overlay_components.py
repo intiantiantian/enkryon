@@ -645,10 +645,11 @@ def test_confirmation_prompts_use_custom_overlay():
         "EnkryonConfirmationDialog("
     ) == 1
 
-    # Account rename remains for the final input-dialog task.
-    assert sources["accounts"].count("MDDialog(") == 1
+    # Account creation and rename share the custom input overlay.
+    assert sources["accounts"].count("InputDialog(") == 2
 
     for name in (
+        "accounts",
         "categories",
         "transactions",
         "settings",

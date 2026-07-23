@@ -140,6 +140,43 @@ def test_save_account_renders_service_result(
     )
 
 
+def test_open_rename_dialog_uses_custom_input_overlay(
+    monkeypatch,
+):
+    accounts_module = import_module("screens.accounts")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        accounts_module,
+        "InputDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        rename_account=Mock(),
+    )
+
+    AccountsScreen.open_rename_dialog(
+        screen,
+        7,
+        "Cash",
+    )
+
+    dialog.open.assert_called_once_with()
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+
+    assert dialog_kwargs["title"] == "Rename Account"
+    assert dialog_kwargs["hint_text"] == "Account name..."
+    assert dialog_kwargs["text"] == "Cash"
+
+    dialog_kwargs["callback"]("Wallet")
+
+    screen.rename_account.assert_called_once_with(
+        7,
+        "Wallet",
+    )
+
+
 @pytest.mark.parametrize("success", [True, False])
 def test_rename_account_renders_service_result(
     monkeypatch,
@@ -155,18 +192,17 @@ def test_rename_account_renders_service_result(
         result,
     )
     screen = SimpleNamespace(
-        rename_dialog=SimpleNamespace(
-            content_cls=SimpleNamespace(text=" Wallet "),
-        ),
-        close_rename_dialog=Mock(),
         load_accounts=Mock(),
     )
 
-    AccountsScreen.rename_account(screen, 7)
+    AccountsScreen.rename_account(
+        screen,
+        7,
+        " Wallet ",
+    )
 
     rename_account_workflow.assert_called_once_with(7, " Wallet ")
     show_snackbar.assert_called_once_with(result.message)
-    assert screen.close_rename_dialog.call_count == int(success)
     assert screen.load_accounts.call_count == int(success)
 
 

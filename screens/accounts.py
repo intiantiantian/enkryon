@@ -1,7 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFlatButton
 
 from .action_results import render_action_result
 
@@ -15,7 +12,6 @@ from services.account_services import (
 from widgets.account_card import AccountCard
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
-from widgets.delete_confirmation import open_permanent_delete_confirmation
 from widgets.overlays import EnkryonConfirmationDialog
 
 
@@ -37,7 +33,6 @@ class AccountsScreen(Screen):
 
 
     def on_pre_enter(self):
-        self.rename_dialog = None
         self.load_accounts()
         self.delete_dialog = None
 
@@ -89,44 +84,23 @@ class AccountsScreen(Screen):
 
 
     def open_rename_dialog(self, account_id, account_name):
-
-        if self.rename_dialog:
-            self.rename_dialog.dismiss()
-        
-        self.rename_dialog = MDDialog(
+        InputDialog(
             title="Rename Account",
-            type="custom",
-            content_cls=MDTextField(
-                text=account_name,
-                multiline=False
+            hint_text="Account name...",
+            text=account_name,
+            callback=lambda new_name: self.rename_account(
+                account_id,
+                new_name,
             ),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_rename_dialog
-                ),
-                MDFlatButton(
-                    text="RENAME",
-                    on_release=lambda x: self.rename_account(account_id)
-                )
-            ]
-        )
-        self.rename_dialog.open()
+        ).open()
 
 
-    def close_rename_dialog(self, *args):
-        self.rename_dialog.dismiss()
-        self.rename_dialog = None
-
-
-    def rename_account(self, account_id):
-        new_name = self.rename_dialog.content_cls.text
+    def rename_account(self, account_id, new_name):
         result = rename_account_workflow(account_id, new_name)
         render_action_result(
             result,
             refresh=self.load_accounts,
             refresh_required=result.success,
-            before_refresh=self.close_rename_dialog,
         )
 
 
