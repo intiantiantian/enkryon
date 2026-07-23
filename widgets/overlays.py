@@ -125,7 +125,7 @@ class EnkryonSelectionPanel(EnkryonOverlay):
             usable_height,
         )
 
-    def on_open(self):
+    def on_pre_open(self, *args):
         self.populate_options()
 
     def populate_options(self):

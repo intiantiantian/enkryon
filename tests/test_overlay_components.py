@@ -654,3 +654,13 @@ def test_confirmation_prompts_use_custom_overlay():
         "settings",
     ):
         assert "MDDialog" not in sources[name]
+
+
+def test_selection_panel_populates_before_open():
+    panel = SimpleNamespace(
+        populate_options=Mock(),
+    )
+
+    EnkryonSelectionPanel.on_pre_open(panel)
+
+    panel.populate_options.assert_called_once_with()
