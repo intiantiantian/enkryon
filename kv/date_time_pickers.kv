@@ -22,12 +22,9 @@
             radius: [16]
     
 <DatePickerDialog>
-
-    size_hint: .9, None
     height: dp(430)
-    auto_dismiss: False
 
-    MDCard:
+    EnkryonOverlayCard:
         orientation: 'vertical'
         size_hint_y: None
         height: self.minimum_height
@@ -149,11 +146,9 @@
     font_style: 'H5'
 
 <TimePickerDialog>
+    height: dp(220)
 
-    size_hint: .6, .30
-    auto_dismiss: False
-
-    MDCard:
+    EnkryonOverlayCard:
         orientation: 'vertical'
 
         FloatLayout:

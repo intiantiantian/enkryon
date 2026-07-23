@@ -1,8 +1,14 @@
 from datetime import date, time
 from types import SimpleNamespace
-from unittest.mock import Mock, call
+from unittest.mock import Mock, call, patch
 
 import pytest
+
+from pathlib import Path
+
+from kivy.metrics import dp
+
+from widgets.overlays import EnkryonOverlay
 
 from widgets.date_time_pickers import (
     DatePickerDialog,
@@ -119,6 +125,7 @@ def test_time_picker_converts_twelve_hour_value_before_dismiss(
     events = Mock()
     callback = Mock()
     dismiss = Mock()
+    commit_picker_values = Mock()
     events.attach_mock(callback, "callback")
     events.attach_mock(dismiss, "dismiss")
     picker = SimpleNamespace(
@@ -127,12 +134,229 @@ def test_time_picker_converts_twelve_hour_value_before_dismiss(
         is_pm=is_pm,
         callback=callback,
         dismiss=dismiss,
+        commit_picker_values=commit_picker_values,
     )
 
     TimePickerDialog.confirm(picker)
+    commit_picker_values.assert_called_once_with()
 
     assert events.mock_calls == [
         call.callback(expected),
         call.dismiss(),
     ]
-    
+
+
+def test_time_picker_commits_all_visible_values_immediately():
+    scroll_timer = Mock()
+    hour_picker = object()
+    minute_picker = object()
+    ampm_picker = object()
+    get_center_value = Mock()
+    picker = SimpleNamespace(
+        scroll_timer=scroll_timer,
+        ids=SimpleNamespace(
+            hour_picker=hour_picker,
+            minute_picker=minute_picker,
+            ampm_picker=ampm_picker,
+        ),
+        get_center_value=get_center_value,
+    )
+
+    TimePickerDialog.commit_picker_values(picker)
+
+    scroll_timer.cancel.assert_called_once_with()
+    assert picker.scroll_timer is None
+    assert get_center_value.mock_calls == [
+        call(hour_picker),
+        call(minute_picker),
+        call(ampm_picker),
+    ]
+
+
+def test_time_picker_reads_committed_value_before_callback():
+    callback = Mock()
+    picker = SimpleNamespace(
+        hour=3,
+        minute=45,
+        is_pm=True,
+        callback=callback,
+        dismiss=Mock(),
+    )
+    picker.commit_picker_values = Mock(
+        side_effect=lambda: setattr(picker, "minute", 46)
+    )
+
+    TimePickerDialog.confirm(picker)
+
+    callback.assert_called_once_with(time(15, 46))
+    picker.dismiss.assert_called_once_with()
+
+
+def test_overlay_width_preserves_compact_window_margins():
+    overlay = SimpleNamespace(
+        max_width=dp(420),
+        horizontal_margin=dp(16),
+    )
+
+    width = EnkryonOverlay.calculate_width(overlay, dp(320))
+
+    assert width == pytest.approx(dp(288))
+
+
+def test_overlay_width_is_capped_on_wide_windows():
+    overlay = SimpleNamespace(
+        max_width=dp(420),
+        horizontal_margin=dp(16),
+    )
+
+    width = EnkryonOverlay.calculate_width(overlay, dp(900))
+
+    assert width == pytest.approx(dp(420))
+
+
+def test_existing_custom_dialogs_share_overlay_foundation():
+    assert issubclass(InputDialog, EnkryonOverlay)
+    assert issubclass(DatePickerDialog, EnkryonOverlay)
+    assert issubclass(TimePickerDialog, EnkryonOverlay)
+
+
+def test_shared_overlay_rules_are_loaded_before_dialog_rules():
+    project_root = Path(__file__).resolve().parents[1]
+    main_source = (project_root / "main.py").read_text()
+    overlay_layout = (project_root / "kv" / "overlays.kv").read_text()
+    input_layout = (project_root / "kv" / "input_dialog.kv").read_text()
+    picker_layout = (
+        project_root / "kv" / "date_time_pickers.kv"
+    ).read_text()
+
+    overlay_load = "Builder.load_file('kv/overlays.kv')"
+    input_load = "Builder.load_file('kv/input_dialog.kv')"
+
+    assert main_source.index(overlay_load) < main_source.index(input_load)
+    assert "<EnkryonOverlay>:" in overlay_layout
+    assert "<EnkryonOverlayCard>:" in overlay_layout
+    assert input_layout.count("EnkryonOverlayCard:") == 1
+    assert picker_layout.count("EnkryonOverlayCard:") == 2
+
+
+def test_time_picker_pre_open_pads_wheels_and_positions_before_frame():
+    hour_picker = SimpleNamespace(data=[])
+    minute_picker = SimpleNamespace(data=[])
+    ampm_picker = SimpleNamespace(data=[])
+    set_picker_position = Mock()
+    picker = SimpleNamespace(
+        ids=SimpleNamespace(
+            hour_picker=hour_picker,
+            minute_picker=minute_picker,
+            ampm_picker=ampm_picker,
+        ),
+        set_picker_position=set_picker_position,
+    )
+
+    with patch(
+        "widgets.date_time_pickers.Clock.schedule_once"
+    ) as schedule_once:
+        TimePickerDialog.on_pre_open(picker)
+
+    assert hour_picker.data[0]["text"] == ""
+    assert hour_picker.data[1]["text"] == "01"
+    assert hour_picker.data[-2]["text"] == "12"
+    assert hour_picker.data[-1]["text"] == ""
+    assert minute_picker.data[1]["text"] == "00"
+    assert minute_picker.data[-2]["text"] == "59"
+    assert [item["text"] for item in ampm_picker.data] == [
+        "AM",
+        "PM",
+    ]
+    set_picker_position.assert_called_once_with()
+    schedule_once.assert_called_once_with(
+        set_picker_position,
+        -1,
+    )
+
+
+def test_time_picker_scroll_positions_cover_all_edge_values():
+    picker = SimpleNamespace()
+
+    assert TimePickerDialog.get_scroll_position(
+        picker, 1, 14
+    ) == pytest.approx(1)
+    assert TimePickerDialog.get_scroll_position(
+        picker, 12, 14
+    ) == pytest.approx(0)
+    assert TimePickerDialog.get_scroll_position(
+        picker, 1, 62
+    ) == pytest.approx(1)
+    assert TimePickerDialog.get_scroll_position(
+        picker, 60, 62
+    ) == pytest.approx(0)
+    assert TimePickerDialog.get_scroll_position(
+        picker, 0, 2, padded=False
+    ) == pytest.approx(1)
+    assert TimePickerDialog.get_scroll_position(
+        picker, 1, 2, padded=False
+    ) == pytest.approx(0)
+
+
+def test_time_picker_snaps_selected_value_to_center():
+    hour_picker = SimpleNamespace(
+        data=(
+            [{"text": ""}]
+            + [{"text": f"{i:02d}"} for i in range(1, 13)]
+            + [{"text": ""}]
+        ),
+        scroll_y=0.51,
+    )
+    picker = SimpleNamespace(
+        ids=SimpleNamespace(
+            hour_picker=hour_picker,
+            minute_picker=object(),
+            ampm_picker=object(),
+        ),
+        hour=1,
+        minute=0,
+        is_pm=False,
+        scroll_timer=Mock(),
+        _is_snapping=False,
+    )
+    picker.get_center_value = lambda rv: (
+        TimePickerDialog.get_center_value(picker, rv)
+    )
+    picker.get_scroll_position = lambda index, total, padded=True: (
+        TimePickerDialog.get_scroll_position(
+            picker,
+            index,
+            total,
+            padded,
+        )
+    )
+
+    TimePickerDialog.snap_to_center(picker, hour_picker)
+
+    assert picker.hour == 6
+    assert hour_picker.scroll_y == pytest.approx(1 - (5 / 11))
+    assert picker.scroll_timer is None
+    assert picker._is_snapping is False
+
+
+def test_time_picker_scroll_debounce_runs_snap():
+    old_timer = Mock()
+    picker = SimpleNamespace(
+        _is_snapping=False,
+        scroll_timer=old_timer,
+        snap_to_center=Mock(),
+    )
+    wheel = object()
+
+    with patch(
+        "widgets.date_time_pickers.Clock.schedule_once"
+    ) as schedule_once:
+        TimePickerDialog.check_scroll(picker, wheel)
+
+    old_timer.cancel.assert_called_once_with()
+    callback, delay = schedule_once.call_args.args
+    assert delay == pytest.approx(0.15)
+
+    callback(0)
+
+    picker.snap_to_center.assert_called_once_with(wheel)

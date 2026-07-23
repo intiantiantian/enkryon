@@ -19,11 +19,14 @@ from widgets.buttons import (
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
 )
+from widgets.overlays import EnkryonOverlay, EnkryonOverlayCard
 
 _ = (
     EnkryonFilterButton,
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
+    EnkryonOverlay,
+    EnkryonOverlayCard,
 )
 
 __version__ = "0.4.8"
@@ -67,6 +70,7 @@ class EnkryonApp(MDApp):
 
         apply_app_theme(self)
 
+        Builder.load_file('kv/overlays.kv')
         Builder.load_file('kv/widgets.kv')
         Builder.load_file('kv/dashboard.kv')
         Builder.load_file('kv/add_transaction.kv')

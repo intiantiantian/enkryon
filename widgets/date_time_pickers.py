@@ -1,20 +1,22 @@
-from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ObjectProperty, BooleanProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.label import MDLabel
+from kivy.factory import Factory
 
 from calendar import monthrange
 from datetime import date, time
 
-from kivy.factory import Factory
+from .overlays import EnkryonOverlay
+
 
 class CalendarDay(ButtonBehavior, MDLabel):
     day = NumericProperty(0)
     picker = ObjectProperty(None)
     selected = BooleanProperty(False)
 
-class DatePickerDialog(ModalView):
+
+class DatePickerDialog(EnkryonOverlay):
 
     day = NumericProperty(0)
 
@@ -35,10 +37,12 @@ class DatePickerDialog(ModalView):
 
         self.build_weekdays()
 
+
     def on_pre_open(self):
         if not self.day_widgets:
             self.build_calendar_widgets()
         self.build_calendar()
+
 
     def build_weekdays(self):
         self.ids.weekday_grid.clear_widgets()
@@ -49,12 +53,14 @@ class DatePickerDialog(ModalView):
             card.text = day
             self.ids.weekday_grid.add_widget(card)
 
+
     def build_calendar_widgets(self):
         for _ in range(42):
             card = Factory.CalendarDay()
             card.picker = self
             self.day_widgets.append(card)
             self.ids.calendar_grid.add_widget(card)
+
 
     def build_calendar(self):
         self.ids.month_label.text = (
@@ -86,6 +92,7 @@ class DatePickerDialog(ModalView):
                 card.disabled = True
                 card.ripple_behavior = False
 
+
     def select_day(self, day):
         self.selected_day = day.day
 
@@ -100,12 +107,14 @@ class DatePickerDialog(ModalView):
 
         self.dismiss()
 
+
     def previous_month(self):
         self.current_month -= 1
         if self.current_month == 0:
             self.current_month = 12
             self.current_year -= 1
         self.build_calendar()
+
 
     def next_month(self):
         self.current_month += 1
@@ -114,12 +123,14 @@ class DatePickerDialog(ModalView):
             self.current_year += 1
         self.build_calendar()
 
-class TimePickerDialog(ModalView):
+
+class TimePickerDialog(EnkryonOverlay):
 
     def __init__(self, callback=None, initial_time=None, **kwargs):
         super().__init__(**kwargs)
         self.callback = callback
         self.scroll_timer = None
+        self._is_snapping = False
         if initial_time:
             self.hour = initial_time.hour % 12 or 12
             self.minute = initial_time.minute
@@ -129,75 +140,137 @@ class TimePickerDialog(ModalView):
             self.minute = 0
             self.is_pm = False
 
+
     def on_pre_open(self):
-        self.ids.minute_picker.data = [
-            {'text': f'{i:02d}'}
-            for i in range(60)
-        ]
+        self._is_snapping = True
 
-        self.ids.hour_picker.data = [
-            {'text': f'{i:02d}'}
-            for i in range(1, 13)
-        ]
+        try:
+            self.ids.minute_picker.data = (
+                [{"text": ""}]
+                + [{"text": f"{i:02d}"} for i in range(60)]
+                + [{"text": ""}]
+            )
+            self.ids.hour_picker.data = (
+                [{"text": ""}]
+                + [{"text": f"{i:02d}"} for i in range(1, 13)]
+                + [{"text": ""}]
+            )
+            self.ids.ampm_picker.data = [
+                {"text": "AM"},
+                {"text": "PM"},
+            ]
+        finally:
+            self._is_snapping = False
 
-        self.ids.ampm_picker.data = [
-            {'text': 'AM'},
-            {'text': 'PM'}
-        ]
-        
-        Clock.schedule_once(lambda dt: self.set_picker_position(), 0.1)
+        # Position immediately, then correct before the first rendered frame.
+        self.set_picker_position()
+        Clock.schedule_once(self.set_picker_position, -1)
 
-    def set_picker_position(self):
 
-        hour_index = self.hour - 1
-        self.ids.hour_picker.scroll_y = self.get_scroll_position(
-            hour_index,
-            len(self.ids.hour_picker.data)
-        )
+    def set_picker_position(self, *_):
+        self._is_snapping = True
 
-        minute_index = self.minute
-        self.ids.minute_picker.scroll_y = self.get_scroll_position(
-            minute_index,
-            len(self.ids.minute_picker.data)
-        )
+        try:
+            hour_picker = self.ids.hour_picker
+            minute_picker = self.ids.minute_picker
+            ampm_picker = self.ids.ampm_picker
 
-        ampm_index = 1 if not self.is_pm else 2
-        self.ids.ampm_picker.scroll_y = self.get_scroll_position(
-            ampm_index,
-            len(self.ids.ampm_picker.data)
-        )
-    
-    def get_scroll_position(self, index, total):
-        if total <= 3:
+            hour_picker.scroll_y = self.get_scroll_position(
+                self.hour,
+                len(hour_picker.data),
+            )
+            minute_picker.scroll_y = self.get_scroll_position(
+                self.minute + 1,
+                len(minute_picker.data),
+            )
+            ampm_picker.scroll_y = self.get_scroll_position(
+                1 if self.is_pm else 0,
+                len(ampm_picker.data),
+                padded=False,
+            )
+        finally:
+            self._is_snapping = False
+
+
+    def get_scroll_position(self, index, total, padded=True):
+        if padded:
+            steps = total - 3
+            if steps <= 0:
+                return 1
+            return 1 - ((index - 1) / steps)
+
+        steps = total - 1
+        if steps <= 0:
             return 1
-        return 1 - (index / (total - 1))
+        return 1 - (index / steps)
+
 
     def check_scroll(self, rv):
+        if self._is_snapping:
+            return
 
         if self.scroll_timer:
             self.scroll_timer.cancel()
-            
-        self.scroll_timer = Clock.schedule_once(lambda dt: self.get_center_value(rv), .2)
+
+        self.scroll_timer = Clock.schedule_once(
+            lambda _: self.snap_to_center(rv),
+            0.15,
+        )
+
+
+    def snap_to_center(self, rv):
+        self.scroll_timer = None
+        index = self.get_center_value(rv)
+
+        self._is_snapping = True
+
+        try:
+            rv.scroll_y = self.get_scroll_position(
+                index,
+                len(rv.data),
+                padded=rv is not self.ids.ampm_picker,
+            )
+        finally:
+            self._is_snapping = False
+
 
     def get_center_value(self, rv):
-
-        if rv == self.ids.ampm_picker:
-            index = round((1 - rv.scroll_y) * (len(rv.data)-1))
+        if rv is self.ids.ampm_picker:
+            last_index = len(rv.data) - 1
+            index = round((1 - rv.scroll_y) * last_index)
+            index = max(0, min(index, last_index))
         else:
-            index = round((1 - rv.scroll_y) * (len(rv.data)-3)) + 1
+            last_center_index = len(rv.data) - 2
+            index = (
+                round((1 - rv.scroll_y) * (len(rv.data) - 3))
+                + 1
+            )
+            index = max(1, min(index, last_center_index))
 
-        value = rv.data[index]['text']
+        value = rv.data[index]["text"]
 
-        if rv == self.ids.hour_picker:
+        if rv is self.ids.hour_picker:
             self.hour = int(value)
-
-        elif rv == self.ids.minute_picker:
+        elif rv is self.ids.minute_picker:
             self.minute = int(value)
+        elif rv is self.ids.ampm_picker:
+            self.is_pm = value == "PM"
 
-        elif rv == self.ids.ampm_picker:
-            self.is_pm = value == 'PM'
+        return index
+
+
+    def commit_picker_values(self):
+        if self.scroll_timer:
+            self.scroll_timer.cancel()
+            self.scroll_timer = None
+
+        self.get_center_value(self.ids.hour_picker)
+        self.get_center_value(self.ids.minute_picker)
+        self.get_center_value(self.ids.ampm_picker)
+
 
     def confirm(self):
+        self.commit_picker_values()
 
         hour = self.hour
 

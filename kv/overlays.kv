@@ -1,0 +1,19 @@
+#:import Window kivy.core.window.Window
+#:import dp kivy.metrics.dp
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+#:import Colors theme.tokens.Colors
+#:import Elevation theme.tokens.Elevation
+#:import Radius theme.tokens.Radius
+
+<EnkryonOverlay>:
+    size_hint: None, None
+    width: root.calculate_width(Window.width)
+    auto_dismiss: False
+    background: ""
+    background_color: 0, 0, 0, 0
+    overlay_color: 0, 0, 0, .48
+
+<EnkryonOverlayCard>:
+    radius: [dp(Radius.LG)]
+    md_bg_color: get_color_from_hex(Colors.SURFACE)
+    elevation: Elevation.HIGH
