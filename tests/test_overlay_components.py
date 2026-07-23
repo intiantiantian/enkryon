@@ -665,3 +665,31 @@ def test_selection_panel_populates_before_open():
     EnkryonSelectionPanel.on_pre_open(panel)
 
     panel.populate_options.assert_called_once_with()
+
+
+def test_input_dialog_label_clears_field_boundary():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "input_dialog.kv"
+    ).read_text()
+
+    field_container = layout.split(
+        "FloatLayout:",
+        maxsplit=1,
+    )[1].split(
+        "\n        MDCard:",
+        maxsplit=1,
+    )[0]
+
+    assert 'hint_text: ""' in field_container
+    assert "text: root.hint_text" in field_container
+    assert (
+        "get_color_from_hex(\n"
+        "                            Colors.SURFACE)"
+        in field_container
+    )
+    assert "self.x - dp(4), self.y" in field_container
+    assert (
+        "self.width + dp(8), self.height"
+        in field_container
+    )
