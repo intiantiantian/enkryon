@@ -218,6 +218,26 @@ def test_overlay_width_is_capped_on_wide_windows():
     assert width == pytest.approx(dp(420))
 
 
+def test_shared_overlay_dismisses_only_topmost_active_overlay():
+    top_overlay = Mock(spec=EnkryonOverlay)
+    lower_overlay = Mock(spec=EnkryonOverlay)
+    window = SimpleNamespace(
+        children=[
+            top_overlay,
+            object(),
+            lower_overlay,
+        ],
+    )
+
+    assert EnkryonOverlay.dismiss_active(window) is True
+    top_overlay.dismiss.assert_called_once_with()
+    lower_overlay.dismiss.assert_not_called()
+
+    window.children = [object()]
+
+    assert EnkryonOverlay.dismiss_active(window) is False
+
+
 def test_existing_custom_dialogs_share_overlay_foundation():
     assert issubclass(InputDialog, EnkryonOverlay)
     assert issubclass(DatePickerDialog, EnkryonOverlay)

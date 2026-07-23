@@ -56,6 +56,9 @@ class EnkryonApp(MDApp):
         if key != self.BACK_KEY:
             return False
 
+        if EnkryonOverlay.dismiss_active(Window):
+            return True
+
         navigation_method = {
             "accounts": "go_back",
             "categories": "go_back",

@@ -21,6 +21,17 @@ class EnkryonOverlay(ModalView):
         )
         return min(self.max_width, usable_width)
 
+    @classmethod
+    def dismiss_active(cls, window):
+        for child in window.children:
+            if not isinstance(child, cls):
+                continue
+
+            child.dismiss()
+            return True
+
+        return False
+
 
 class EnkryonOverlayCard(MDCard):
     pass
