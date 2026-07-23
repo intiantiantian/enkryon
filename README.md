@@ -30,6 +30,10 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ![Categories](assets/screenshots/categories/categories_populated.jpg)
 
+### Settings
+
+![Settings](assets/screenshots/settings/settings.jpg)
+
 ---
 
 ## Features
@@ -94,7 +98,7 @@ The latest Android APK is available from the GitHub Releases page.
 Latest release:
 
 ```
-Enkryon-v0.4.8.apk
+Enkryon-v0.6.0.apk
 ```
 
 ---
@@ -205,10 +209,13 @@ Development follows a reliability-first sequence:
 - Phase 5 simplified the architecture with named records, managed database
   connections, explicit transaction form state, workflow services, and
   shared screen-action helpers.
-- Phase 6 is next and focuses on accessibility, responsive layouts, clear
-  navigation, and comfortable interaction across supported phones.
-- Later phases cover usability, recovery, search, and version 1.0
-  validation before major feature expansion.
+- Phase 6 improved existing workflows with preserved transaction form state,
+  responsive layouts, clearer navigation, actionable empty states, and
+  consistent customized overlays.
+- Phase 7 is next and focuses on user-controlled backup, restore, and
+  recovery.
+- Later phases cover search and version 1.0 validation before major feature
+  expansion.
 
 See the [complete development roadmap](ROADMAP.md) for objectives,
 deliverables, priorities, and completion gates.

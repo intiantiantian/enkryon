@@ -89,6 +89,35 @@ The baseline is informational. Phase 3 does not impose an arbitrary
 percentage gate; new tests should target meaningful financial, migration,
 service, and failure behavior.
 
+## Phase 6 Interface Regression
+
+Phase 6 began with `252` tests. Its implementation regression contained
+`391` passing tests, and the documentation closeout adds four tests for a
+final total of `395` passing tests.
+
+Automated coverage now includes source-level responsive-layout contracts,
+transaction-form preservation, actionable empty states, shared overlay
+behavior, option selection, floating-label boundaries, Dashboard amount
+capacity, and overlay-first Back handling Back handling.
+
+Real rendering still requires application checks. Relevant Phase 6
+checkpoints used these conditions:
+
+- Small `S / 90%` profile.
+- One medium or desktop profile.
+- Default and enlarged system font.
+- Empty, populated, validation-error, destructive, and long-content states.
+- Android checks for keyboard, safe-area, and Back behavior.
+- Desktop Escape behavior for active overlays.
+
+The two final regression corrections received focused automated and
+real-application checks. The complete all-profile manual checklist was not
+repeated afterward; that explicit evidence limit is recorded in
+`docs/audits/phase-6-verification.md`.
+
+Future interface changes must run their focused tests, the complete suite,
+and the device or desktop checks relevant to the changed behavior.
+
 ## GitHub Actions
 
 `.github/workflows/quality.yml` runs on pushes, pull requests, and manual

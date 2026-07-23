@@ -50,11 +50,33 @@ def test_formats_negative_centavo_balance():
     assert format_money(-25075) == "-₱ 250.75"
 
 
+def test_compact_money_preserves_dashboard_capacity():
+    assert format_money(
+        999_999_900,
+        compact=True,
+    ) == "₱ 9,999,999.00"
+
+    assert format_money(
+        -999_999_900,
+        compact=True,
+    ) == "-₱ 9,999,999.00"
+
+    assert format_money(
+        1_000_000_000,
+        compact=True,
+    ) == "₱ 10.00M"
+
+    assert format_money(
+        -1_000_000_000,
+        compact=True,
+    ) == "-₱ 10.00M"
+
+
 def test_formats_compact_and_signed_centavos():
     assert format_money(
-        123_456_789,
+        1_234_567_890,
         compact=True,
-    ) == "₱ 1.23M"
+    ) == "₱ 12.35M"
     assert format_signed_money(
         25075,
         "income",

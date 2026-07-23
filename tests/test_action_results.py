@@ -72,3 +72,35 @@ def test_render_action_result_runs_callbacks_after_message(monkeypatch):
         ("before", None),
         ("refresh", None),
     ]
+
+
+def test_render_action_result_forwards_snackbar_options(
+    monkeypatch,
+):
+    action_results_module = import_module(
+        "screens.action_results"
+    )
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    callback = Mock()
+    result = SimpleNamespace(message="Action succeeded.")
+
+    render_action_result(
+        result,
+        snackbar_options={
+            "action_text": "UNDO",
+            "action_callback": callback,
+            "duration": 8,
+        },
+    )
+
+    show_snackbar.assert_called_once_with(
+        "Action succeeded.",
+        action_text="UNDO",
+        action_callback=callback,
+        duration=8,
+    )

@@ -1,7 +1,9 @@
-from kivymd.uix.button import MDFlatButton
-from kivymd.uix.dialog import MDDialog
+from services.transaction_services import (
+    delete_transaction_by_id,
+    restore_deleted_transaction,
+)
 
-from services.transaction_services import delete_transaction_by_id
+from widgets.overlays import EnkryonConfirmationDialog
 
 from .action_results import render_action_result
 
@@ -21,6 +23,22 @@ class TransactionListActionsMixin:
         self.refresh_transaction_list()
 
 
+    def get_empty_transaction_action(self):
+        filters_active = (
+            self.transaction_filter is not None
+            or getattr(self, "selected_account_id", None) is not None
+        )
+
+        if filters_active:
+            return "SHOW ALL", self.show_all_transactions
+
+        return "ADD TRANSACTION", self.go_to_add_transaction
+
+
+    def show_all_transactions(self):
+        self.set_transaction_filter(None)
+
+
     def edit_transaction(self, transaction_id):
         screen = self.manager.get_screen("add_transaction")
         screen.load_transaction(transaction_id)
@@ -29,8 +47,29 @@ class TransactionListActionsMixin:
 
     def delete_transaction(self, transaction_id):
         result = delete_transaction_by_id(transaction_id)
-        self.delete_transaction_dialog.dismiss()
+        self.close_delete_transaction_dialog()
 
+        snackbar_options = None
+        if result.success:
+            snackbar_options = {
+                "action_text": "UNDO",
+                "action_callback": lambda:
+                    self.undo_transaction_delete(
+                        result.deleted_transaction
+                    ),
+                "duration": 8,
+            }
+
+        render_action_result(
+            result,
+            refresh=self.refresh_after_transaction_delete,
+            refresh_required=result.success,
+            snackbar_options=snackbar_options,
+        )
+
+
+    def undo_transaction_delete(self, transaction):
+        result = restore_deleted_transaction(transaction)
         render_action_result(
             result,
             refresh=self.refresh_after_transaction_delete,
@@ -39,23 +78,27 @@ class TransactionListActionsMixin:
 
 
     def confirm_delete_transaction(self, transaction_id):
-        self.delete_transaction_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this transaction?",
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=lambda x:
-                        self.delete_transaction_dialog.dismiss()
+        self.delete_transaction_dialog = (
+            EnkryonConfirmationDialog(
+                title="Delete Transaction?",
+                message=(
+                    "This transaction will be permanently "
+                    "deleted."
                 ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x:
-                        self.delete_transaction(transaction_id)
-                )
-            ]
+                confirm_callback=lambda:
+                    self.delete_transaction(transaction_id),
+                cancel_callback=(
+                    self.close_delete_transaction_dialog
+                ),
+            )
         )
         self.delete_transaction_dialog.open()
+
+
+    def close_delete_transaction_dialog(self, *args):
+        if self.delete_transaction_dialog:
+            self.delete_transaction_dialog.dismiss()
+            self.delete_transaction_dialog = None
 
 
     def refresh_after_transaction_delete(self):

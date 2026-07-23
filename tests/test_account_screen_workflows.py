@@ -49,6 +49,7 @@ def test_load_accounts_renders_empty_state(monkeypatch):
     )
     screen = SimpleNamespace(
         ids=SimpleNamespace(accounts_container=container),
+        add_account=Mock()
     )
 
     AccountsScreen.load_accounts(screen)
@@ -56,8 +57,11 @@ def test_load_accounts_renders_empty_state(monkeypatch):
     get_accounts_for_view.assert_called_once_with()
     container.clear_widgets.assert_called_once_with()
     empty_state_factory.assert_called_once_with(
+        icon="wallet-outline",
         title="No accounts yet",
-        message="Tap + to create your first account.",
+        message="Create an account to start tracking your money.",
+        action_text="ADD ACCOUNT",
+        action_callback=screen.add_account,
     )
     container.add_widget.assert_called_once_with(empty_state)
 
@@ -120,13 +124,57 @@ def test_save_account_renders_service_result(
         "create_account_workflow",
         result,
     )
-    screen = SimpleNamespace(load_accounts=Mock())
+    account_created_callback = Mock()
+    screen = SimpleNamespace(
+        load_accounts=Mock(),
+        account_created_callback=account_created_callback,
+    )
 
     AccountsScreen.save_account(screen, " Cash ")
 
     create_account_workflow.assert_called_once_with(" Cash ")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_accounts.call_count == int(success)
+    assert account_created_callback.call_args_list == (
+        [call("Cash")] if success else []
+    )
+
+
+def test_open_rename_dialog_uses_custom_input_overlay(
+    monkeypatch,
+):
+    accounts_module = import_module("screens.accounts")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        accounts_module,
+        "InputDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        rename_account=Mock(),
+    )
+
+    AccountsScreen.open_rename_dialog(
+        screen,
+        7,
+        "Cash",
+    )
+
+    dialog.open.assert_called_once_with()
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+
+    assert dialog_kwargs["title"] == "Rename Account"
+    assert dialog_kwargs["hint_text"] == "Account name..."
+    assert dialog_kwargs["text"] == "Cash"
+
+    dialog_kwargs["callback"]("Wallet")
+
+    screen.rename_account.assert_called_once_with(
+        7,
+        "Wallet",
+    )
 
 
 @pytest.mark.parametrize("success", [True, False])
@@ -144,18 +192,17 @@ def test_rename_account_renders_service_result(
         result,
     )
     screen = SimpleNamespace(
-        rename_dialog=SimpleNamespace(
-            content_cls=SimpleNamespace(text=" Wallet "),
-        ),
-        close_rename_dialog=Mock(),
         load_accounts=Mock(),
     )
 
-    AccountsScreen.rename_account(screen, 7)
+    AccountsScreen.rename_account(
+        screen,
+        7,
+        " Wallet ",
+    )
 
     rename_account_workflow.assert_called_once_with(7, " Wallet ")
     show_snackbar.assert_called_once_with(result.message)
-    assert screen.close_rename_dialog.call_count == int(success)
     assert screen.load_accounts.call_count == int(success)
 
 
@@ -184,3 +231,59 @@ def test_delete_account_renders_service_result(
     remove_account_workflow.assert_called_once_with(7)
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_accounts.call_count == int(success)
+
+
+@pytest.mark.parametrize(
+    "return_screen",
+    ["dashboard", "add_transaction"],
+)
+def test_account_back_returns_to_origin_once(return_screen):
+    manager = SimpleNamespace(current="accounts")
+    screen = SimpleNamespace(
+        manager=manager,
+        return_screen=return_screen,
+    )
+
+    AccountsScreen.go_back(screen)
+
+    assert manager.current == return_screen
+    assert screen.return_screen == "dashboard"
+
+
+def test_confirm_delete_account_uses_custom_confirmation(
+    monkeypatch,
+):
+    accounts_module = import_module("screens.accounts")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        accounts_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        perform_delete_account=Mock(),
+        close_delete_dialog=Mock(),
+    )
+
+    AccountsScreen.confirm_delete_account(screen, 7)
+
+    assert screen.delete_dialog is dialog
+    dialog.open.assert_called_once_with()
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+
+    assert dialog_kwargs["title"] == "Delete Account?"
+    assert (
+        dialog_kwargs["message"]
+        == (
+            "Accounts with existing transactions cannot "
+            "be deleted. Delete this account?"
+        )
+    )
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
+    screen.perform_delete_account.assert_called_once_with(7)
+    screen.close_delete_dialog.assert_called_once_with()

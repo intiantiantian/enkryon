@@ -18,14 +18,17 @@ SECONDARY_BUTTON_STYLE = {
 }
 
 
-def get_filter_button_colors(selected):
-    background_color = (
-        Colors.BRAND_ACCENT_SOFT if selected else Colors.SURFACE
-    )
-
+def get_filter_button_style(selected):
     return {
-        "background_color": hex_to_rgba(background_color),
-        "text_color": hex_to_rgba(Colors.BRAND_PRIMARY),
+        "background_color": hex_to_rgba(
+            Colors.BRAND_PRIMARY if selected else Colors.SURFACE
+        ),
+        "text_color": hex_to_rgba(
+            Colors.TEXT_ON_PRIMARY
+            if selected
+            else Colors.BRAND_PRIMARY
+        ),
+        "line_width": 3 if selected else 1.5,
     }
 
 
@@ -49,15 +52,14 @@ class EnkryonSecondaryButton(MDRaisedButton):
 class EnkryonFilterButton(MDRectangleFlatButton):
     def __init__(self, selected=False, **kwargs):
         super().__init__(**kwargs)
-        self.height = ComponentSize.SMALL_BUTTON_HEIGHT
+        self.height = ComponentSize.TOUCH_TARGET
         self.radius = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
-        self.set_selected(selected)
-        self.ripple_alpha = 0
+        self.ripple_alpha = 0.12
         self.line_color = hex_to_rgba(Colors.BRAND_PRIMARY)
-        self.text_color = hex_to_rgba(Colors.BRAND_PRIMARY)
-        self.line_width = 1.5
+        self.set_selected(selected)
         
     def set_selected(self, selected):
-        colors = get_filter_button_colors(selected)
-        self.md_bg_color = colors["background_color"]
-        self.text_color = colors["text_color"]
+        style = get_filter_button_style(selected)
+        self.md_bg_color = style["background_color"]
+        self.text_color = style["text_color"]
+        self.line_width = style["line_width"]

@@ -1,5 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.menu import MDDropdownMenu
 
 from database.account_repository import get_all_accounts, get_account_by_id
 from database.transaction_repository import (
@@ -16,6 +15,7 @@ from .transaction_list_actions import (
 )
 
 from widgets.transaction_list import render_transaction_list
+from widgets.overlays import EnkryonSelectionPanel
 
 from utils.money import format_money
 
@@ -53,6 +53,13 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
     def go_to_transactions(self):
         self.manager.current = 'transactions'
+
+
+    def show_all_transactions(self):
+        self.selected_account_id = None
+        self.ids.account_label.text = "All Accounts"
+        self.set_transaction_filter(None)
+        self.load_summary()
 
 
     def reset_dashboard(self):
@@ -119,12 +126,16 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
             limit=3,
             compact_empty_state=True,
         )
-
+        action_text, action_callback = (
+            self.get_empty_transaction_action()
+        )
         render_transaction_list(
             container=self.ids.transactions_container,
             transactions=transaction_list_data["transactions"],
             screen=self,
             empty_state=transaction_list_data["empty_state"],
+            action_text=action_text,
+            action_callback=action_callback,
         )
 
 
@@ -155,9 +166,10 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
                 }
             )
 
-        self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_selector,
-            items=menu_items,
+        self.account_menu = EnkryonSelectionPanel(
+            title="Filter by Account",
+            selected_text=self.ids.account_label.text,
+            options=menu_items,
         )
 
         self.account_menu.open()

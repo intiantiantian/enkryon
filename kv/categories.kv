@@ -29,6 +29,11 @@
 
             MDLabel:
                 id: category_name
+                text_size: self.size
+                valign: 'middle'
+                max_lines: 1
+                shorten: True
+                shorten_from: 'right'
 
             MDIconButton:
                 icon: 'pencil'
@@ -71,6 +76,9 @@
                 id: group_name
                 text_size: self.size
                 valign: 'middle'
+                max_lines: 1
+                shorten: True
+                shorten_from: 'right'
 
             MDIconButton:
                 icon: "plus"
@@ -128,7 +136,7 @@
                     
             MDIconButton:
                 icon: 'arrow-left'
-                on_release: root.go_to_dashboard()
+                on_release: root.go_back()
                 theme_icon_color: 'Custom'
                 icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
                 pos_hint: {'center_y': .5}
@@ -187,7 +195,7 @@
 
             MDCard:
                 size_hint: None, None
-                size: dp(42), dp(42)
+                size: dp(48), dp(48)
                 radius: [36]
                 md_bg_color: get_color_from_hex(Colors.SURFACE_MUTED)
 

@@ -1,3 +1,8 @@
+#:import Window kivy.core.window.Window
+#:import Metrics kivy.metrics.Metrics
+#:import should_stack_controls utils.responsive_layout.should_stack_controls
+
+
 <TransactionsScreen>
     BoxLayout:
         orientation: 'vertical'
@@ -49,13 +54,14 @@
                     pos: self.pos
                     size: self.size        
 
-        BoxLayout:
+        GridLayout:
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
             size_hint_y: None
-            height: '56dp'
+            height: self.minimum_height
             padding: '10dp'
-
-            orientation: 'horizontal'
             spacing: '10dp'
+            row_default_height: '44dp'
+            row_force_default: True
 
             EnkryonFilterButton:
                 id: all_filter

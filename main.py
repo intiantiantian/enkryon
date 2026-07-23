@@ -1,6 +1,7 @@
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
+from kivy.core.window import Window
 
 from screens.dashboard import DashboardScreen
 from screens.add_transaction import AddTransactionScreen
@@ -18,20 +19,70 @@ from widgets.buttons import (
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
 )
+from widgets.overlays import (
+    EnkryonConfirmationDialog,
+    EnkryonOverlay,
+    EnkryonOverlayCard,
+    EnkryonSelectionOption,
+    EnkryonSelectionPanel,
+)
 
 _ = (
     EnkryonFilterButton,
     EnkryonPrimaryButton,
     EnkryonSecondaryButton,
+    EnkryonConfirmationDialog,
+    EnkryonOverlay,
+    EnkryonOverlayCard,
+    EnkryonSelectionOption,
+    EnkryonSelectionPanel,
 )
 
-__version__ = "0.4.8"
+__version__ = "0.6.0"
 
 class EnkryonApp(MDApp):
+
+    BACK_KEY = 27
+
+    def on_start(self):
+        Window.bind(on_key_down=self.handle_back_button)
+
+
+    def on_stop(self):
+        Window.unbind(on_key_down=self.handle_back_button)
+
+
+    def handle_back_button(self, _window, key, *_args):
+        if key != self.BACK_KEY:
+            return False
+
+        if EnkryonOverlay.dismiss_active(Window):
+            return True
+
+        navigation_method = {
+            "accounts": "go_back",
+            "categories": "go_back",
+            "add_transaction": "go_to_dashboard",
+            "transactions": "go_to_dashboard",
+            "settings": "go_to_dashboard",
+        }.get(self.root.current)
+
+        if navigation_method is None:
+            return False
+
+        current_screen = self.root.current_screen
+        getattr(current_screen, navigation_method)()
+        return True
+
+
+    version = __version__
+
+
     def build(self):
 
         apply_app_theme(self)
 
+        Builder.load_file('kv/overlays.kv')
         Builder.load_file('kv/widgets.kv')
         Builder.load_file('kv/dashboard.kv')
         Builder.load_file('kv/add_transaction.kv')

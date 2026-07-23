@@ -1,7 +1,8 @@
-from kivy.uix.modalview import ModalView
 from kivy.properties import StringProperty, ObjectProperty
 
-class InputDialog(ModalView):
+from .overlays import EnkryonOverlay
+
+class InputDialog(EnkryonOverlay):
 
     title = StringProperty('')
     hint_text = StringProperty('')

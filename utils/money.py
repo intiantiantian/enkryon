@@ -64,13 +64,29 @@ def format_money(amount_centavos, compact=False):
 
     if compact:
         compact_units = (
-            (100_000_000_000_000, "T"),
-            (100_000_000_000, "B"),
-            (100_000_000, "M"),
+            (
+                100_000_000_000_000,
+                100_000_000_000_000,
+                "T",
+            ),
+            (
+                100_000_000_000,
+                100_000_000_000,
+                "B",
+            ),
+            (
+                1_000_000_000,
+                100_000_000,
+                "M",
+            ),
         )
 
-        for unit_centavos, suffix in compact_units:
-            if absolute_centavos >= unit_centavos:
+        for (
+            minimum_centavos,
+            unit_centavos,
+            suffix,
+        ) in compact_units:
+            if absolute_centavos >= minimum_centavos:
                 scaled_amount = (
                     Decimal(absolute_centavos)
                     / Decimal(unit_centavos)

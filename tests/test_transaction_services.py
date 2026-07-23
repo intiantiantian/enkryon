@@ -239,43 +239,62 @@ def test_save_transaction_returns_update_result(
     (
         "transaction_filter",
         "compact",
+        "account_filtered",
         "expected_state",
     ),
     [
         (
             "income",
             False,
+            False,
             {
-                "title": "No income transactions found",
-                "message": "Income transactions will appear here.",
+                "title": "No income transactions",
+                "message": (
+                    "No income transactions match the current view."
+                ),
             },
         ),
         (
             "expense",
             False,
+            False,
             {
-                "title": "No expense transactions found",
-                "message": "Expense transactions will appear here.",
+                "title": "No expense transactions",
+                "message": (
+                    "No expense transactions match the current view."
+                ),
             },
         ),
         (
             None,
             True,
+            True,
+            {
+                "title": "No transactions for this account",
+                "message": (
+                    "This account does not have any transactions yet."
+                ),
+            },
+        ),
+        (
+            None,
+            True,
+            False,
             {
                 "title": "No transactions yet",
                 "message": (
-                    "Tap + Add Transaction to create your first "
-                    "transaction."
+                    "Add a transaction to start tracking your money."
                 ),
             },
         ),
         (
             None,
             False,
+            False,
             {
                 "title": "No transactions yet",
                 "message": (
-                    "Go back to Dashboard and tap + Add Transaction."
+                    "Add a transaction to start building your history."
                 ),
             },
         ),
@@ -284,11 +303,13 @@ def test_save_transaction_returns_update_result(
 def test_get_empty_transaction_state(
     transaction_filter,
     compact,
+    account_filtered,
     expected_state,
 ):
     assert transaction_services.get_empty_transaction_state(
         transaction_filter,
         compact,
+        account_filtered,
     ) == expected_state
 
 
@@ -322,10 +343,11 @@ def test_get_transaction_list_data_combines_service_results(
 ):
     expected_transactions = [(7, "Cash", "Salary")]
     expected_empty_state = {
-        "title": "No income transactions found",
-        "message": "Income transactions will appear here.",
+        "title": "No income transactions",
+        "message": (
+            "No income transactions match the current view."
+        ),
     }
-
     get_transactions_for_view = Mock(
         return_value=expected_transactions
     )
@@ -363,6 +385,7 @@ def test_get_transaction_list_data_combines_service_results(
     get_empty_transaction_state.assert_called_once_with(
         "income",
         True,
+        account_filtered=True,
     )
 
 
@@ -412,34 +435,23 @@ def test_get_transaction_for_edit_forwards_transaction_id(
     repository_get_transaction.assert_called_once_with(17)
 
 
-@pytest.mark.parametrize(
-    ("repository_result", "expected_result"),
-    [
-        (
-            True,
-            transaction_services.TransactionDeleteResult(
-                success=True,
-                message="Transaction deleted successfully.",
-            ),
-        ),
-        (
-            False,
-            transaction_services.TransactionDeleteResult(
-                success=False,
-                message="Transaction could not be deleted.",
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("repository_result", [True, False])
 def test_delete_transaction_by_id_returns_repository_result(
     monkeypatch,
     repository_result,
-    expected_result,
 ):
+    transaction = object()
+    repository_get_transaction = Mock(
+        return_value=transaction
+    )
     repository_delete_transaction = Mock(
         return_value=repository_result
     )
-
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        repository_get_transaction,
+    )
     monkeypatch.setattr(
         transaction_services,
         "delete_transaction",
@@ -448,5 +460,74 @@ def test_delete_transaction_by_id_returns_repository_result(
 
     result = transaction_services.delete_transaction_by_id(17)
 
-    assert result == expected_result
+    assert result == transaction_services.TransactionDeleteResult(
+        success=repository_result,
+        message=(
+            "Transaction deleted."
+            if repository_result
+            else "Transaction could not be deleted."
+        ),
+        deleted_transaction=(
+            transaction if repository_result else None
+        ),
+    )
+    repository_get_transaction.assert_called_once_with(17)
     repository_delete_transaction.assert_called_once_with(17)
+
+
+def test_delete_missing_transaction_skips_repository_delete(
+    monkeypatch,
+):
+    repository_get_transaction = Mock(return_value=None)
+    repository_delete_transaction = Mock()
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        repository_get_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "delete_transaction",
+        repository_delete_transaction,
+    )
+
+    result = transaction_services.delete_transaction_by_id(17)
+
+    assert result == transaction_services.TransactionDeleteResult(
+        success=False,
+        message="Transaction could not be deleted.",
+    )
+    repository_get_transaction.assert_called_once_with(17)
+    repository_delete_transaction.assert_not_called()
+
+
+@pytest.mark.parametrize("restored", [True, False])
+def test_restore_deleted_transaction_returns_repository_result(
+    monkeypatch,
+    restored,
+):
+    transaction = object()
+    repository_restore_transaction = Mock(
+        return_value=restored
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "restore_transaction",
+        repository_restore_transaction,
+    )
+
+    result = transaction_services.restore_deleted_transaction(
+        transaction
+    )
+
+    assert result == transaction_services.TransactionRestoreResult(
+        success=restored,
+        message=(
+            "Transaction restored."
+            if restored
+            else "Transaction could not be restored."
+        ),
+    )
+    repository_restore_transaction.assert_called_once_with(
+        transaction
+    )

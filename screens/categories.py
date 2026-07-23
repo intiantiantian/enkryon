@@ -1,6 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
 
 from .action_results import render_action_result
 
@@ -17,24 +15,54 @@ from services.category_services import (
 from widgets.input_dialog import InputDialog
 from widgets.category_group_card import CategoryGroupCard
 from widgets.empty_state import EmptyState
+from widgets.delete_confirmation import (
+    open_permanent_delete_confirmation,
+)
+from widgets.overlays import EnkryonConfirmationDialog
 
 class CategoriesScreen(Screen):
     
-    def go_to_dashboard(self):
-        self.manager.current = 'dashboard'
+    return_screen = "dashboard"
+    group_created_callback = None
+    category_created_callback = None
+    initial_transaction_type = None
+    initial_group_id = None
+
+
+    def go_back(self):
+        destination = self.return_screen
+        self.return_screen = "dashboard"
+        self.group_created_callback = None
+        self.category_created_callback = None
+        self.manager.current = destination
 
 
     def on_pre_enter(self):
+        initial_transaction_type = getattr(
+            self,
+            "initial_transaction_type",
+            None,
+        )
+        initial_group_id = getattr(self, "initial_group_id", None)
+        self.initial_transaction_type = None
+        self.initial_group_id = None
+
         self.rename_dialog = None
         self.rename_category_dialog = None
         self.delete_dialog = None
         self.delete_category_dialog = None
 
-        self.current_transaction_type = 'income'
+        self.current_transaction_type = (
+            initial_transaction_type or 'income'
+        )
         self.ids.income_button.set_selected(self.current_transaction_type == 'income')
         self.ids.expense_button.set_selected(self.current_transaction_type == 'expense')
 
-        self.expanded_groups = set()
+        self.expanded_groups = (
+            {initial_group_id}
+            if initial_group_id is not None
+            else set()
+        )
 
         self.load_groups()
 
@@ -54,7 +82,11 @@ class CategoriesScreen(Screen):
                 EmptyState(
                     icon="folder-outline",
                     title=f"No {label} category groups yet",
-                    message="Tap + to create your first category group."
+                    message=(
+                        f"Create a group to organize your {label} categories."
+                    ),
+                    action_text="ADD GROUP",
+                    action_callback=self.add_group,
                 )
             )
             return
@@ -96,6 +128,12 @@ class CategoriesScreen(Screen):
             refresh=self.load_groups,
             refresh_required=result.refresh_required,
         )
+        callback = getattr(self, "group_created_callback", None)
+        if result.success and callback is not None:
+            callback(
+                self.current_transaction_type,
+                (group_name or "").strip(),
+            )
 
 
     def rename_group(self, group_id, new_name):
@@ -129,18 +167,15 @@ class CategoriesScreen(Screen):
 
 
     def confirm_delete_group(self, group_id):
-        self.delete_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this group? Groups with existing categories cannot be deleted.",            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_delete_dialog
-                ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_delete_group(group_id)
-                )
-            ]
+        self.delete_dialog = EnkryonConfirmationDialog(
+            title="Delete Category Group?",
+            message=(
+                "Groups containing categories cannot be "
+                "deleted. Delete this category group?"
+            ),
+            confirm_callback=lambda:
+                self.perform_delete_group(group_id),
+            cancel_callback=self.close_delete_dialog,
         )
         self.delete_dialog.open()
 
@@ -155,7 +190,7 @@ class CategoriesScreen(Screen):
         InputDialog(
             title="New Category",
             hint_text="Category name...",
-            callback=lambda name: self.save_category(group_id, name)
+            callback=lambda name: self.save_category(group_id, name),
         ).open()
 
 
@@ -166,6 +201,17 @@ class CategoriesScreen(Screen):
             refresh=self.load_groups,
             refresh_required=result.refresh_required,
         )
+
+        callback = getattr(
+            self,
+            "category_created_callback",
+            None,
+        )
+        if result.success and callback is not None:
+            callback(
+                group_id,
+                (category_name or "").strip(),
+            )
 
 
     def rename_category(self, category_id, new_name):
@@ -198,18 +244,19 @@ class CategoriesScreen(Screen):
 
 
     def confirm_delete_category(self, category_id):
-        self.delete_category_dialog = MDDialog(
-            title="Confirm Delete",
-            text="Are you sure you want to delete this category? Categories with existing transactions cannot be deleted.",            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    on_release=self.close_delete_category_dialog
+        self.delete_category_dialog = (
+            EnkryonConfirmationDialog(
+                title="Delete Category?",
+                message=(
+                    "Categories with existing transactions "
+                    "cannot be deleted. Delete this category?"
                 ),
-                MDFlatButton(
-                    text="DELETE",
-                    on_release=lambda x: self.perform_delete_category(category_id)
-                )
-            ]
+                confirm_callback=lambda:
+                    self.perform_delete_category(category_id),
+                cancel_callback=(
+                    self.close_delete_category_dialog
+                ),
+            )
         )
         self.delete_category_dialog.open()
 

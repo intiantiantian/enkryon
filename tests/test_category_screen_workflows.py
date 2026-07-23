@@ -79,6 +79,7 @@ def test_load_groups_renders_empty_state(
     screen = SimpleNamespace(
         current_transaction_type=transaction_type,
         ids=SimpleNamespace(groups_container=container),
+        add_group=Mock()
     )
 
     CategoriesScreen.load_groups(screen)
@@ -88,7 +89,11 @@ def test_load_groups_renders_empty_state(
     empty_state_factory.assert_called_once_with(
         icon="folder-outline",
         title=f"No {label} category groups yet",
-        message="Tap + to create your first category group.",
+        message=(
+            f"Create a group to organize your {label} categories."
+        ),
+        action_text="ADD GROUP",
+        action_callback=screen.add_group,
     )
     container.add_widget.assert_called_once_with(empty_state)
 
@@ -167,12 +172,21 @@ def test_save_group_renders_service_result(
         current_transaction_type="expense",
         load_groups=Mock(),
     )
+    group_created_callback = Mock()
+    screen = SimpleNamespace(
+        current_transaction_type="expense",
+        load_groups=Mock(),
+        group_created_callback=group_created_callback,
+    )
 
     CategoriesScreen.save_group(screen, " Food ")
 
     create_group_workflow.assert_called_once_with(" Food ", "expense")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+    assert group_created_callback.call_args_list == (
+        [call("expense", "Food")] if result.success else []
+    )
 
 
 @pytest.mark.parametrize(
@@ -239,13 +253,20 @@ def test_save_category_renders_service_result(
         "create_category_workflow",
         result,
     )
-    screen = SimpleNamespace(load_groups=Mock())
+    category_created_callback = Mock()
+    screen = SimpleNamespace(
+        load_groups=Mock(),
+        category_created_callback=category_created_callback,
+    )
 
     CategoriesScreen.save_category(screen, 7, " Dining ")
 
     create_category_workflow.assert_called_once_with(7, " Dining ")
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+    assert category_created_callback.call_args_list == (
+        [call(7, "Dining")] if result.success else []
+    )
 
 
 @pytest.mark.parametrize(
@@ -296,3 +317,147 @@ def test_delete_category_renders_service_result(
     remove_category_workflow.assert_called_once_with(11)
     show_snackbar.assert_called_once_with(result.message)
     assert screen.load_groups.call_count == expected_refresh_count
+
+
+@pytest.mark.parametrize(
+    "return_screen",
+    ["dashboard", "add_transaction"],
+)
+def test_category_back_returns_to_origin_once(return_screen):
+    manager = SimpleNamespace(current="categories")
+    screen = SimpleNamespace(
+        manager=manager,
+        return_screen=return_screen,
+    )
+
+    CategoriesScreen.go_back(screen)
+
+    assert manager.current == return_screen
+    assert screen.return_screen == "dashboard"
+
+
+def test_category_entry_restores_transaction_context():
+    income_button = SimpleNamespace(set_selected=Mock())
+    expense_button = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        initial_transaction_type="expense",
+        initial_group_id=7,
+        ids=SimpleNamespace(
+            income_button=income_button,
+            expense_button=expense_button,
+        ),
+        load_groups=Mock(),
+    )
+
+    CategoriesScreen.on_pre_enter(screen)
+
+    assert screen.current_transaction_type == "expense"
+    assert screen.expanded_groups == {7}
+    assert screen.initial_transaction_type is None
+    assert screen.initial_group_id is None
+    income_button.set_selected.assert_called_once_with(False)
+    expense_button.set_selected.assert_called_once_with(True)
+    screen.load_groups.assert_called_once_with()
+
+
+def test_add_category_opens_creation_dialog(monkeypatch):
+    categories_module = import_module("screens.categories")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        categories_module,
+        "InputDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(save_category=Mock())
+
+    CategoriesScreen.add_category(screen, 7)
+
+    dialog_factory.assert_called_once()
+    dialog.open.assert_called_once_with()
+
+    dialog_options = dialog_factory.call_args.kwargs
+    assert dialog_options["title"] == "New Category"
+    assert dialog_options["hint_text"] == "Category name..."
+
+    dialog_options["callback"](" Dining ")
+
+    screen.save_category.assert_called_once_with(7, " Dining ")
+
+
+@pytest.mark.parametrize(
+    (
+        "method_name",
+        "dialog_attribute",
+        "expected_title",
+        "expected_message",
+        "close_method_name",
+        "perform_method_name",
+    ),
+    [
+        (
+            "confirm_delete_group",
+            "delete_dialog",
+            "Delete Category Group?",
+            (
+                "Groups containing categories cannot be "
+                "deleted. Delete this category group?"
+            ),
+            "close_delete_dialog",
+            "perform_delete_group",
+        ),
+        (
+            "confirm_delete_category",
+            "delete_category_dialog",
+            "Delete Category?",
+            (
+                "Categories with existing transactions cannot "
+                "be deleted. Delete this category?"
+            ),
+            "close_delete_category_dialog",
+            "perform_delete_category",
+        ),
+    ],
+)
+def test_delete_prompts_use_custom_confirmation(
+    monkeypatch,
+    method_name,
+    dialog_attribute,
+    expected_title,
+    expected_message,
+    close_method_name,
+    perform_method_name,
+):
+    categories_module = import_module("screens.categories")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        categories_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+
+    close_callback = Mock()
+    perform_callback = Mock()
+    screen = SimpleNamespace(
+        **{
+            close_method_name: close_callback,
+            perform_method_name: perform_callback,
+        }
+    )
+
+    getattr(CategoriesScreen, method_name)(screen, 17)
+
+    assert getattr(screen, dialog_attribute) is dialog
+    dialog.open.assert_called_once_with()
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+
+    assert dialog_kwargs["title"] == expected_title
+    assert dialog_kwargs["message"] == expected_message
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
+    perform_callback.assert_called_once_with(17)
+    close_callback.assert_called_once_with()

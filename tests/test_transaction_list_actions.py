@@ -9,8 +9,10 @@ from screens.transaction_list_actions import (
     TransactionListActionsMixin,
 )
 from screens.transactions import TransactionsScreen
-from services.transaction_services import TransactionDeleteResult
-
+from services.transaction_services import (
+    TransactionDeleteResult,
+    TransactionRestoreResult,
+)
 
 action_results_module = import_module("screens.action_results")
 
@@ -85,6 +87,7 @@ def test_delete_transaction_renders_service_result(
     service_result = TransactionDeleteResult(
         success=success,
         message="Transaction deletion result.",
+        deleted_transaction=(object() if success else None),
     )
     delete_transaction_by_id = Mock(return_value=service_result)
     show_snackbar = Mock()
@@ -98,71 +101,72 @@ def test_delete_transaction_renders_service_result(
         "show_snackbar",
         show_snackbar,
     )
-    dismiss = Mock()
     screen = SimpleNamespace(
-        delete_transaction_dialog=SimpleNamespace(dismiss=dismiss),
+        close_delete_transaction_dialog=Mock(),
         refresh_after_transaction_delete=Mock(),
+        undo_transaction_delete=Mock(),
     )
 
     TransactionListActionsMixin.delete_transaction(screen, 17)
 
     delete_transaction_by_id.assert_called_once_with(17)
-    dismiss.assert_called_once_with()
-    show_snackbar.assert_called_once_with(service_result.message)
-    assert (
-        screen.refresh_after_transaction_delete.call_count
-        == int(success)
-    )
+    screen.close_delete_transaction_dialog.assert_called_once_with()
+    snackbar_call = show_snackbar.call_args
+    assert snackbar_call.args == (service_result.message,)
+
+    if success:
+        assert snackbar_call.kwargs["action_text"] == "UNDO"
+        assert snackbar_call.kwargs["duration"] == 8
+
+        snackbar_call.kwargs["action_callback"]()
+
+        screen.undo_transaction_delete.assert_called_once_with(
+            service_result.deleted_transaction
+        )
+    else:
+        assert snackbar_call.kwargs == {}
+        screen.undo_transaction_delete.assert_not_called()
 
 
-def test_confirm_delete_transaction_builds_working_dialog(monkeypatch):
+def test_confirm_delete_transaction_builds_working_dialog(
+    monkeypatch,
+):
     actions_module = import_module(
         "screens.transaction_list_actions"
     )
-    cancel_button = object()
-    delete_button = object()
-    button_factory = Mock(
-        side_effect=[cancel_button, delete_button]
-    )
-    dialog = SimpleNamespace(
-        dismiss=Mock(),
-        open=Mock(),
-    )
+    dialog = SimpleNamespace(open=Mock())
     dialog_factory = Mock(return_value=dialog)
     monkeypatch.setattr(
         actions_module,
-        "MDFlatButton",
-        button_factory,
-    )
-    monkeypatch.setattr(
-        actions_module,
-        "MDDialog",
+        "EnkryonConfirmationDialog",
         dialog_factory,
     )
-    screen = SimpleNamespace(delete_transaction=Mock())
+    screen = SimpleNamespace(
+        delete_transaction=Mock(),
+        close_delete_transaction_dialog=Mock(),
+    )
 
-    TransactionListActionsMixin.confirm_delete_transaction(screen, 17)
+    TransactionListActionsMixin.confirm_delete_transaction(
+        screen,
+        17,
+    )
 
     assert screen.delete_transaction_dialog is dialog
-    dialog_factory.assert_called_once_with(
-        title="Confirm Delete",
-        text="Are you sure you want to delete this transaction?",
-        buttons=[cancel_button, delete_button],
-    )
     dialog.open.assert_called_once_with()
 
-    cancel_callback = button_factory.call_args_list[0].kwargs[
-        "on_release"
-    ]
-    delete_callback = button_factory.call_args_list[1].kwargs[
-        "on_release"
-    ]
+    dialog_kwargs = dialog_factory.call_args.kwargs
 
-    cancel_callback(None)
-    delete_callback(None)
+    assert dialog_kwargs["title"] == "Delete Transaction?"
+    assert (
+        dialog_kwargs["message"]
+        == "This transaction will be permanently deleted."
+    )
 
-    dialog.dismiss.assert_called_once_with()
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
     screen.delete_transaction.assert_called_once_with(17)
+    screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
 def test_default_delete_refresh_uses_transaction_list_refresh():
@@ -194,3 +198,119 @@ def test_transactions_screen_refreshes_full_transaction_list():
     TransactionsScreen.refresh_transaction_list(screen)
 
     screen.load_transactions.assert_called_once_with()
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_undo_transaction_delete_renders_restore_result(
+    monkeypatch,
+    success,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    transaction = object()
+    service_result = TransactionRestoreResult(
+        success=success,
+        message="Transaction restore result.",
+    )
+    restore_deleted_transaction = Mock(
+        return_value=service_result
+    )
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "restore_deleted_transaction",
+        restore_deleted_transaction,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        refresh_after_transaction_delete=Mock(),
+    )
+
+    TransactionListActionsMixin.undo_transaction_delete(
+        screen,
+        transaction,
+    )
+
+    restore_deleted_transaction.assert_called_once_with(
+        transaction
+    )
+    show_snackbar.assert_called_once_with(service_result.message)
+    assert (
+        screen.refresh_after_transaction_delete.call_count
+        == int(success)
+    )
+
+
+@pytest.mark.parametrize(
+    (
+        "transaction_filter",
+        "selected_account_id",
+        "expected_text",
+        "callback_name",
+    ),
+    [
+        (None, None, "ADD TRANSACTION", "go_to_add_transaction"),
+        ("income", None, "SHOW ALL", "show_all_transactions"),
+        (None, 7, "SHOW ALL", "show_all_transactions"),
+    ],
+)
+def test_empty_transaction_action_matches_current_view(
+    transaction_filter,
+    selected_account_id,
+    expected_text,
+    callback_name,
+):
+    screen = SimpleNamespace(
+        transaction_filter=transaction_filter,
+        selected_account_id=selected_account_id,
+        go_to_add_transaction=Mock(),
+        show_all_transactions=Mock(),
+    )
+
+    action_text, action_callback = (
+        TransactionListActionsMixin.get_empty_transaction_action(
+            screen
+        )
+    )
+
+    assert action_text == expected_text
+    assert action_callback is getattr(screen, callback_name)
+
+
+def test_show_all_transactions_clears_type_filter():
+    screen = SimpleNamespace(set_transaction_filter=Mock())
+
+    TransactionListActionsMixin.show_all_transactions(screen)
+
+    screen.set_transaction_filter.assert_called_once_with(None)
+
+
+def test_dashboard_show_all_clears_account_and_type_filters():
+    account_label = SimpleNamespace(text="Cash")
+    screen = SimpleNamespace(
+        selected_account_id=7,
+        ids=SimpleNamespace(account_label=account_label),
+        set_transaction_filter=Mock(),
+        load_summary=Mock(),
+    )
+
+    DashboardScreen.show_all_transactions(screen)
+
+    assert screen.selected_account_id is None
+    assert account_label.text == "All Accounts"
+    screen.set_transaction_filter.assert_called_once_with(None)
+    screen.load_summary.assert_called_once_with()
+
+
+def test_transactions_screen_can_open_add_transaction():
+    manager = SimpleNamespace(current="transactions")
+    screen = SimpleNamespace(manager=manager)
+
+    TransactionsScreen.go_to_add_transaction(screen)
+
+    assert manager.current == "add_transaction"

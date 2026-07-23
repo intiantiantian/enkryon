@@ -39,14 +39,14 @@ def test_clear_data_renders_repository_result(
         get_screen=Mock(return_value=dashboard),
     )
     screen = SimpleNamespace(
-        dialog=SimpleNamespace(dismiss=Mock()),
+        close_clear_data_dialog=Mock(),
         manager=manager,
     )
 
     SettingsScreen.perform_clear_data(screen)
 
     clear_database.assert_called_once_with()
-    screen.dialog.dismiss.assert_called_once_with()
+    screen.close_clear_data_dialog.assert_called_once_with()
     show_snackbar.assert_called_once_with(expected_message)
 
     if repository_result:

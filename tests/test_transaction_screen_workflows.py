@@ -4,7 +4,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from database.records import TransactionDetailRecord
+from database.records import (
+    AccountRecord,
+    CategoryGroupRecord,
+    CategoryRecord,
+    TransactionDetailRecord,
+)
 
 from screens.add_transaction import AddTransactionScreen
 from screens.transaction_form_state import TransactionFormState
@@ -265,4 +270,486 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         notes="Dinner",
         transaction_id=17,
     )
+    screen.render_form_state.assert_called_once_with()
+
+def test_open_add_account_screen_preserves_in_progress_form():
+    form_state = TransactionFormState(
+        amount="800",
+        transaction_type="income",
+    )
+    account_menu = SimpleNamespace(dismiss=Mock())
+    accounts_screen = SimpleNamespace(return_screen="dashboard")
+    manager = SimpleNamespace(
+        current="add_transaction",
+        get_screen=Mock(return_value=accounts_screen),
+    )
+    screen = SimpleNamespace(
+        form_state=form_state,
+        manager=manager,
+        account_menu=account_menu,
+        select_created_account=Mock(),
+    )
+
+    AddTransactionScreen.open_add_account_screen(screen)
+
+    assert manager.current == "accounts"
+    assert screen.form_state is form_state
+    account_menu.dismiss.assert_called_once_with()
+    manager.get_screen.assert_called_once_with("accounts")
+    assert accounts_screen.return_screen == "add_transaction"
+    assert screen.preserve_form_on_next_enter is True
+    assert (
+        accounts_screen.account_created_callback
+        is screen.select_created_account
+    )
+
+
+def test_open_manage_category_screen_preserves_in_progress_form():
+    form_state = TransactionFormState(
+        amount="800",
+        transaction_type="income",
+    )
+    groups_menu = SimpleNamespace(dismiss=Mock())
+    categories_menu = SimpleNamespace(dismiss=Mock())
+    categories_screen = SimpleNamespace(return_screen="dashboard")
+    manager = SimpleNamespace(
+        current="add_transaction",
+        get_screen=Mock(return_value=categories_screen),
+    )
+    screen = SimpleNamespace(
+        form_state=form_state,
+        manager=manager,
+        groups_menu=groups_menu,
+        categories_menu=categories_menu,
+        select_created_group=Mock(),
+        select_created_category=Mock(),
+    )
+
+    AddTransactionScreen.open_manage_category_screen(screen)
+
+    assert manager.current == "categories"
+    assert screen.form_state is form_state
+    groups_menu.dismiss.assert_called_once_with()
+    categories_menu.dismiss.assert_called_once_with()
+    manager.get_screen.assert_called_once_with("categories")
+    assert categories_screen.return_screen == "add_transaction"
+    assert screen.preserve_form_on_next_enter is True
+    assert (
+        categories_screen.group_created_callback
+        is screen.select_created_group
+    )
+    assert (
+        categories_screen.category_created_callback
+        is screen.select_created_category
+    )
+    assert categories_screen.initial_transaction_type == "income"
+    assert categories_screen.initial_group_id is None
+
+
+def test_add_transaction_pre_enter_resets_non_edit_form():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=None),
+        reset_form=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_called_once_with()
+
+
+def test_add_transaction_pre_enter_preserves_edit_form():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=17),
+        reset_form=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_not_called()
+
+
+def test_add_transaction_pre_enter_preserves_non_edit_form_once():
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(transaction_id=None),
+        preserve_form_on_next_enter=True,
+        reset_form=Mock(),
+        reconcile_preserved_selections=Mock(),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_not_called()
+    screen.reconcile_preserved_selections.assert_called_once_with()
+    screen.render_form_state.assert_called_once_with()
+    assert screen.preserve_form_on_next_enter is False
+
+    AddTransactionScreen.on_pre_enter(screen)
+
+    screen.reset_form.assert_called_once_with()
+
+
+def test_reconcile_preserved_selections_clears_deleted_values(monkeypatch):
+    add_transaction_module = import_module("screens.add_transaction")
+    get_all_accounts = Mock(
+        return_value=[AccountRecord(account_id=9, name="Savings")]
+    )
+    get_groups = Mock(
+        return_value=[
+            CategoryGroupRecord(
+                group_id=5,
+                name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    get_categories = Mock(
+        return_value=[
+            CategoryRecord(
+                category_id=12,
+                group_id=5,
+                name="Groceries",
+                group_name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        get_all_accounts,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            account_id=2,
+            account_name="Cash",
+            group_id=5,
+            group_name="Food",
+            category_id=8,
+            category_name="Dining",
+        )
+    )
+
+    AddTransactionScreen.reconcile_preserved_selections(screen)
+
+    assert screen.form_state.account_id is None
+    assert screen.form_state.account_name == "Select Account"
+    assert screen.form_state.group_id == 5
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id is None
+    assert screen.form_state.category_name == "Select Category"
+    get_all_accounts.assert_called_once_with()
+    get_groups.assert_called_once_with("expense")
+    get_categories.assert_called_once_with(5)
+
+
+def test_reconcile_preserved_selections_clears_deleted_group(monkeypatch):
+    add_transaction_module = import_module("screens.add_transaction")
+    get_groups = Mock(return_value=[])
+    get_categories = Mock()
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            group_id=5,
+            group_name="Food",
+            category_id=8,
+            category_name="Dining",
+        )
+    )
+
+    AddTransactionScreen.reconcile_preserved_selections(screen)
+
+    assert screen.form_state.group_id is None
+    assert screen.form_state.group_name == "Select Category Group"
+    assert screen.form_state.category_id is None
+    assert (
+        screen.form_state.category_name
+        == "No Category Group Selected"
+    )
+    get_groups.assert_called_once_with("expense")
+    get_categories.assert_not_called()
+
+
+def test_empty_account_menu_offers_add_account(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_all_accounts = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    account_selector = SimpleNamespace(text="Select Account")
+    open_add_account_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        get_all_accounts,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "EnkryonSelectionPanel",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(),
+        ids=SimpleNamespace(
+            account_selector=account_selector,
+            account_label=SimpleNamespace(text=""),
+        ),
+        open_add_account_screen=open_add_account_screen,
+    )
+
+    AddTransactionScreen.open_account_menu(screen)
+
+    get_all_accounts.assert_called_once_with()
+    assert screen.ids.account_label.text == "No Accounts"
+    assert screen.account_menu is menu
+    menu.open.assert_called_once_with()
+
+    panel_kwargs = menu_factory.call_args.kwargs
+
+    assert panel_kwargs["title"] == "Select Account"
+    assert panel_kwargs["selected_text"] == screen.form_state.account_name
+
+    menu_items = panel_kwargs["options"]
+
+    menu_items[0]["on_release"]()
+
+    open_add_account_screen.assert_called_once_with()
+
+
+def test_empty_group_menu_offers_category_management(
+    monkeypatch,
+):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_groups = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    group_selector = object()
+    group_label = SimpleNamespace(text="")
+    open_manage_category_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "EnkryonSelectionPanel",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+        ),
+        ids=SimpleNamespace(
+            group_selector=group_selector,
+            group_label=group_label,
+        ),
+        open_manage_category_screen=(
+            open_manage_category_screen
+        ),
+    )
+
+    AddTransactionScreen.open_groups_menu(screen)
+
+    get_groups.assert_called_once_with("expense")
+    assert group_label.text == "No Category Groups Created"
+    assert screen.groups_menu is menu
+    menu.open.assert_called_once_with()
+
+    menu_items = menu_factory.call_args.kwargs["options"]
+    assert [item["text"] for item in menu_items] == [
+        "Manage Category Groups"
+    ]
+
+    menu_items[0]["on_release"]()
+
+    open_manage_category_screen.assert_called_once_with()
+
+
+def test_empty_category_menu_offers_category_management(
+    monkeypatch,
+):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_categories = Mock(return_value=[])
+    menu = SimpleNamespace(open=Mock())
+    menu_factory = Mock(return_value=menu)
+    category_selector = object()
+    category_label = SimpleNamespace(text="")
+    open_manage_category_screen = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "EnkryonSelectionPanel",
+        menu_factory,
+    )
+
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(group_id=7),
+        ids=SimpleNamespace(
+            category_selector=category_selector,
+            category_label=category_label,
+        ),
+        open_manage_category_screen=(
+            open_manage_category_screen
+        ),
+    )
+
+    AddTransactionScreen.open_categories_menu(screen)
+
+    get_categories.assert_called_once_with(7)
+    assert category_label.text == "No Category Created"
+    assert screen.categories_menu is menu
+    menu.open.assert_called_once_with()
+
+    menu_items = menu_factory.call_args.kwargs["options"]
+    assert [item["text"] for item in menu_items] == [
+        "Manage Categories"
+    ]
+
+    menu_items[0]["on_release"]()
+
+    open_manage_category_screen.assert_called_once_with()
+
+
+def test_created_account_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_all_accounts",
+        Mock(
+            return_value=[
+                AccountRecord(account_id=9, name="Savings")
+            ]
+        ),
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(account_name="No Accounts"),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_account(screen, "Savings")
+
+    assert screen.form_state.account_id == 9
+    assert screen.form_state.account_name == "Savings"
+    screen.render_form_state.assert_called_once_with()
+
+
+def test_created_group_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_groups = Mock(
+        return_value=[
+            CategoryGroupRecord(
+                group_id=6,
+                name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            group_name="No Category Groups Created",
+        ),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_group(
+        screen,
+        "expense",
+        "Food",
+    )
+
+    get_groups.assert_called_once_with("expense")
+    assert screen.form_state.transaction_type == "expense"
+    assert screen.form_state.group_id == 6
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id is None
+    assert screen.form_state.category_name == "Select Category"
+    screen.render_form_state.assert_called_once_with()
+
+
+def test_created_category_is_selected_in_preserved_form(monkeypatch):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    get_categories = Mock(
+        return_value=[
+            CategoryRecord(
+                category_id=12,
+                group_id=6,
+                name="Dining",
+                group_name="Food",
+                transaction_type="expense",
+            )
+        ]
+    )
+    monkeypatch.setattr(
+        add_transaction_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    screen = SimpleNamespace(
+        form_state=TransactionFormState(
+            transaction_type="expense",
+            category_name="No Category Created",
+        ),
+        render_form_state=Mock(),
+    )
+
+    AddTransactionScreen.select_created_category(
+        screen,
+        6,
+        "Dining",
+    )
+
+    get_categories.assert_called_once_with(6)
+    assert screen.form_state.transaction_type == "expense"
+    assert screen.form_state.group_id == 6
+    assert screen.form_state.group_name == "Food"
+    assert screen.form_state.category_id == 12
+    assert screen.form_state.category_name == "Dining"
     screen.render_form_state.assert_called_once_with()

@@ -25,7 +25,7 @@ class Colors:
 
     TEXT_PRIMARY = "#10201B"
     TEXT_SECONDARY = "#5E6B66"
-    TEXT_MUTED = "#8A9691"
+    TEXT_MUTED = "#62706A"
     TEXT_ON_PRIMARY = "#FFFFFF"
 
     BORDER = "#D8DED8"

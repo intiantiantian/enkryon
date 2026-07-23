@@ -1,9 +1,7 @@
 <InputDialog>
-    size_hint: .85, None
     height: '180dp'
-    auto_dismiss: False
 
-    MDCard:
+    EnkryonOverlayCard:
         orientation: 'vertical'
         adaptive_height: True
         padding: '24dp'
@@ -15,11 +13,38 @@
             bold: True
             font_style: 'H6'
 
-        MDTextField:
-            id: input
-            mode: 'rectangle'
-            text: root.text
-            hint_text: root.hint_text
+        FloatLayout:
+            size_hint_y: None
+            height: "56dp"
+
+            MDTextField:
+                id: input
+                mode: "rectangle"
+                text: root.text
+                hint_text: ""
+                size_hint_y: None
+                height: "56dp"
+                pos_hint:
+                    {"center_x": .5, "center_y": .5}
+
+            MDLabel:
+                text: root.hint_text
+                adaptive_size: True
+                font_style: "Caption"
+                theme_text_color: "Secondary"
+                x: input.x + dp(12)
+                center_y: input.top
+
+                canvas.before:
+                    Color:
+                        rgba:
+                            get_color_from_hex(
+                            Colors.SURFACE)
+                    Rectangle:
+                        pos:
+                            self.x - dp(4), self.y
+                        size:
+                            self.width + dp(8), self.height
 
         MDCard:
             orientation: 'horizontal'
@@ -36,7 +61,7 @@
             OutlinedCard:
                 size_hint_x: .50
                 size_hint_y: None
-                height: '42dp'
+                height: '48dp'
                 pos_hint: {'center_y': .5}
                 radius: '24dp'
                 md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)

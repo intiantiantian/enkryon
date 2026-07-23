@@ -100,6 +100,40 @@ def test_transaction_form_state_selects_account():
     assert state.account_name == "Cash"
 
 
+def test_transaction_form_state_clears_account_selection():
+    state = TransactionFormState(account_id=2, account_name="Cash")
+
+    state.clear_account_selection()
+
+    assert state.account_id is None
+    assert state.account_name == "Select Account"
+
+
+def test_transaction_form_state_clears_group_and_category_selection():
+    state = TransactionFormState(
+        group_id=5,
+        group_name="Food",
+        category_id=8,
+        category_name="Dining",
+    )
+
+    state.clear_group_selection()
+
+    assert state.group_id is None
+    assert state.group_name == "Select Category Group"
+    assert state.category_id is None
+    assert state.category_name == "No Category Group Selected"
+
+
+def test_transaction_form_state_clears_category_selection():
+    state = TransactionFormState(category_id=8, category_name="Dining")
+
+    state.clear_category_selection()
+
+    assert state.category_id is None
+    assert state.category_name == "Select Category"
+
+
 def test_transaction_type_selection_clears_group_and_category():
     state = TransactionFormState(
         transaction_type="income",

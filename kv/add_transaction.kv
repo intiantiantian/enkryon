@@ -1,3 +1,8 @@
+#:import Window kivy.core.window.Window
+#:import Metrics kivy.metrics.Metrics
+#:import should_stack_controls utils.responsive_layout.should_stack_controls
+
+
 <AddTransactionScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -62,16 +67,15 @@
                 orientation: 'vertical'
                 size_hint_y: None
                 height: self.minimum_height
-                padding: 20
-                spacing: 15
+                padding: '16dp'
+                spacing: '12dp'
 
                 BoxLayout:
                     size_hint_y: None
                     height: '56dp'
-                    padding: '10dp'
-
+                    padding: '8dp'
                     orientation: 'horizontal'
-                    spacing: '10dp'
+                    spacing: '8dp'
 
                     EnkryonFilterButton:
                         id: income_button
@@ -89,18 +93,36 @@
                     size_hint_y: None
                     height: "180dp"
                     orientation: "horizontal"
-                    padding: "10dp"
+                    padding: "16dp"
+                    spacing: "12dp"
 
                     AnchorLayout:
                         anchor_x: "center"
                         anchor_y: "top"
-                        size_hint_x: 0.4
+                        size_hint_x: 1
 
-                        EnkryonPrimaryButton:
+                        MDCard:
                             id: account_selector
-                            text: 'Select Account'
                             size_hint: 1, None
+                            height: '48dp'
+                            radius: [14]
+                            elevation: 1
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex(Colors.BRAND_PRIMARY)
                             on_release: root.open_account_menu()
+
+                            MDLabel:
+                                id: account_label
+                                size_hint_x: 1
+                                text: 'Select Account'
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.width - dp(24), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
                     MDLabel:
                         id: amount_label
@@ -121,14 +143,16 @@
                     orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
-                    padding: '20dp'
-                    spacing: '20dp'
+                    padding: '16dp'
+                    spacing: '12dp'
 
-                    BoxLayout:
-                        orientation: 'horizontal'
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                         size_hint_y: None
-                        height: '64dp'
-                        spacing: '20dp'
+                        height: self.minimum_height
+                        row_default_height: '64dp'
+                        row_force_default: True
+                        spacing: '12dp'
 
                         OutlinedCard:
                             id: group_selector
@@ -143,6 +167,11 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                         OutlinedCard:
                             id: category_selector
@@ -157,12 +186,19 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
-                    BoxLayout:
-                        orientation: 'horizontal'
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                         size_hint_y: None
-                        height: '64dp'
-                        spacing: '20dp'
+                        height: self.minimum_height
+                        row_default_height: '64dp'
+                        row_force_default: True
+                        spacing: '12dp'
 
                         OutlinedCard:
                             id: date_selector
@@ -177,6 +213,11 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                         OutlinedCard:
                             id: time_selector
@@ -191,12 +232,18 @@
                                 halign: "center"
                                 theme_text_color: "Custom"
                                 text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                valign: "middle"
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: "right"
 
                 OutlinedCard:
                     orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
                     padding: dp(16)
+                    spacing: '8dp'
 
                     MDLabel:
                         text: 'Notes'
@@ -216,6 +263,7 @@
                             halign: 'left'
                             valign: 'middle'
                             text_size: self.size
-                            theme_text_color: 'Hint'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
                             shorten: True
                             shorten_from: 'right'

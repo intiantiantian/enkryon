@@ -203,6 +203,37 @@ def delete_transaction(transaction_id):
         return False
 
 
+def restore_transaction(transaction):
+    try:
+        with managed_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                '''
+                INSERT INTO transactions (
+                    id,
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time,
+                    notes
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''',
+                (
+                    transaction.transaction_id,
+                    transaction.account_id,
+                    transaction.amount_centavos,
+                    transaction.category_id,
+                    transaction.date_time,
+                    transaction.notes,
+                ),
+            )
+            connection.commit()
+            return True
+    except sqlite3.Error:
+        return False
+
+
 def get_total_centavos(transaction_type, account_id=None):
     try:
         with managed_connection() as connection:

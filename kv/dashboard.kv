@@ -1,3 +1,8 @@
+#:import Window kivy.core.window.Window
+#:import Metrics kivy.metrics.Metrics
+#:import should_stack_controls utils.responsive_layout.should_stack_controls
+
+
 <DashboardScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -58,10 +63,13 @@
                 spacing: '10dp'
                 padding: '10dp'
 
-                BoxLayout:
+                GridLayout:
+                    cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                     size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: dp(200) * max(1, Metrics.fontscale)
+                    row_force_default: True
                     spacing: '10dp'
-                    height: '200dp'
 
                     OutlinedCard:
                         radius: [12]
@@ -98,6 +106,11 @@
                                     id: account_label
                                     theme_text_color: 'Custom'
                                     text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                                    valign: 'middle'
+                                    text_size: self.width - dp(16), self.height
+                                    max_lines: 1
+                                    shorten: True
+                                    shorten_from: 'right'
 
                             MDIconButton:
                                 id: eye_button
@@ -108,7 +121,7 @@
 
                         MDCard:
                             orientation: 'vertical'
-                            padding: '24dp'
+                            padding: '16dp'
                             spacing: '4dp'
 
                             MDLabel:
@@ -120,7 +133,7 @@
                             
                             MDLabel:
                                 id: balance_label
-                                font_size: '42sp'
+                                font_size: min(sp(42), self.width / max(len(self.text) * .58, 1))
                                 halign: 'right'
                                 valign: 'middle'
                                 text_size: self.size
@@ -128,43 +141,52 @@
                                 shorten: True
                                 shorten_from: 'left'
 
-                EnkryonPrimaryButton:
-                    size_hint: 1, 1
-                    on_release:
-                        root.go_to_add_transaction()
-
-                    text: '+ Add Transaction'
-                    theme_text_color: 'Custom'
-                    text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
-                
                 BoxLayout:
-                    orientation: 'horizontal'
+                    orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
-                    spacing: '5dp'
-                        
-                    EnkryonPrimaryButton:
-                        size_hint: 1, 1
-                        on_release:
-                            root.go_to_accounts()
 
-                        text: 'Manage Accounts'
+                    EnkryonPrimaryButton:
+                        size_hint: 1, None
+                        on_release:
+                            root.go_to_add_transaction()
+
+                        text: '+ Add Transaction'
                         theme_text_color: 'Custom'
                         text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                    EnkryonPrimaryButton:
-                        size_hint: 1, 1
-                        on_release:
-                            root.go_to_categories()
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+                        size_hint_y: None
+                        height: self.minimum_height
+                        row_default_height: '48dp'
+                        row_force_default: True
+                        spacing: '5dp'
 
-                        text: 'Manage Categories'
-                        theme_text_color: 'Custom'
-                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                        EnkryonPrimaryButton:
+                            size_hint: 1, None
+                            on_release:
+                                root.go_to_accounts()
 
-                BoxLayout:
-                    orientation: 'horizontal'
+                            text: 'Manage Accounts'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+
+                        EnkryonPrimaryButton:
+                            size_hint: 1, None
+                            on_release:
+                                root.go_to_categories()
+
+                            text: 'Manage Categories'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+
+                GridLayout:
+                    cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                     size_hint_y: None
-                    height: '144dp'
+                    height: self.minimum_height
+                    row_default_height: '144dp'
+                    row_force_default: True
                     spacing: '10dp'
 
                     OutlinedCard:
@@ -194,6 +216,8 @@
 
                         MDLabel:
                             id: income_label
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.INCOME)
                             font_size: '32sp'
                             halign: 'center'
                             valign: 'middle'
@@ -229,6 +253,8 @@
 
                         MDLabel:
                             id: expense_label
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.EXPENSE)
                             font_size: '32sp'
                             halign: 'center'
                             valign: 'middle'
@@ -257,6 +283,11 @@
                             font_size: '26sp'
                             theme_text_color: 'Custom'
                             text_color: get_color_from_hex(Colors.TEXT_MUTED)
+                            valign: 'middle'
+                            text_size: self.width, self.height
+                            max_lines: 1
+                            shorten: True
+                            shorten_from: 'right'
 
                         MDIconButton:
                             icon: 'chevron-right'
@@ -266,11 +297,12 @@
                             on_release:
                                 root.go_to_transactions()
 
-                    BoxLayout:
+                    GridLayout:
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
                         size_hint_y: None
-                        height: '44dp'
-
-                        orientation: 'horizontal'
+                        height: self.minimum_height
+                        row_default_height: '48dp'
+                        row_force_default: True
                         spacing: '10dp'
 
                         EnkryonFilterButton:

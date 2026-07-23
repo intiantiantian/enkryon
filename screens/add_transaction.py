@@ -1,5 +1,4 @@
 from kivy.uix.screenmanager import Screen
-from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
 
@@ -26,6 +25,7 @@ from utils.transaction_datetime import (
 
 from widgets.date_time_pickers import DatePickerDialog, TimePickerDialog
 from widgets.input_dialog import InputDialog
+from widgets.overlays import EnkryonSelectionPanel
 
 class AddTransactionScreen(Screen):
 
@@ -40,6 +40,7 @@ class AddTransactionScreen(Screen):
         ]
 
         self.form_state = TransactionFormState()
+        self.preserve_form_on_next_enter = False
         self.build_keypad()
 
 
@@ -61,11 +62,64 @@ class AddTransactionScreen(Screen):
 
 
     def on_pre_enter(self):
+        if getattr(self, "preserve_form_on_next_enter", False):
+            self.preserve_form_on_next_enter = False
+            self.reconcile_preserved_selections()
+            self.render_form_state()
+            return
 
         if self.form_state.transaction_id is not None:
             return
 
         self.reset_form()
+
+
+    def reconcile_preserved_selections(self):
+        state = self.form_state
+
+        if state.account_id is not None:
+            accounts_by_id = {
+                account.account_id: account
+                for account in get_all_accounts()
+            }
+            account = accounts_by_id.get(state.account_id)
+            if account is None:
+                state.clear_account_selection()
+            else:
+                state.account_name = account.name
+
+        if state.group_id is None:
+            return
+
+        groups_by_id = (
+            {
+                group.group_id: group
+                for group in get_category_groups_by_type(
+                    state.transaction_type
+                )
+            }
+            if state.transaction_type is not None
+            else {}
+        )
+        group = groups_by_id.get(state.group_id)
+        if group is None:
+            state.clear_group_selection()
+            return
+
+        state.group_name = group.name
+
+        if state.category_id is None:
+            return
+
+        categories_by_id = {
+            category.category_id: category
+            for category in get_categories_by_group(state.group_id)
+        }
+        category = categories_by_id.get(state.category_id)
+        if category is None:
+            state.clear_category_selection()
+        else:
+            state.category_name = category.name
 
 
     def build_keypad(self):
@@ -117,7 +171,7 @@ class AddTransactionScreen(Screen):
             state.transaction_type == 'expense'
         )
 
-        self.ids.account_selector.text = state.account_name
+        self.ids.account_label.text = state.account_name
 
         self.ids.group_label.text = state.group_name
         self.ids.group_selector.disabled = state.transaction_type is None
@@ -136,8 +190,7 @@ class AddTransactionScreen(Screen):
         accounts = get_all_accounts()
         if not accounts:
             self.form_state.account_name = 'No Accounts'
-            self.ids.account_selector.text = self.form_state.account_name
-            return
+            self.ids.account_label.text = self.form_state.account_name
 
         menu_items = []
 
@@ -156,13 +209,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Add New Account",
-                "on_release": lambda: self.open_add_account_screen()
+                "is_navigation": True,
+                "on_release": lambda: self.open_add_account_screen(),
             }
         )
 
-        self.account_menu = MDDropdownMenu(
-            caller=self.ids.account_selector,
-            items=menu_items,
+        self.account_menu = EnkryonSelectionPanel(
+            title="Select Account",
+            selected_text=self.form_state.account_name,
+            options=menu_items,
         )
 
         self.account_menu.open()
@@ -174,9 +229,36 @@ class AddTransactionScreen(Screen):
         self.account_menu.dismiss()
 
 
+    def select_created_account(self, account_name):
+        normalized_name = account_name.strip().casefold()
+        account = next(
+            (
+                account
+                for account in get_all_accounts()
+                if account.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if account is None:
+            return
+
+        self.form_state.select_account(account.account_id, account.name)
+        self.render_form_state()
+
+
     def open_add_account_screen(self):
-        self.manager.current = 'accounts'
+        self.preserve_form_on_next_enter = True
+
+        accounts_screen = self.manager.get_screen("accounts")
+        accounts_screen.return_screen = "add_transaction"
+
+        accounts_screen.account_created_callback = (
+            self.select_created_account
+        )
+
         self.account_menu.dismiss()
+        self.manager.current = "accounts"
 
 
     def update_groups_button(self, transaction_type):
@@ -191,7 +273,6 @@ class AddTransactionScreen(Screen):
         if not groups:
             self.form_state.group_name = 'No Category Groups Created'
             self.ids.group_label.text = self.form_state.group_name
-            return
 
         menu_items = []
 
@@ -210,13 +291,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Manage Category Groups",
+                "is_navigation": True,
                 "on_release": lambda: self.open_manage_category_screen()
             }
         )
 
-        self.groups_menu = MDDropdownMenu(
-            caller=self.ids.group_selector,
-            items=menu_items,
+        self.groups_menu = EnkryonSelectionPanel(
+            title="Select Group",
+            selected_text=self.form_state.group_name,
+            options=menu_items,
         )
 
         self.groups_menu.open()
@@ -228,12 +311,32 @@ class AddTransactionScreen(Screen):
         self.groups_menu.dismiss()
 
 
+    def select_created_group(self, transaction_type, group_name):
+        normalized_name = group_name.strip().casefold()
+        group = next(
+            (
+                group
+                for group in get_category_groups_by_type(
+                    transaction_type
+                )
+                if group.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if group is None:
+            return
+
+        self.form_state.select_transaction_type(transaction_type)
+        self.form_state.select_group(group.group_id, group.name)
+        self.render_form_state()
+
+
     def open_categories_menu(self):
         categories = get_categories_by_group(self.form_state.group_id)
         if not categories:
             self.form_state.category_name = 'No Category Created'
             self.ids.category_label.text = self.form_state.category_name
-            return
         
         menu_items = []
 
@@ -252,13 +355,15 @@ class AddTransactionScreen(Screen):
         menu_items.append(
             {
                 "text": "Manage Categories",
+                "is_navigation": True,
                 "on_release": lambda: self.open_manage_category_screen()
             }
         )
 
-        self.categories_menu = MDDropdownMenu(
-            caller=self.ids.category_selector,
-            items=menu_items,
+        self.categories_menu = EnkryonSelectionPanel(
+            title="Select Category",
+            selected_text=self.form_state.category_name,
+            options=menu_items,
         )
 
         self.categories_menu.open()
@@ -270,12 +375,57 @@ class AddTransactionScreen(Screen):
         self.categories_menu.dismiss()
 
 
+    def select_created_category(self, group_id, category_name):
+        normalized_name = category_name.strip().casefold()
+        category = next(
+            (
+                category
+                for category in get_categories_by_group(group_id)
+                if category.name.strip().casefold() == normalized_name
+            ),
+            None,
+        )
+
+        if category is None:
+            return
+
+        self.form_state.select_transaction_type(
+            category.transaction_type
+        )
+        self.form_state.select_group(
+            category.group_id,
+            category.group_name,
+        )
+        self.form_state.select_category(
+            category.category_id,
+            category.name,
+        )
+        self.render_form_state()
+
+
     def open_manage_category_screen(self):
-        self.manager.current = 'categories'
+        self.preserve_form_on_next_enter = True
+
+        categories_screen = self.manager.get_screen("categories")
+        categories_screen.return_screen = "add_transaction"
+
+        categories_screen.group_created_callback = (
+            self.select_created_group
+        )
+        categories_screen.category_created_callback = (
+            self.select_created_category
+        )
+        categories_screen.initial_transaction_type = (
+            self.form_state.transaction_type
+        )
+        categories_screen.initial_group_id = self.form_state.group_id
+
         if hasattr(self, "groups_menu"):
             self.groups_menu.dismiss()
         if hasattr(self, "categories_menu"):
             self.categories_menu.dismiss()
+
+        self.manager.current = "categories"
 
 
     def set_current_date_time(self):
@@ -358,4 +508,4 @@ class AddTransactionScreen(Screen):
             self.ids.notes_label.theme_text_color = 'Primary'
         else:
             self.ids.notes_label.text = 'Add notes'
-            self.ids.notes_label.theme_text_color = 'Hint'
+            self.ids.notes_label.theme_text_color = 'Custom'

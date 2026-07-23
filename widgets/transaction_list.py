@@ -9,12 +9,18 @@ def render_transaction_list(
     transactions,
     screen,
     empty_state,
+    action_text="",
+    action_callback=None,
 ):
     container.clear_widgets()
 
     if not transactions:
         container.add_widget(
-            create_transaction_empty_state(empty_state)
+            create_transaction_empty_state(
+                empty_state,
+                action_text=action_text,
+                action_callback=action_callback,
+            )
         )
         return
 
