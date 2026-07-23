@@ -8,20 +8,23 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_5_is_closed_and_phase_6_is_next():
+def test_phase_5_remains_closed_after_phase_6():
     roadmap = read_project_file("ROADMAP.md")
+    phase_five = roadmap.split(
+        "## Phase 5 — Simpler, More Maintainable Code",
+        maxsplit=1,
+    )[1].split(
+        "## Phase 6 — Clear, Accessible, Responsive",
+        maxsplit=1,
+    )[0]
 
-    assert "Current position: Phase 5 is complete; Phase 6 is next" in roadmap
     assert (
         "| 5. Simpler, More Maintainable Code | "
         "Move business rules out of large screens and give each code layer "
         "one clear job. | Completed |"
     ) in roadmap
-    assert "## Phase 5 — Simpler, More Maintainable Code" in roadmap
-    assert "**Status:** Completed" in roadmap
-    assert "Screens coordinate interface state" in roadmap
-    assert "## Phase 6 — Clear, Accessible, Responsive" in roadmap
-    assert "**Status:** Next" in roadmap
+    assert "**Status:** Completed" in phase_five
+    assert "Screens coordinate interface state" in phase_five
 
 
 def test_phase_5_changes_are_recorded_for_users_and_developers():
@@ -32,7 +35,6 @@ def test_phase_5_changes_are_recorded_for_users_and_developers():
     )
 
     assert "Phase 5 simplified the architecture" in readme
-    assert "Phase 6 is next" in readme
     assert "Named account, category-group, category" in changelog
     assert "Managed connections centralize" in architecture
     assert "Shared action-result rendering" in architecture

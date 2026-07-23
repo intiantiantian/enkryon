@@ -8,12 +8,18 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_4_remains_closed_after_phase_5():
+def test_phase_4_remains_closed_after_phase_6():
     roadmap = read_project_file("ROADMAP.md")
+    phase_four = roadmap.split(
+        "## Phase 4 — Reliable Android Releases",
+        maxsplit=1,
+    )[1].split(
+        "## Phase 5 — Simpler, More Maintainable Code",
+        maxsplit=1,
+    )[0]
 
-    assert "Current release: `v0.4.8`" in roadmap
-    assert "**Status:** Completed in `v0.4.8`" in roadmap
-    assert "**Passed.** Another developer can reproduce" in roadmap
+    assert "**Status:** Completed in `v0.4.8`" in phase_four
+    assert "**Passed.** Another developer can reproduce" in phase_four
 
 
 def test_phase_4_release_is_recorded():

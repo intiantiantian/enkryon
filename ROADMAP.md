@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 20, 2026
-Current release: `v0.4.8`
-Current position: Phase 5 is complete; Phase 6 is next
+Updated: July 23, 2026
+Current release: `v0.6.0`
+Current position: Phase 6 is complete; Phase 7 is next
 
 ## Purpose
 
@@ -22,18 +22,19 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 ## Current Project Snapshot
 
-| Area | Current state in `v0.4.8` | What it means for the roadmap |
+| Area | Current project state | What it means for the roadmap |
 |---|---|---|
 | Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, transaction-type filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The suite contains `252` passing tests covering migrations, repositories, managed connections, named records, form state, workflow services, shared screen actions, and Android release configuration. | Keep increasing coverage where behavior and risk justify it rather than chasing an arbitrary percentage. |
-| Versioning | `main.py` defines `0.4.8`; Buildozer, artifact names, checksums, and release records use the same value. | The roadmap version and Android artifact now agree. |
-| Android release | The permanently signed `Enkryon-v0.4.8.apk` passed checksum, signature, alignment, packaging, clean-launch, and in-place upgrade checks from official `v0.4.0`. | Phase 4's Android release gate is complete. |
+| Automated tests | The suite contains `395` passing tests covering migrations, repositories, services, form state, screen workflows, responsive-layout contracts, customized overlays, Android Back behavior, and phase closeout documentation. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
+| Versioning | `main.py` defines `0.6.0`; Buildozer reads that canonical value, and standardized artifact names use `v0.6.0`. | The Phase 6 source and planned Android release use one version value. |
+| Android release | `v0.6.0` uses the permanent signing and reproducible release process established by verified `v0.4.8`. | Build, signature, alignment, installation, upgrade, checksum, and publication evidence must be recorded in the `v0.6.0` release notes before publication. |
 | Android packaging | Development files and duplicated source assets are excluded. The verified APK targets API 36, supports API 24 and later, contains ARM64 and ARMv7, and disables Android auto-backup. | Packaging and privacy behavior are explicit and test-protected. |
 | Automated checks on GitHub | GitHub Actions installs the pinned development environment, compiles the source, and runs all tests with coverage on pushes, pull requests, and manual runs. | Broken correctness checks are visible before release preparation. |
-| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, transaction form state is explicit, and shared screen helpers own repeated result and list actions. | Phase 6 can improve the interface without moving financial or persistence rules back into screens. |
+| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, transaction form state is explicit, and shared screen helpers own repeated result and list actions. | Phase 6 interface improvements preserve these boundaries instead of moving financial or persistence rules back into screens. |
+| User experience | Responsive layouts, preserved transaction form state, actionable empty states, informative Settings content, and shared card-based overlays are implemented and regression-tested. | Phase 7 can focus on recovery without reopening the completed interface redesign. |
 | Backup and recovery | The app can clear all data, but it has no user-controlled backup and restore flow. | Recovery must be added before Enkryon leaves alpha. |
 | Search and advanced filters | Transaction-type filtering exists. Search, date range, account, category, and combined filters are not yet complete. | Complete these in Phase 8 rather than mixing them into reliability work. |
 
@@ -46,8 +47,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 3. Automatic Quality Checks | Test every change automatically so defects are caught before release. | Completed |
 | 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Completed |
 | 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Completed |
-| 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Next |
-| 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Planned |
+| 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Completed |
+| 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Next |
 | 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Planned |
 | 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Planned |
 | 10. Major Feature Expansion | Add reports, budgets, recurring transactions, and other large features after the core is dependable. | Deferred |
@@ -354,46 +355,72 @@ Make changes safer by moving business rules out of large screen files and giving
 
 ## Phase 6 — Clear, Accessible, Responsive User Experience
 
-**Status:** Next
-**Priority:** Medium-high
+**Status:** Completed
+**Priority achieved:** Medium-high
 
 ### Objective
 
-Make every existing workflow understandable and comfortable on supported Android phones, including small screens, large text, long names, empty data, and error situations.
+Make every existing workflow understandable and comfortable on supported
+Android phones, including small screens, large text, long names, empty data,
+and error situations.
 
-### Work plan
+### Completed work
 
-1. Test first-use, populated, empty, error, and destructive states for every screen.
-2. Preserve an unfinished transaction form when users temporarily open Accounts or Categories.
-3. Improve dashboard information hierarchy and reduce low-value empty or decorative space.
-4. Improve transaction-row alignment, spacing, amount emphasis, and action placement.
-5. Test backgrounds, scrolling, fixed controls, system safe areas, and Android back behavior.
-6. Test small and large phones, long names and notes, large amounts, narrow screens, and system font scaling.
-7. Enforce comfortable touch targets, readable contrast, clear selected states, and consistent destructive actions.
-8. Distinguish income and expenses using words and visual styling, not color alone.
-9. Add useful next-step actions to empty states.
-10. Add About, version, local-data, and privacy information to Settings.
-11. Complete the visual transition of dropdowns, dialogs, menus, selection panels, confirmation prompts, and other overlay-style interface elements into Enkryon’s customized `MDCard`-based components so they share the same spacing, shape, elevation, typography, selected states, and emerald-and-gold visual language as the rest of the application.
-12. Replace repository screenshots only after the layouts and customized interface components pass the supported-device tests.
+1. Exercised first-use, populated, empty, validation-error, and destructive
+   states across the existing screens.
+2. Preserved unfinished transaction form values when users temporarily
+   navigate to account or category management.
+3. Improved Dashboard information hierarchy, account filtering, scrolling,
+   summary-value layout, and large-balance presentation.
+4. Improved transaction-card alignment, amount emphasis, long-content
+   behavior, and action placement.
+5. Added responsive rules and regression tests for narrow layouts, enlarged
+   text, scrolling, fixed controls, and content-height boundaries.
+6. Made income and expense states identifiable through text and visual
+   treatment instead of color alone.
+7. Added useful next-step actions to empty states.
+8. Added About, version, local-data, and privacy information to Settings.
+9. Replaced selection, input, and confirmation workflows with reusable
+   customized card-based overlays.
+10. Standardized overlay sizing, option selection, scrolling, keyboard
+    behavior, floating labels, cancellation, and destructive confirmation.
+11. Made Android Back and desktop Escape dismiss the active overlay before
+    underlying navigation.
+12. Expanded the automated suite from the `252`-test Phase 6 baseline to
+    `391` implementation tests and `395` tests after documentation closeout.
 
 ### Deliverables
 
-- Screen-by-screen user-experience checklist.
-- Supported-device and font-size test matrix.
-- Accessibility and contrast audit.
-- Improved transaction cards, navigation states, and empty states.
-- Customized `MDCard`-based dropdowns, dialogs, menus, selection panels, and confirmation prompts.
-- Updated Settings information and repository screenshots.
+- Screen-by-screen user-experience regression checklist.
+- Supported-profile and font-size test conditions.
+- Accessibility, selection-state, contrast, and touch-target checks.
+- Improved Dashboard, transaction cards, navigation, and empty states.
+- Customized card-based selectors, input dialogs, and confirmation prompts.
+- Updated Settings information.
+- Phase 6 verification report and closeout tests.
+
+### Release follow-up item
+
+Repository screenshot replacement is outside the Phase 6 completion gate and
+should use the final packaged `v0.6.0` build when performed.
 
 ### Completion gate
 
-Phase 6 is complete when core workflows have no clipping or inaccessible controls across the supported device matrix, navigation preserves expected state, mistakes are recoverable, and important information remains readable with long or large content.
+**Passed.** Core workflows were checked through automated layout and behavior
+tests plus relevant small-screen, larger-screen, enlarged-font, Android, and
+desktop application checks. Navigation preserves expected state, destructive
+actions remain recoverable, active overlays receive Back priority, and the
+primary balance remains readable through the supported display boundary.
+
+The exhaustive manual matrix was not repeated after every final correction.
+That explicit evidence limit and the accepted constrained-card amount
+shortening are recorded in the Phase 6 verification report.
 
 ---
 
 ## Phase 7 — Backup, Restore, and Recovery
 
-**Status:** Planned
+**Status:** Next
 **Priority:** High before leaving alpha
 
 ### Objective
@@ -529,11 +556,15 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Begin Phase 6 with a screen-by-screen experience checklist and a supported-device and font-size test matrix.
-2. Preserve unfinished transaction-form state when users temporarily manage accounts or categories.
-3. Test navigation, scrolling, safe areas, touch targets, contrast, long content, and destructive actions across the supported matrix.
-4. Complete the customized card-based overlays and improve transaction rows, empty states, and Settings information.
-5. Replace repository screenshots only after the supported-device checks pass.
+1. Define a versioned backup format with application, schema, export-date,
+   and record-count metadata.
+2. Implement export without changing transaction IDs, relationships, or
+   integer-centavo values.
+3. Validate complete backups before allowing restore to modify current data.
+4. Add transactional restore, replacement confirmation, and recoverable
+   failure handling.
+5. Verify empty, populated, corrupted, and older-version backup round trips
+   before enabling broader recovery workflows.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

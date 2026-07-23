@@ -9,8 +9,16 @@ version reference.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-23
+
 ### Added
 
+- Reusable card-based selection, input, and confirmation overlays with
+  consistent spacing, selected states, and destructive-action treatment.
+- Actionable empty states and Settings information covering the application
+  version, local data, and privacy.
+- Responsive-layout, accessibility, long-content, form-preservation, and
+  overlay-behavior regression tests.
 - Named account, category-group, category, and transaction records between
   repositories and interface code.
 - Explicit transaction form state with tested dependent-selection
@@ -22,6 +30,14 @@ version reference.
 
 ### Changed
 
+- Dashboard, transaction cards, navigation, scrolling, and fixed controls
+  now adapt more reliably to narrow screens and enlarged text.
+- Unfinished transaction form values survive temporary navigation to account
+  and category management.
+- Income and expense transactions use explicit text and visual treatment
+  instead of relying only on color.
+- Selection, input, and confirmation workflows now use Enkryon's shared
+  customized overlay components.
 - Transaction creation, editing, deletion, validation, and view preparation
   now run through transaction services.
 - Database reads and writes use managed connections with consistent commit,
@@ -35,6 +51,12 @@ version reference.
 
 ### Fixed
 
+- Android Back and desktop Escape dismiss the active overlay before allowing
+  underlying screen navigation.
+- The Dashboard current balance remains fully readable through
+  `₱9,999,999.00` and switches to compact formatting from `₱10,000,000`.
+- Floating input labels remain clear of field boundaries in blank and
+  prefilled dialogs.
 - Failed transaction inserts, updates, and deletions no longer appear
   successful to calling services.
 - Settings reports a clear-data success message only after the repository

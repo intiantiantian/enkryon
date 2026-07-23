@@ -23,7 +23,8 @@ def test_changelog_has_unreleased_and_current_release_sections():
     changelog = read_document(CHANGELOG)
 
     assert "## [Unreleased]" in changelog
-    assert "## [0.4.0]" in changelog
+    assert "## [0.6.0] - 2026-07-23" in changelog
+    assert "## [0.4.8] - 2026-07-19" in changelog
 
 
 def test_release_guide_defines_standard_artifact_names():
