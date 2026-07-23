@@ -282,6 +282,30 @@ def test_dashboard_summary_row_grows_with_font_scale():
     )
 
 
+def test_dashboard_balance_scales_to_supported_amount_width():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+
+    balance_card = layout.split(
+        "id: eye_button",
+        maxsplit=1,
+    )[1].split(
+        "\n                BoxLayout:",
+        maxsplit=1,
+    )[0]
+
+    assert "padding: '16dp'" in balance_card
+    assert (
+        "font_size: min(sp(42), self.width / "
+        "max(len(self.text) * .58, 1))"
+        in balance_card
+    )
+    assert "shorten: True" in balance_card
+    assert "shorten_from: 'left'" in balance_card
+
+
 def test_dashboard_primary_actions_use_shared_button_height():
     project_root = Path(__file__).resolve().parents[1]
     layout = (

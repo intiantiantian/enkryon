@@ -121,7 +121,7 @@
 
                         MDCard:
                             orientation: 'vertical'
-                            padding: '24dp'
+                            padding: '16dp'
                             spacing: '4dp'
 
                             MDLabel:
@@ -133,7 +133,7 @@
                             
                             MDLabel:
                                 id: balance_label
-                                font_size: '42sp'
+                                font_size: min(sp(42), self.width / max(len(self.text) * .58, 1))
                                 halign: 'right'
                                 valign: 'middle'
                                 text_size: self.size
