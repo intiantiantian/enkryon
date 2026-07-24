@@ -1,13 +1,16 @@
 from datetime import datetime, timezone
 
+import sqlite3
 import pytest
 
 from database import migrations
+import services.backup_restorer as backup_restorer
 from services.backup_format import (
     BACKUP_RECORD_COLUMNS,
     create_backup_document,
 )
 from services.backup_restorer import (
+    BackupRestoreError,
     restore_backup_json,
     restore_validated_backup,
 )
@@ -165,6 +168,105 @@ def read_migration_rows():
         connection.close()
 
 
+def read_id_sequences():
+    connection = migrations.connect_database()
+
+    try:
+        placeholders = ", ".join(
+            "?"
+            for _table_name in BACKUP_RECORD_COLUMNS
+        )
+        return dict(
+            connection.execute(
+                f"""
+                SELECT name, seq
+                FROM sqlite_sequence
+                WHERE name IN ({placeholders})
+                """,
+                tuple(BACKUP_RECORD_COLUMNS),
+            ).fetchall()
+        )
+    finally:
+        connection.close()
+
+
+def set_id_sequences(sequence):
+    connection = migrations.connect_database()
+
+    try:
+        connection.executemany(
+            """
+            UPDATE sqlite_sequence
+            SET seq = ?
+            WHERE name = ?
+            """,
+            (
+                (sequence, table_name)
+                for table_name in BACKUP_RECORD_COLUMNS
+            ),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def insert_next_records():
+    connection = migrations.connect_database()
+
+    try:
+        account_id = connection.execute(
+            """
+            INSERT INTO accounts (name)
+            VALUES ('Next account')
+            """
+        ).lastrowid
+        group_id = connection.execute(
+            """
+            INSERT INTO category_groups (
+                name,
+                transaction_type
+            )
+            VALUES ('Other income', 'income')
+            """
+        ).lastrowid
+        category_id = connection.execute(
+            """
+            INSERT INTO categories (group_id, name)
+            VALUES (?, 'Bonus')
+            """,
+            (group_id,),
+        ).lastrowid
+        transaction_id = connection.execute(
+            """
+            INSERT INTO transactions (
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes
+            )
+            VALUES (
+                ?,
+                1,
+                ?,
+                '2026-07-03 12:00:00',
+                NULL
+            )
+            """,
+            (account_id, category_id),
+        ).lastrowid
+        connection.commit()
+
+        return (
+            account_id,
+            group_id,
+            category_id,
+            transaction_id,
+        )
+    finally:
+        connection.close()
+
+
 def test_restore_replaces_user_records_and_keeps_schema_history():
     seed_current_records()
     document = make_backup_document()
@@ -203,5 +305,84 @@ def test_restore_rejects_invalid_json_without_changing_current_data():
 
     with pytest.raises(BackupValidationError):
         restore_backup_json("not valid JSON")
+
+    assert read_current_records() == original_records
+
+
+def test_restore_normalizes_autoincrement_sequences():
+    seed_current_records()
+    set_id_sequences(100)
+    validated_backup = validate_backup_document(
+        make_backup_document()
+    )
+
+    restore_validated_backup(validated_backup)
+
+    assert read_id_sequences() == {
+        "accounts": 8,
+        "category_groups": 9,
+        "categories": 12,
+        "transactions": 21,
+    }
+    assert insert_next_records() == (9, 10, 13, 22)
+
+
+def test_restore_rolls_back_data_and_sequences_after_late_failure(
+    monkeypatch,
+):
+    seed_current_records()
+    set_id_sequences(100)
+    original_records = read_current_records()
+    original_sequences = read_id_sequences()
+    validated_backup = validate_backup_document(
+        make_backup_document()
+    )
+
+    def fail_verification(_connection, _records):
+        raise sqlite3.OperationalError(
+            "forced verification failure"
+        )
+
+    monkeypatch.setattr(
+        backup_restorer,
+        "_verify_restored_records",
+        fail_verification,
+    )
+
+    with pytest.raises(BackupRestoreError):
+        restore_validated_backup(validated_backup)
+
+    assert read_current_records() == original_records
+    assert read_id_sequences() == original_sequences
+
+
+def test_restore_rolls_back_when_stored_records_do_not_match(
+    monkeypatch,
+):
+    seed_current_records()
+    original_records = read_current_records()
+    original_replace = backup_restorer._replace_user_records
+    validated_backup = validate_backup_document(
+        make_backup_document()
+    )
+
+    def replace_with_changed_record(connection, records):
+        original_replace(connection, records)
+        connection.execute(
+            """
+            UPDATE accounts
+            SET name = 'Changed after insertion'
+            WHERE id = 3
+            """
+        )
+
+    monkeypatch.setattr(
+        backup_restorer,
+        "_replace_user_records",
+        replace_with_changed_record,
+    )
+
+    with pytest.raises(BackupRestoreError, match="verify"):
+        restore_validated_backup(validated_backup)
 
     assert read_current_records() == original_records
