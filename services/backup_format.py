@@ -1,15 +1,33 @@
 import json
 from datetime import datetime, timezone
 
-
 BACKUP_FORMAT = "enkryon-backup"
 BACKUP_FORMAT_VERSION = 1
-BACKUP_TABLES = (
-    "accounts",
-    "category_groups",
-    "categories",
-    "transactions",
-)
+BACKUP_RECORD_COLUMNS = {
+    "accounts": (
+        "id",
+        "name",
+    ),
+    "category_groups": (
+        "group_id",
+        "name",
+        "transaction_type",
+    ),
+    "categories": (
+        "category_id",
+        "group_id",
+        "name",
+    ),
+    "transactions": (
+        "id",
+        "account_id",
+        "amount_centavos",
+        "category_id",
+        "date_time",
+        "notes",
+    ),
+}
+BACKUP_TABLES = tuple(BACKUP_RECORD_COLUMNS)
 
 
 def create_backup_document(

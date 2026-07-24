@@ -1,0 +1,180 @@
+import json
+from datetime import datetime, timezone
+
+from database import migrations
+from services.backup_exporter import (
+    export_backup_document,
+    export_backup_json,
+)
+from services.backup_format import BACKUP_TABLES
+
+
+EXPORTED_AT = datetime(
+    2026,
+    7,
+    24,
+    12,
+    30,
+    tzinfo=timezone.utc,
+)
+
+
+def seed_export_data():
+    connection = migrations.connect_database()
+
+    try:
+        connection.executescript(
+            """
+            INSERT INTO accounts (id, name)
+            VALUES
+                (8, 'Banco – Savings'),
+                (3, 'Cash / Wallet');
+
+            INSERT INTO category_groups (
+                group_id,
+                name,
+                transaction_type
+            )
+            VALUES
+                (9, 'Salary', 'income'),
+                (4, 'Food', 'expense');
+
+            INSERT INTO categories (
+                category_id,
+                group_id,
+                name
+            )
+            VALUES
+                (12, 9, 'Paycheck'),
+                (6, 4, 'Café');
+
+            INSERT INTO transactions (
+                id,
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes
+            )
+            VALUES
+                (
+                    21,
+                    3,
+                    1,
+                    6,
+                    '2026-07-02 12:00:00',
+                    ''
+                ),
+                (
+                    15,
+                    8,
+                    123456,
+                    12,
+                    '2026-07-01 08:30:00',
+                    NULL
+                );
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def test_export_backup_document_reads_exact_relational_rows():
+    seed_export_data()
+
+    document = export_backup_document(
+        app_version="0.6.0",
+        exported_at=EXPORTED_AT,
+    )
+
+    assert document["metadata"] == {
+        "app_version": "0.6.0",
+        "database_version": 3,
+        "exported_at": "2026-07-24T12:30:00Z",
+        "record_counts": {
+            "accounts": 2,
+            "category_groups": 2,
+            "categories": 2,
+            "transactions": 2,
+        },
+    }
+    assert document["records"] == {
+        "accounts": [
+            {"id": 3, "name": "Cash / Wallet"},
+            {"id": 8, "name": "Banco – Savings"},
+        ],
+        "category_groups": [
+            {
+                "group_id": 4,
+                "name": "Food",
+                "transaction_type": "expense",
+            },
+            {
+                "group_id": 9,
+                "name": "Salary",
+                "transaction_type": "income",
+            },
+        ],
+        "categories": [
+            {
+                "category_id": 6,
+                "group_id": 4,
+                "name": "Café",
+            },
+            {
+                "category_id": 12,
+                "group_id": 9,
+                "name": "Paycheck",
+            },
+        ],
+        "transactions": [
+            {
+                "id": 15,
+                "account_id": 8,
+                "amount_centavos": 123456,
+                "category_id": 12,
+                "date_time": "2026-07-01 08:30:00",
+                "notes": None,
+            },
+            {
+                "id": 21,
+                "account_id": 3,
+                "amount_centavos": 1,
+                "category_id": 6,
+                "date_time": "2026-07-02 12:00:00",
+                "notes": "",
+            },
+        ],
+    }
+
+
+def test_export_backup_document_includes_empty_tables():
+    document = export_backup_document(
+        app_version="0.6.0",
+        exported_at=EXPORTED_AT,
+    )
+
+    assert document["metadata"]["database_version"] == 3
+    assert document["metadata"]["record_counts"] == {
+        table_name: 0
+        for table_name in BACKUP_TABLES
+    }
+    assert document["records"] == {
+        table_name: []
+        for table_name in BACKUP_TABLES
+    }
+
+
+def test_export_backup_json_serializes_database_records():
+    seed_export_data()
+
+    serialized_backup = export_backup_json(
+        app_version="0.6.0",
+        exported_at=EXPORTED_AT,
+    )
+    document = json.loads(serialized_backup)
+
+    assert serialized_backup.endswith("\n")
+    assert document["records"]["transactions"][0]["notes"] is None
+    assert document["records"]["transactions"][1]["notes"] == ""
