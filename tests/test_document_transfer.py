@@ -162,6 +162,10 @@ class FakeAndroidBridge:
         return self.documents[uri]
 
 
+def dispatch_immediately(callback, result):
+    callback(result)
+
+
 def test_desktop_transfer_writes_and_reads_exact_utf8(tmp_path):
     backup_path = tmp_path / "enkryon-backup.json"
     export_results = []
@@ -281,7 +285,10 @@ def test_android_bridge_configures_picker_and_content_streams():
 def test_android_export_uses_create_document_and_writes_content():
     bridge = FakeAndroidBridge()
     results = []
-    transfer = AndroidDocumentTransfer(bridge)
+    transfer = AndroidDocumentTransfer(
+        bridge,
+        result_dispatcher=dispatch_immediately,
+    )
 
     transfer.export_backup(
         '{"backup": true}\n',
@@ -321,7 +328,10 @@ def test_android_import_uses_open_document_and_reads_content():
         '{"backup": "restored"}\n'
     )
     results = []
-    transfer = AndroidDocumentTransfer(bridge)
+    transfer = AndroidDocumentTransfer(
+        bridge,
+        result_dispatcher=dispatch_immediately,
+    )
 
     transfer.import_backup(results.append)
 
@@ -344,7 +354,10 @@ def test_android_import_uses_open_document_and_reads_content():
 def test_android_transfer_reports_cancel_and_io_failure():
     cancel_bridge = FakeAndroidBridge()
     cancel_results = []
-    cancel_transfer = AndroidDocumentTransfer(cancel_bridge)
+    cancel_transfer = AndroidDocumentTransfer(
+        cancel_bridge,
+        result_dispatcher=dispatch_immediately,
+    )
     cancel_transfer.import_backup(cancel_results.append)
 
     cancel_bridge.activity_result_callback(
@@ -358,7 +371,10 @@ def test_android_transfer_reports_cancel_and_io_failure():
         side_effect=OSError("write failed")
     )
     failure_results = []
-    failing_transfer = AndroidDocumentTransfer(failing_bridge)
+    failing_transfer = AndroidDocumentTransfer(
+        failing_bridge,
+        result_dispatcher=dispatch_immediately,
+    )
     failing_transfer.export_backup(
         "backup",
         "backup.json",
@@ -373,6 +389,38 @@ def test_android_transfer_reports_cancel_and_io_failure():
     assert cancel_results[0].status == TRANSFER_CANCELLED
     assert failure_results[0].status == TRANSFER_FAILED
     assert failure_results[0].error == "write failed"
+
+
+def test_android_activity_result_dispatches_on_kivy_thread(
+    monkeypatch,
+):
+    bridge = FakeAndroidBridge()
+    bridge.documents["content://selected"] = "backup"
+    scheduled_callbacks = []
+    results = []
+    monkeypatch.setattr(
+        document_transfer.Clock,
+        "schedule_once",
+        lambda callback, _timeout: scheduled_callbacks.append(
+            callback
+        ),
+    )
+    transfer = AndroidDocumentTransfer(bridge)
+
+    transfer.import_backup(results.append)
+    bridge.activity_result_callback(
+        document_transfer.IMPORT_REQUEST_CODE,
+        bridge.result_ok,
+        SimpleNamespace(uri="content://selected"),
+    )
+
+    assert results == []
+    assert len(scheduled_callbacks) == 1
+
+    scheduled_callbacks[0](0)
+
+    assert results[0].status == TRANSFER_COMPLETED
+    assert results[0].content == "backup"
 
 
 def test_android_transfer_rejects_concurrent_request():

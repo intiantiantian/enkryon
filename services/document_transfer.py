@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import NamedTuple, Optional
+from kivy.clock import Clock
 
 
 BACKUP_MIME_TYPE = "application/json"
@@ -21,6 +22,13 @@ class _PendingTransfer(NamedTuple):
     operation: str
     callback: object
     content: Optional[str] = None
+
+
+def _dispatch_on_kivy_thread(callback, result):
+    Clock.schedule_once(
+        lambda _dt: callback(result),
+        0,
+    )
 
 
 class DesktopDocumentTransfer:
@@ -249,8 +257,11 @@ class AndroidDocumentBridge:
 
 class AndroidDocumentTransfer:
 
-    def __init__(self, bridge=None):
+    def __init__(self, bridge=None, result_dispatcher=None):
         self._bridge = bridge or AndroidDocumentBridge()
+        self._result_dispatcher = (
+            result_dispatcher or _dispatch_on_kivy_thread
+        )
         self._pending_transfer = None
         self._activity_result_bound = False
 
@@ -384,7 +395,10 @@ class AndroidDocumentTransfer:
             )
             self._activity_result_bound = False
 
-        pending_transfer.callback(result)
+        self._result_dispatcher(
+            pending_transfer.callback,
+            result,
+        )
 
 
 def create_document_transfer(platform_name=None):
