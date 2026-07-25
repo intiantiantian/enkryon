@@ -11,6 +11,8 @@ from services.backup_format import (
     BACKUP_TABLES,
 )
 
+SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4})
+
 
 class BackupValidationError(ValueError):
     pass
@@ -200,11 +202,12 @@ def _validate_metadata(metadata):
             "Backup app version is invalid."
         )
 
-    current_database_version = migrations.MIGRATIONS[-1][0]
+    database_version = metadata["database_version"]
 
     if (
-        type(metadata["database_version"]) is not int
-        or metadata["database_version"] != current_database_version
+        type(database_version) is not int
+        or database_version
+        not in SUPPORTED_BACKUP_DATABASE_VERSIONS
     ):
         raise BackupValidationError(
             "This backup database version is not supported."

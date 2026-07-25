@@ -240,6 +240,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
         (1, "initial_schema"),
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
+        (4, "transaction_history_indexes"),
     ]
     assert "amount" not in transaction_columns
     assert transaction_columns["amount_centavos"] == "INTEGER"
@@ -334,6 +335,7 @@ def test_run_migrations_is_idempotent():
         (1, "initial_schema"),
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
+        (4, "transaction_history_indexes"),
     ]
 
 
@@ -348,7 +350,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
         migrations,
         "MIGRATIONS",
         migrations.MIGRATIONS
-        + ((4, "failing_migration", failing_migration),),
+        + ((5, "failing_migration", failing_migration),),
     )
 
     with pytest.raises(RuntimeError, match="migration failed"):
@@ -361,7 +363,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
             '''
             SELECT version
             FROM schema_migrations
-            WHERE version = 4
+            WHERE version = 5
             '''
         ).fetchone()
         rolled_back_table = connection.execute(
@@ -376,6 +378,48 @@ def test_failed_migration_is_rolled_back(monkeypatch):
 
     assert migration_record is None
     assert rolled_back_table is None
+
+
+def test_adds_transaction_history_indexes():
+    connection = create_centavo_transaction_database()
+
+    try:
+        migrations.add_transaction_history_indexes(connection)
+        connection.commit()
+
+        index_columns = {
+            index_name: [
+                (row[2], row[3])
+                for row in connection.execute(
+                    f"PRAGMA index_xinfo('{index_name}')"
+                ).fetchall()
+                if row[5]
+            ]
+            for index_name in (
+                "transactions_history_order_index",
+                "transactions_account_history_index",
+                "transactions_category_history_index",
+            )
+        }
+    finally:
+        connection.close()
+
+    assert index_columns == {
+        "transactions_history_order_index": [
+            ("date_time", 1),
+            ("id", 1),
+        ],
+        "transactions_account_history_index": [
+            ("account_id", 0),
+            ("date_time", 1),
+            ("id", 1),
+        ],
+        "transactions_category_history_index": [
+            ("category_id", 0),
+            ("date_time", 1),
+            ("id", 1),
+        ],
+    }
 
 
 def test_adds_transaction_amount_and_datetime_constraints():

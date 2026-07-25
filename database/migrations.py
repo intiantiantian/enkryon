@@ -439,6 +439,35 @@ def add_transaction_constraints(connection):
     )
 
 
+def add_transaction_history_indexes(connection):
+    connection.execute(
+        '''
+        CREATE INDEX transactions_history_order_index
+        ON transactions (date_time DESC, id DESC)
+        '''
+    )
+    connection.execute(
+        '''
+        CREATE INDEX transactions_account_history_index
+        ON transactions (
+            account_id,
+            date_time DESC,
+            id DESC
+        )
+        '''
+    )
+    connection.execute(
+        '''
+        CREATE INDEX transactions_category_history_index
+        ON transactions (
+            category_id,
+            date_time DESC,
+            id DESC
+        )
+        '''
+    )
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
     (
@@ -450,6 +479,11 @@ MIGRATIONS = (
         3,
         "validation_constraints",
         add_validation_constraints,
+    ),
+    (
+        4,
+        "transaction_history_indexes",
+        add_transaction_history_indexes,
     ),
 )
 

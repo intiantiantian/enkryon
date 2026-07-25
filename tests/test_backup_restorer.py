@@ -280,6 +280,7 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (1, "initial_schema"),
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
+        (4, "transaction_history_indexes"),
     ]
 
 
