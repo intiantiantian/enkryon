@@ -19,8 +19,15 @@ def test_settings_shows_about_local_data_and_privacy_information():
     assert 'text: "Data & Privacy"' in settings_kv
     assert "stored locally on this device" in settings_kv
     assert "require an account or upload your financial data" in settings_kv
-    assert "Android automatic backup is currently disabled" in settings_kv
-    assert "Backup and restore are not " in settings_kv
+    assert "Android automatic backup remains disabled" in settings_kv
+    assert 'text: "Backup & Restore"' in settings_kv
+    assert 'text: "Export Backup"' in settings_kv
+    assert 'text: "Restore Backup"' in settings_kv
+    assert "location you choose" in settings_kv
+    assert "does not upload or sync" in settings_kv
+    assert "fully validated and summarized" in settings_kv
+    assert "on_release: root.export_backup()" in settings_kv
+    assert "on_release: root.restore_backup()" in settings_kv
     assert 'text: "Clear All Data"' in settings_kv
 
 

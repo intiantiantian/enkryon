@@ -144,7 +144,109 @@
                         text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
 
                     MDLabel:
-                        text: "Android automatic backup is currently disabled. Uninstalling Enkryon, clearing its app data, or choosing Clear All Data can permanently remove your records. Backup and restore are not available yet."
+                        text: "Android automatic backup remains disabled. Uninstalling Enkryon, clearing its app data, or choosing Clear All Data can permanently remove records that you have not exported."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                MDLabel:
+                    text: "Backup & Restore"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    font_size: "18sp"
+                    bold: True
+                    theme_text_color: "Custom"
+                    text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
+
+                OutlinedCard:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "8dp"
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
+
+                    MDLabel:
+                        text: "Your backup files"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "16sp"
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                    MDLabel:
+                        text: "Export creates a JSON backup in the location you choose. Enkryon does not upload or sync it. You can move that file to another device and select it with Restore Backup."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "14sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_PRIMARY)
+
+                    MDLabel:
+                        text: "A selected backup is fully validated and summarized before it can replace the data currently stored on this device."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                OutlinedCard:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "4dp"
+                    ripple_behavior: True
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
+                    on_release: root.export_backup()
+
+                    MDLabel:
+                        text: "Export Backup"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                        bold: True
+
+                    MDLabel:
+                        text: "Save a complete copy of your accounts, categories, and transactions."
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: "13sp"
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                OutlinedCard:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: "16dp"
+                    spacing: "4dp"
+                    ripple_behavior: True
+                    md_bg_color: get_color_from_hex(Colors.SURFACE)
+                    on_release: root.restore_backup()
+
+                    MDLabel:
+                        text: "Restore Backup"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        theme_text_color: "Custom"
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+                        bold: True
+
+                    MDLabel:
+                        text: "Choose a backup, review its contents, and replace the data on this device."
                         size_hint_y: None
                         height: self.texture_size[1]
                         text_size: self.width, None
