@@ -40,8 +40,11 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
     all_filter = SimpleNamespace(set_selected=Mock())
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
+    state = TransactionFilterState(
+        transaction_type="old-value",
+    )
     screen = SimpleNamespace(
-        transaction_filter="old-value",
+        filter_state=state,
         ids=SimpleNamespace(
             all_filter=all_filter,
             income_filter=income_filter,
@@ -55,7 +58,7 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
         transaction_type,
     )
 
-    assert screen.transaction_filter == transaction_type
+    assert state.transaction_type == transaction_type
     all_filter.set_selected.assert_called_once_with(all_selected)
     income_filter.set_selected.assert_called_once_with(income_selected)
     expense_filter.set_selected.assert_called_once_with(expense_selected)
@@ -222,6 +225,82 @@ def test_dashboard_defines_list_and_delete_refresh_hooks():
     screen.load_dashboard.assert_called_once_with()
 
 
+def test_dashboard_reset_preserves_account_and_clears_type():
+    state = TransactionFilterState(
+        transaction_type="expense",
+        account_id=7,
+        account_name="Cash",
+    )
+    all_filter = SimpleNamespace(set_selected=Mock())
+    income_filter = SimpleNamespace(set_selected=Mock())
+    expense_filter = SimpleNamespace(set_selected=Mock())
+    account_label = SimpleNamespace(text="")
+    screen = SimpleNamespace(
+        filter_state=state,
+        ids=SimpleNamespace(
+            all_filter=all_filter,
+            income_filter=income_filter,
+            expense_filter=expense_filter,
+            account_label=account_label,
+        ),
+    )
+
+    DashboardScreen.reset_dashboard(screen)
+
+    assert state.transaction_type is None
+    assert state.account_id == 7
+    assert state.account_name == "Cash"
+    all_filter.set_selected.assert_called_once_with(True)
+    income_filter.set_selected.assert_called_once_with(False)
+    expense_filter.set_selected.assert_called_once_with(False)
+    assert account_label.text == "Cash"
+
+
+def test_dashboard_recent_transactions_use_shared_filter_state(
+    monkeypatch,
+):
+    dashboard_module = import_module("screens.dashboard")
+    state = TransactionFilterState(
+        transaction_type="expense",
+        account_id=7,
+        account_name="Cash",
+    )
+    get_transaction_list_data = Mock(
+        return_value={
+            "transactions": [],
+            "empty_state": {},
+        }
+    )
+    screen = SimpleNamespace(
+        filter_state=state,
+        ids=SimpleNamespace(
+            transactions_container=object(),
+        ),
+        get_empty_transaction_action=Mock(
+            return_value=("SHOW ALL", Mock())
+        ),
+    )
+
+    monkeypatch.setattr(
+        dashboard_module,
+        "get_transaction_list_data",
+        get_transaction_list_data,
+    )
+    monkeypatch.setattr(
+        dashboard_module,
+        "render_transaction_list",
+        Mock(),
+    )
+
+    DashboardScreen.load_recent_transactions(screen)
+
+    get_transaction_list_data.assert_called_once_with(
+        **state.to_query_arguments(),
+        limit=3,
+        compact_empty_state=True,
+    )
+
+
 def test_transactions_screen_refreshes_full_transaction_list():
     screen = SimpleNamespace(
         cancel_pending_search_refresh=Mock(),
@@ -302,8 +381,15 @@ def test_empty_transaction_action_matches_current_view(
     callback_name,
 ):
     screen = SimpleNamespace(
-        transaction_filter=transaction_filter,
-        selected_account_id=selected_account_id,
+        filter_state=TransactionFilterState(
+            transaction_type=transaction_filter,
+            account_id=selected_account_id,
+            account_name=(
+                "Cash"
+                if selected_account_id is not None
+                else "All Accounts"
+            ),
+        ),
         go_to_add_transaction=Mock(),
         show_all_transactions=Mock(),
     )
@@ -345,17 +431,24 @@ def test_show_all_transactions_clears_type_filter():
 
 
 def test_dashboard_show_all_clears_account_and_type_filters():
+    state = TransactionFilterState(
+        transaction_type="expense",
+        account_id=7,
+        account_name="Cash",
+    )
     account_label = SimpleNamespace(text="Cash")
     screen = SimpleNamespace(
-        selected_account_id=7,
-        ids=SimpleNamespace(account_label=account_label),
+        filter_state=state,
+        ids=SimpleNamespace(
+            account_label=account_label,
+        ),
         set_transaction_filter=Mock(),
         load_summary=Mock(),
     )
 
     DashboardScreen.show_all_transactions(screen)
 
-    assert screen.selected_account_id is None
+    assert state == TransactionFilterState()
     assert account_label.text == "All Accounts"
     screen.set_transaction_filter.assert_called_once_with(None)
     screen.load_summary.assert_called_once_with()

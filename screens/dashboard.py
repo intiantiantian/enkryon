@@ -10,6 +10,7 @@ from services.transaction_services import (
     get_transaction_list_data,
 )
 
+from .transaction_filter_state import TransactionFilterState
 from .transaction_list_actions import (
     TransactionListActionsMixin,
 )
@@ -24,9 +25,8 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.selected_account_id = None
+        self.filter_state = TransactionFilterState()
         self.balance_visible = True
-        self.transaction_filter = None
 
 
     def on_pre_enter(self):
@@ -56,20 +56,22 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
 
     def show_all_transactions(self):
-        self.selected_account_id = None
-        self.ids.account_label.text = "All Accounts"
+        self.filter_state.reset()
+        self.ids.account_label.text = (
+            self.filter_state.account_name
+        )
         self.set_transaction_filter(None)
         self.load_summary()
 
 
     def reset_dashboard(self):
-        self.ids.all_filter.set_selected(self.transaction_filter == None)
-        self.ids.income_filter.set_selected(self.transaction_filter == "income")
-        self.ids.expense_filter.set_selected(self.transaction_filter == "expense")
-        self.transaction_filter = None
-
-        if self.selected_account_id is None:
-            self.ids.account_label.text = 'All Accounts'
+        self.filter_state.select_transaction_type(None)
+        self.ids.all_filter.set_selected(True)
+        self.ids.income_filter.set_selected(False)
+        self.ids.expense_filter.set_selected(False)
+        self.ids.account_label.text = (
+            self.filter_state.account_name
+        )
 
 
     def load_dashboard(self):
@@ -87,15 +89,15 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
     def load_summary(self):
         balance_centavos = get_current_balance_centavos(
-            self.selected_account_id
+            self.filter_state.account_id
         )
         income_centavos = get_total_centavos(
             "income",
-            self.selected_account_id,
+            self.filter_state.account_id,
         )
         expense_centavos = get_total_centavos(
             "expense",
-            self.selected_account_id,
+            self.filter_state.account_id,
         )
 
         if self.balance_visible:
@@ -121,8 +123,7 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
     def load_recent_transactions(self):
         transaction_list_data = get_transaction_list_data(
-            account_id=getattr(self, "selected_account_id", None),
-            transaction_type=self.transaction_filter,
+            **self.filter_state.to_query_arguments(),
             limit=3,
             compact_empty_state=True,
         )
@@ -176,25 +177,36 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
 
     def select_account(self, account_id, account_name):
-        self.ids.account_label.text = account_name
-        self.selected_account_id = account_id
+        self.filter_state.select_account(
+            account_id,
+            account_name,
+        )
+        self.ids.account_label.text = (
+            self.filter_state.account_name
+        )
         self.account_menu.dismiss()
         self.load_dashboard()
 
 
     def refresh_selected_account(self):
-        if self.selected_account_id is None:
-            self.ids.account_label.text = "All Accounts"
+        state = self.filter_state
+
+        if state.account_id is None:
+            self.ids.account_label.text = state.account_name
             return
 
-        account = get_account_by_id(self.selected_account_id)
+        account = get_account_by_id(state.account_id)
 
         if account is None:
-            self.selected_account_id = None
-            self.ids.account_label.text = "All Accounts"
+            state.clear_account_selection()
+            self.ids.account_label.text = state.account_name
             return
 
-        self.ids.account_label.text = account.name
+        state.select_account(
+            account.account_id,
+            account.name,
+        )
+        self.ids.account_label.text = state.account_name
 
 
     def toggle_balance(self):
