@@ -54,6 +54,36 @@
                     pos: self.pos
                     size: self.size        
 
+        BoxLayout:
+            id: search_controls
+            size_hint_y: None
+            height: '72dp'
+            padding: '10dp', '4dp'
+            spacing: '8dp'
+
+            MDTextField:
+                id: transaction_search
+                hint_text: 'Search transactions'
+                helper_text: 'Notes, account, group, or category'
+                helper_text_mode: 'on_focus'
+                icon_left: 'magnify'
+                mode: 'rectangle'
+                size_hint_x: 1
+                pos_hint: {'center_y': .5}
+                on_text:
+                    root.set_search_text(self.text)
+
+            EnkryonPrimaryButton:
+                text: 'CLEAR'
+                size_hint: None, None
+                width: '88dp'
+                height: '48dp'
+                pos_hint: {'center_y': .5 - dp(4) / (search_controls.height - search_controls.padding[1] - search_controls.padding[3])}
+                disabled: not transaction_search.text
+                opacity: 1 if transaction_search.text else .38
+                on_release:
+                    root.clear_search()
+
         GridLayout:
             cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
             size_hint_y: None

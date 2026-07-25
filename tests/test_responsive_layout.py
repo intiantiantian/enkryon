@@ -149,6 +149,42 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert "font_size: '14sp'" in amount_block
 
 
+def test_transaction_search_controls_fit_small_widths():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+    search_controls = layout.split(
+        "id: transaction_search",
+        maxsplit=1,
+    )[1].split(
+        "GridLayout:",
+        maxsplit=1,
+    )[0]
+    clear_button = search_controls.split(
+        "text: 'CLEAR'",
+        maxsplit=1,
+    )[1]
+    search_field = search_controls.split(
+        "EnkryonPrimaryButton:",
+        maxsplit=1,
+    )[0]
+
+    assert "hint_text: 'Search transactions'" in search_controls
+    assert "size_hint_x: 1" in search_controls
+    assert "text: 'CLEAR'" in search_controls
+    assert "width: '88dp'" in search_controls
+    assert "height: '48dp'" in search_controls
+    assert "on_text:" in search_controls
+    assert "pos_hint: {'center_y': .5}" in search_field
+    assert (
+        "pos_hint: {'center_y': .5 - dp(4) / "
+        "(search_controls.height - search_controls.padding[1] - "
+        "search_controls.padding[3])}"
+        in clear_button
+    )
+
+
 def test_settings_content_remains_scrollable_and_contained():
     project_root = Path(__file__).resolve().parents[1]
     layout = (

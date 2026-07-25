@@ -1,5 +1,7 @@
+from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 
+from .transaction_filter_state import TransactionFilterState
 from .transaction_list_actions import TransactionListActionsMixin
 
 from services.transaction_services import (
@@ -8,9 +10,18 @@ from services.transaction_services import (
 
 from widgets.transaction_list import render_transaction_list
 
+
+SEARCH_REFRESH_DELAY = 0.25
+
 class TransactionsScreen(TransactionListActionsMixin, Screen):
 
-    transaction_filter = None
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.filter_state = TransactionFilterState()
+        self._search_refresh_event = None
+        self._suspend_search_refresh = False
+
 
     def go_to_dashboard(self):
         self.manager.current = 'dashboard'
@@ -21,18 +32,79 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
 
     def on_pre_enter(self):
-        self.ids.all_filter.set_selected(self.transaction_filter == None)
-        self.ids.income_filter.set_selected(self.transaction_filter == "income")
-        self.ids.expense_filter.set_selected(self.transaction_filter == "expense")
-        self.transaction_filter = None
+        self.cancel_pending_search_refresh()
+        self.filter_state.reset()
+        self.render_filter_state()
+        self.set_search_field_text("")
+        self.load_transactions()
 
+
+    def render_filter_state(self):
+        transaction_type = self.filter_state.transaction_type
+
+        self.ids.all_filter.set_selected(
+            transaction_type is None
+        )
+        self.ids.income_filter.set_selected(
+            transaction_type == "income"
+        )
+        self.ids.expense_filter.set_selected(
+            transaction_type == "expense"
+        )
+
+
+    def set_search_field_text(self, search_text):
+        self._suspend_search_refresh = True
+        try:
+            self.ids.transaction_search.text = search_text
+        finally:
+            self._suspend_search_refresh = False
+
+
+    def set_search_text(self, search_text):
+        self.filter_state.set_search_text(search_text)
+
+        if self._suspend_search_refresh:
+            return
+
+        self.cancel_pending_search_refresh()
+        self._search_refresh_event = Clock.schedule_once(
+            self.apply_search_text,
+            SEARCH_REFRESH_DELAY,
+        )
+
+
+    def apply_search_text(self, *_args):
+        self._search_refresh_event = None
+        self.load_transactions()
+
+
+    def cancel_pending_search_refresh(self):
+        if self._search_refresh_event is None:
+            return
+
+        self._search_refresh_event.cancel()
+        self._search_refresh_event = None
+
+
+    def clear_search(self):
+        self.cancel_pending_search_refresh()
+        self.filter_state.set_search_text("")
+        self.set_search_field_text("")
+        self.load_transactions()
+
+
+    def show_all_transactions(self):
+        self.cancel_pending_search_refresh()
+        self.filter_state.reset()
+        self.render_filter_state()
+        self.set_search_field_text("")
         self.load_transactions()
 
 
     def load_transactions(self):
         transaction_list_data = get_transaction_list_data(
-            account_id=getattr(self, "selected_account_id", None),
-            transaction_type=self.transaction_filter,
+            **self.filter_state.to_query_arguments(),
         )
 
         action_text, action_callback = (
@@ -50,4 +122,9 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
 
     def refresh_transaction_list(self):
+        self.cancel_pending_search_refresh()
         self.load_transactions()
+
+
+    def on_leave(self):
+        self.cancel_pending_search_refresh()

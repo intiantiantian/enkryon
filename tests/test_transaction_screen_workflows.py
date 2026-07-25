@@ -13,11 +13,212 @@ from database.records import (
 
 from screens.add_transaction import AddTransactionScreen
 from screens.transaction_form_state import TransactionFormState
+from screens.transaction_filter_state import TransactionFilterState
+from screens.transactions import TransactionsScreen
 
 from services.transaction_services import TransactionSaveResult
 
 
 action_results_module = import_module("screens.action_results")
+
+
+def test_transaction_search_normalizes_and_debounces(
+    monkeypatch,
+):
+    transactions_module = import_module("screens.transactions")
+    pending_event = SimpleNamespace(cancel=Mock())
+    scheduled_event = object()
+    clock = SimpleNamespace(
+        schedule_once=Mock(return_value=scheduled_event)
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "Clock",
+        clock,
+    )
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(),
+        _search_refresh_event=pending_event,
+        _suspend_search_refresh=False,
+        apply_search_text=Mock(),
+    )
+    screen.cancel_pending_search_refresh = lambda: (
+        TransactionsScreen.cancel_pending_search_refresh(
+            screen
+        )
+    )
+
+    TransactionsScreen.set_search_text(
+        screen,
+        "  team lunch  ",
+    )
+
+    assert screen.filter_state.search_text == "team lunch"
+    pending_event.cancel.assert_called_once_with()
+    clock.schedule_once.assert_called_once_with(
+        screen.apply_search_text,
+        transactions_module.SEARCH_REFRESH_DELAY,
+    )
+    assert screen._search_refresh_event is scheduled_event
+
+
+def test_clear_transaction_search_preserves_type_filter():
+    search_field = SimpleNamespace(text="team lunch")
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            search_text="team lunch",
+            transaction_type="expense",
+        ),
+        _search_refresh_event=None,
+        _suspend_search_refresh=False,
+        ids=SimpleNamespace(
+            transaction_search=search_field,
+        ),
+        load_transactions=Mock(),
+    )
+    screen.cancel_pending_search_refresh = lambda: (
+        TransactionsScreen.cancel_pending_search_refresh(
+            screen
+        )
+    )
+    screen.set_search_field_text = lambda search_text: (
+        TransactionsScreen.set_search_field_text(
+            screen,
+            search_text,
+        )
+    )
+
+    TransactionsScreen.clear_search(screen)
+
+    assert screen.filter_state.search_text == ""
+    assert screen.filter_state.transaction_type == "expense"
+    assert search_field.text == ""
+    screen.load_transactions.assert_called_once_with()
+
+
+def test_show_all_transactions_resets_search_and_type_filters():
+    search_field = SimpleNamespace(text="team lunch")
+    all_filter = SimpleNamespace(set_selected=Mock())
+    income_filter = SimpleNamespace(set_selected=Mock())
+    expense_filter = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            search_text="team lunch",
+            transaction_type="expense",
+        ),
+        _search_refresh_event=None,
+        _suspend_search_refresh=False,
+        ids=SimpleNamespace(
+            transaction_search=search_field,
+            all_filter=all_filter,
+            income_filter=income_filter,
+            expense_filter=expense_filter,
+        ),
+        load_transactions=Mock(),
+    )
+    screen.cancel_pending_search_refresh = lambda: (
+        TransactionsScreen.cancel_pending_search_refresh(
+            screen
+        )
+    )
+    screen.render_filter_state = lambda: (
+        TransactionsScreen.render_filter_state(screen)
+    )
+    screen.set_search_field_text = lambda search_text: (
+        TransactionsScreen.set_search_field_text(
+            screen,
+            search_text,
+        )
+    )
+
+    TransactionsScreen.show_all_transactions(screen)
+
+    assert screen.filter_state == TransactionFilterState()
+    assert search_field.text == ""
+    all_filter.set_selected.assert_called_once_with(True)
+    income_filter.set_selected.assert_called_once_with(False)
+    expense_filter.set_selected.assert_called_once_with(False)
+    screen.load_transactions.assert_called_once_with()
+
+
+def test_transaction_history_resets_filters_on_pre_enter():
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            search_text="lunch",
+            transaction_type="expense",
+            group_id=3,
+            group_name="Food",
+            category_id=5,
+            category_name="Dining",
+        ),
+        cancel_pending_search_refresh=Mock(),
+        render_filter_state=Mock(),
+        set_search_field_text=Mock(),
+        load_transactions=Mock(),
+    )
+
+    TransactionsScreen.on_pre_enter(screen)
+
+    assert screen.filter_state == TransactionFilterState()
+    screen.cancel_pending_search_refresh.assert_called_once_with()
+    screen.render_filter_state.assert_called_once_with()
+    screen.set_search_field_text.assert_called_once_with("")
+    screen.load_transactions.assert_called_once_with()
+
+
+def test_transaction_history_load_forwards_filter_state(
+    monkeypatch,
+):
+    transactions_module = import_module("screens.transactions")
+    filter_state = TransactionFilterState(
+        search_text="lunch",
+        transaction_type="expense",
+    )
+    list_data = {
+        "transactions": [],
+        "empty_state": {
+            "title": "No matching transactions",
+            "message": (
+                "Try changing or resetting your search and filters."
+            ),
+        },
+    }
+    get_transaction_list_data = Mock(return_value=list_data)
+    render_transaction_list = Mock()
+    action_callback = Mock()
+    screen = SimpleNamespace(
+        filter_state=filter_state,
+        ids=SimpleNamespace(
+            transactions_container=object(),
+        ),
+        get_empty_transaction_action=Mock(
+            return_value=("SHOW ALL", action_callback)
+        ),
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "get_transaction_list_data",
+        get_transaction_list_data,
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "render_transaction_list",
+        render_transaction_list,
+    )
+
+    TransactionsScreen.load_transactions(screen)
+
+    get_transaction_list_data.assert_called_once_with(
+        **filter_state.to_query_arguments()
+    )
+    render_transaction_list.assert_called_once_with(
+        container=screen.ids.transactions_container,
+        transactions=[],
+        screen=screen,
+        empty_state=list_data["empty_state"],
+        action_text="SHOW ALL",
+        action_callback=action_callback,
+    )
 
 
 def make_save_screen(*, transaction_id=None):
@@ -271,6 +472,7 @@ def test_load_transaction_populates_edit_form(monkeypatch):
         transaction_id=17,
     )
     screen.render_form_state.assert_called_once_with()
+
 
 def test_open_add_account_screen_preserves_in_progress_form():
     form_state = TransactionFormState(

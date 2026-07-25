@@ -10,7 +10,13 @@ from .action_results import render_action_result
 class TransactionListActionsMixin:
 
     def set_transaction_filter(self, transaction_type):
-        self.transaction_filter = transaction_type
+        filter_state = getattr(self, "filter_state", None)
+        if filter_state is None:
+            self.transaction_filter = transaction_type
+        else:
+            filter_state.select_transaction_type(
+                transaction_type
+            )
 
         self.ids.all_filter.set_selected(transaction_type is None)
         self.ids.income_filter.set_selected(
@@ -24,10 +30,18 @@ class TransactionListActionsMixin:
 
 
     def get_empty_transaction_action(self):
-        filters_active = (
-            self.transaction_filter is not None
-            or getattr(self, "selected_account_id", None) is not None
-        )
+        filter_state = getattr(self, "filter_state", None)
+        if filter_state is None:
+            filters_active = (
+                self.transaction_filter is not None
+                or getattr(
+                    self,
+                    "selected_account_id",
+                    None,
+                ) is not None
+            )
+        else:
+            filters_active = filter_state.is_active
 
         if filters_active:
             return "SHOW ALL", self.show_all_transactions

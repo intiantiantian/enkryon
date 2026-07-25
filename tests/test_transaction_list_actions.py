@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from screens.dashboard import DashboardScreen
+from screens.transaction_filter_state import TransactionFilterState
 from screens.transaction_list_actions import (
     TransactionListActionsMixin,
 )
@@ -58,6 +59,35 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
     all_filter.set_selected.assert_called_once_with(all_selected)
     income_filter.set_selected.assert_called_once_with(income_selected)
     expense_filter.set_selected.assert_called_once_with(expense_selected)
+    screen.refresh_transaction_list.assert_called_once_with()
+
+
+def test_set_transaction_filter_updates_shared_filter_state():
+    state = TransactionFilterState(
+        transaction_type="income",
+        group_id=3,
+        group_name="Salary",
+        category_id=5,
+        category_name="Paycheck",
+    )
+    screen = SimpleNamespace(
+        filter_state=state,
+        ids=SimpleNamespace(
+            all_filter=SimpleNamespace(set_selected=Mock()),
+            income_filter=SimpleNamespace(set_selected=Mock()),
+            expense_filter=SimpleNamespace(set_selected=Mock()),
+        ),
+        refresh_transaction_list=Mock(),
+    )
+
+    TransactionListActionsMixin.set_transaction_filter(
+        screen,
+        "expense",
+    )
+
+    assert state.transaction_type == "expense"
+    assert state.group_id is None
+    assert state.category_id is None
     screen.refresh_transaction_list.assert_called_once_with()
 
 
@@ -193,10 +223,14 @@ def test_dashboard_defines_list_and_delete_refresh_hooks():
 
 
 def test_transactions_screen_refreshes_full_transaction_list():
-    screen = SimpleNamespace(load_transactions=Mock())
+    screen = SimpleNamespace(
+        cancel_pending_search_refresh=Mock(),
+        load_transactions=Mock(),
+    )
 
     TransactionsScreen.refresh_transaction_list(screen)
 
+    screen.cancel_pending_search_refresh.assert_called_once_with()
     screen.load_transactions.assert_called_once_with()
 
 
@@ -280,6 +314,24 @@ def test_empty_transaction_action_matches_current_view(
 
     assert action_text == expected_text
     assert action_callback is getattr(screen, callback_name)
+
+
+def test_empty_transaction_action_recognizes_search_state():
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            search_text="lunch",
+        ),
+        go_to_add_transaction=Mock(),
+        show_all_transactions=Mock(),
+    )
+
+    action_text, action_callback = (
+        TransactionListActionsMixin
+        .get_empty_transaction_action(screen)
+    )
+
+    assert action_text == "SHOW ALL"
+    assert action_callback is screen.show_all_transactions
 
 
 def test_show_all_transactions_clears_type_filter():
