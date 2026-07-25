@@ -39,6 +39,12 @@ def test_android_automatic_backup_is_disabled():
     assert app_config.get("android.backup_rules") is None
 
 
+def test_android_document_picker_needs_no_storage_permissions():
+    app_config = load_app_config()
+
+    assert app_config.get("android.permissions") is None
+
+
 def test_android_build_toolchain_versions_are_pinned():
     app_config = load_app_config()
 
