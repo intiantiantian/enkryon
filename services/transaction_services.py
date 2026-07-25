@@ -102,11 +102,20 @@ def save_transaction(
 
 
 def get_empty_transaction_state(
-    transaction_filter=None,
+    transaction_type=None,
     compact=False,
     account_filtered=False,
+    advanced_filters_active=False,
 ):
-    if transaction_filter == "income":
+    if advanced_filters_active:
+        return {
+            "title": "No matching transactions",
+            "message": (
+                "Try changing or resetting your search and filters."
+            ),
+        }
+
+    if transaction_type == "income":
         return {
             "title": "No income transactions",
             "message": (
@@ -114,7 +123,7 @@ def get_empty_transaction_state(
             ),
         }
 
-    if transaction_filter == "expense":
+    if transaction_type == "expense":
         return {
             "title": "No expense transactions",
             "message": (
@@ -146,30 +155,65 @@ def get_empty_transaction_state(
     }
 
 
-def get_transactions_for_view(account_id=None, transaction_filter=None, limit=None):
+def get_transactions_for_view(
+    account_id=None,
+    transaction_type=None,
+    search_text=None,
+    group_id=None,
+    category_id=None,
+    start_date=None,
+    end_date=None,
+    limit=None,
+):
     return get_transactions(
         account_id=account_id,
-        transaction_type=transaction_filter,
-        limit=limit
+        transaction_type=transaction_type,
+        search_text=search_text,
+        group_id=group_id,
+        category_id=category_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
     )
 
 
 def get_transaction_list_data(
     account_id=None,
-    transaction_filter=None,
+    transaction_type=None,
+    search_text=None,
+    group_id=None,
+    category_id=None,
+    start_date=None,
+    end_date=None,
     limit=None,
     compact_empty_state=False,
 ):
     transactions = get_transactions_for_view(
         account_id=account_id,
-        transaction_filter=transaction_filter,
-        limit=limit
+        transaction_type=transaction_type,
+        search_text=search_text,
+        group_id=group_id,
+        category_id=category_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
+    )
+
+    advanced_filters_active = any(
+        (
+            search_text,
+            group_id is not None,
+            category_id is not None,
+            start_date is not None,
+            end_date is not None,
+        )
     )
 
     empty_state = get_empty_transaction_state(
-        transaction_filter,
+        transaction_type,
         compact_empty_state,
         account_filtered=account_id is not None,
+        advanced_filters_active=advanced_filters_active,
     )
 
     return {

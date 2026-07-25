@@ -122,7 +122,7 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
     def load_recent_transactions(self):
         transaction_list_data = get_transaction_list_data(
             account_id=getattr(self, "selected_account_id", None),
-            transaction_filter=self.transaction_filter,
+            transaction_type=self.transaction_filter,
             limit=3,
             compact_empty_state=True,
         )

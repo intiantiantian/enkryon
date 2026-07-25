@@ -1,3 +1,5 @@
+from datetime import date
+
 from unittest.mock import Mock
 
 import pytest
@@ -313,8 +315,24 @@ def test_get_empty_transaction_state(
     ) == expected_state
 
 
+def test_get_empty_transaction_state_reports_unmatched_advanced_filters():
+    assert transaction_services.get_empty_transaction_state(
+        transaction_type="expense",
+        compact=True,
+        account_filtered=True,
+        advanced_filters_active=True,
+    ) == {
+        "title": "No matching transactions",
+        "message": (
+            "Try changing or resetting your search and filters."
+        ),
+    }
+
+
 def test_get_transactions_for_view_forwards_filters(monkeypatch):
     expected_transactions = [(7, "Cash", "Salary")]
+    start_date = date(2026, 7, 1)
+    end_date = date(2026, 7, 20)
     repository_get_transactions = Mock(
         return_value=expected_transactions
     )
@@ -326,7 +344,12 @@ def test_get_transactions_for_view_forwards_filters(monkeypatch):
 
     result = transaction_services.get_transactions_for_view(
         account_id=3,
-        transaction_filter="expense",
+        transaction_type="expense",
+        search_text="lunch",
+        group_id=4,
+        category_id=8,
+        start_date=start_date,
+        end_date=end_date,
         limit=5,
     )
 
@@ -334,6 +357,11 @@ def test_get_transactions_for_view_forwards_filters(monkeypatch):
     repository_get_transactions.assert_called_once_with(
         account_id=3,
         transaction_type="expense",
+        search_text="lunch",
+        group_id=4,
+        category_id=8,
+        start_date=start_date,
+        end_date=end_date,
         limit=5,
     )
 
@@ -342,10 +370,12 @@ def test_get_transaction_list_data_combines_service_results(
     monkeypatch,
 ):
     expected_transactions = [(7, "Cash", "Salary")]
+    start_date = date(2026, 7, 1)
+    end_date = date(2026, 7, 20)
     expected_empty_state = {
-        "title": "No income transactions",
+        "title": "No matching transactions",
         "message": (
-            "No income transactions match the current view."
+            "Try changing or resetting your search and filters."
         ),
     }
     get_transactions_for_view = Mock(
@@ -368,7 +398,12 @@ def test_get_transaction_list_data_combines_service_results(
 
     result = transaction_services.get_transaction_list_data(
         account_id=2,
-        transaction_filter="income",
+        transaction_type="income",
+        search_text="salary",
+        group_id=3,
+        category_id=7,
+        start_date=start_date,
+        end_date=end_date,
         limit=10,
         compact_empty_state=True,
     )
@@ -379,13 +414,19 @@ def test_get_transaction_list_data_combines_service_results(
     }
     get_transactions_for_view.assert_called_once_with(
         account_id=2,
-        transaction_filter="income",
+        transaction_type="income",
+        search_text="salary",
+        group_id=3,
+        category_id=7,
+        start_date=start_date,
+        end_date=end_date,
         limit=10,
     )
     get_empty_transaction_state.assert_called_once_with(
         "income",
         True,
         account_filtered=True,
+        advanced_filters_active=True,
     )
 
 
@@ -404,13 +445,18 @@ def test_get_transactions_for_view_propagates_repository_error(
     with pytest.raises(RuntimeError, match="database unavailable"):
         transaction_services.get_transactions_for_view(
             account_id=3,
-            transaction_filter="expense",
+            transaction_type="expense",
             limit=5,
         )
 
     repository_get_transactions.assert_called_once_with(
         account_id=3,
         transaction_type="expense",
+        search_text=None,
+        group_id=None,
+        category_id=None,
+        start_date=None,
+        end_date=None,
         limit=5,
     )
 
@@ -435,7 +481,9 @@ def test_get_transaction_for_edit_forwards_transaction_id(
     repository_get_transaction.assert_called_once_with(17)
 
 
-@pytest.mark.parametrize("repository_result", [True, False])
+@pytest.mark.parametrize(
+        "repository_result",
+        [True, False],)
 def test_delete_transaction_by_id_returns_repository_result(
     monkeypatch,
     repository_result,
@@ -501,7 +549,8 @@ def test_delete_missing_transaction_skips_repository_delete(
     repository_delete_transaction.assert_not_called()
 
 
-@pytest.mark.parametrize("restored", [True, False])
+@pytest.mark.parametrize("restored",
+                         [True, False],)
 def test_restore_deleted_transaction_returns_repository_result(
     monkeypatch,
     restored,

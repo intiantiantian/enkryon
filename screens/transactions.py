@@ -32,7 +32,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
     def load_transactions(self):
         transaction_list_data = get_transaction_list_data(
             account_id=getattr(self, "selected_account_id", None),
-            transaction_filter=self.transaction_filter,
+            transaction_type=self.transaction_filter,
         )
 
         action_text, action_callback = (
