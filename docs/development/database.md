@@ -143,15 +143,36 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-Until the user-controlled backup and restore feature is implemented:
+This policy remains in effect after Phase 7:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.
-- Clearing application data or uninstalling Enkryon can permanently
-  remove local records.
-- Some Android 12 and newer devices may still permit manufacturer-managed
-  device-to-device transfers despite cloud backup being disabled.
+- User-controlled backup documents are handled separately from the private
+  runtime database.
+- Android release verification must continue confirming that the generated
+  manifest contains `android:allowBackup="false"`.
 
-Phase 7 will introduce a versioned, validated, user-controlled backup and
-restore process. Android release verification must confirm that the
-generated manifest contains `android:allowBackup="false"`.
+## User-Controlled Backup and Restore
+
+Phase 7 introduced versioned JSON backup documents containing application and
+database versions, export metadata, record counts, and the account, category
+group, category, and transaction records needed for recovery.
+
+Before restore begins, the complete document is validated for supported
+versions, structure, field values, record counts, IDs, uniqueness, and
+relationships. Invalid or incompatible documents cannot modify the current
+database.
+
+Confirmed restore deliberately replaces current application data inside one
+SQLite transaction:
+
+1. Existing records are removed in reverse dependency order.
+2. Backup records are inserted in dependency order while preserving IDs.
+3. SQLite ID sequences are restored consistently with the imported records.
+4. Foreign-key integrity is checked before the transaction commits.
+5. Any failure rolls back the complete replacement.
+
+Android uses the system document picker for backup export and import without
+requesting broad storage permission.
+Restore in `v0.7.0` does not merge records; backup merging is deferred until
+after statistics.

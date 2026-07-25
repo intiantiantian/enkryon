@@ -9,6 +9,37 @@ version reference.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-25
+
+### Added
+
+- Versioned JSON backup export containing application, database,
+  export-date, record-count, and financial-record data.
+- Complete backup validation before current application data can change.
+- Restore preview showing backup metadata and record counts.
+- Android system document-picker support for backup export and import.
+- A two-stage Clear All Data flow that offers backup before deletion.
+- Automated round-trip, corruption, incompatibility, rollback,
+  document-transfer, and Settings workflow tests.
+
+### Changed
+
+- Restore now deliberately replaces current application data inside one
+  database transaction after explicit confirmation.
+- Settings now explains local storage, backup, restore, and destructive-data
+  behavior.
+- Backup and restore use user-selected documents without requesting broad
+  Android storage permission.
+
+### Fixed
+
+- Failed restore operations roll back instead of leaving partially replaced
+  data.
+- Cancelled or failed backup-before-clear operations never advance to data
+  deletion.
+- Android document-picker results return through Kivy's UI thread so restore
+  previews and post-export confirmations appear correctly.
+
 ## [0.6.0] - 2026-07-23
 
 ### Added

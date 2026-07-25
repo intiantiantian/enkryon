@@ -8,7 +8,7 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_6_is_closed_and_phase_7_is_next():
+def test_phase_6_remains_closed_after_phase_7():
     roadmap = read_project_file("ROADMAP.md")
     phase_six = roadmap.split(
         "## Phase 6 — Clear, Accessible, Responsive User Experience",
@@ -18,18 +18,10 @@ def test_phase_6_is_closed_and_phase_7_is_next():
         maxsplit=1,
     )[0]
 
-    assert "Updated: July 23, 2026" in roadmap
-    assert "Current release: `v0.6.0`" in roadmap
-    assert "Current position: Phase 6 is complete; Phase 7 is next" in roadmap
     assert (
         "| 6. Clear, Accessible, Responsive User Experience | "
         "Make all existing workflows comfortable and understandable across "
         "supported phones. | Completed |"
-    ) in roadmap
-    assert (
-        "| 7. Backup, Restore, and Recovery | "
-        "Let users preserve and recover their local financial records "
-        "safely. | Next |"
     ) in roadmap
     assert "**Status:** Completed" in phase_six
     assert "**Passed.**" in phase_six
@@ -48,7 +40,6 @@ def test_phase_6_changes_are_recorded_for_users_and_developers():
     assert "## Phase 6 Interface Regression" in testing
     assert "`395` passing tests" in testing
     assert "Small `S / 90%` profile" in testing
-    assert "Enkryon-v0.6.0.apk" in readme
     assert "## [0.6.0] - 2026-07-23" in changelog
 
 
@@ -73,13 +64,11 @@ def test_phase_6_verification_records_closeout_evidence():
     )
 
 
-def test_phase_6_release_and_recovery_boundaries():
-    roadmap = read_project_file("ROADMAP.md")
+def test_phase_6_release_and_recovery_evidence_remains_historical():
     verification = read_project_file(
         "docs/audits/phase-6-verification.md"
     )
 
-    assert "Current release: `v0.6.0`" in roadmap
     assert "Phase 6's source release is `v0.6.0`." in verification
     assert "Artifact-specific Android build" in verification
     assert "Repository screenshot replacement" in verification

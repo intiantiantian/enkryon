@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 23, 2026
-Current release: `v0.6.0`
-Current position: Phase 6 is complete; Phase 7 is next
+Updated: July 25, 2026
+Current release: `v0.7.0`
+Current position: Phase 7 is complete; Phase 8 is next
 
 ## Purpose
 
@@ -28,14 +28,11 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The suite contains `395` passing tests covering migrations, repositories, services, form state, screen workflows, responsive-layout contracts, customized overlays, Android Back behavior, and phase closeout documentation. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
-| Versioning | `main.py` defines `0.6.0`; Buildozer reads that canonical value, and standardized artifact names use `v0.6.0`. | The Phase 6 source and planned Android release use one version value. |
-| Android release | `v0.6.0` uses the permanent signing and reproducible release process established by verified `v0.4.8`. | Build, signature, alignment, installation, upgrade, checksum, and publication evidence must be recorded in the `v0.6.0` release notes before publication. |
-| Android packaging | Development files and duplicated source assets are excluded. The verified APK targets API 36, supports API 24 and later, contains ARM64 and ARMv7, and disables Android auto-backup. | Packaging and privacy behavior are explicit and test-protected. |
-| Automated checks on GitHub | GitHub Actions installs the pinned development environment, compiles the source, and runs all tests with coverage on pushes, pull requests, and manual runs. | Broken correctness checks are visible before release preparation. |
-| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, transaction form state is explicit, and shared screen helpers own repeated result and list actions. | Phase 6 interface improvements preserve these boundaries instead of moving financial or persistence rules back into screens. |
-| User experience | Responsive layouts, preserved transaction form state, actionable empty states, informative Settings content, and shared card-based overlays are implemented and regression-tested. | Phase 7 can focus on recovery without reopening the completed interface redesign. |
-| Backup and recovery | The app can clear all data, but it has no user-controlled backup and restore flow. | Recovery must be added before Enkryon leaves alpha. |
+| Automated tests | The pre-documentation Phase 7 closeout baseline contains `446` passing tests, including backup validation, transactional restore, document transfer, Settings workflows, migrations, repositories, services, and interface behavior. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
+| Android release | The `v0.7.0` source is prepared to use the permanent signing and reproducible release process established by verified `v0.4.8`; Phase 7 recovery flows were verified in an Android debug build. | Build, signature, alignment, official upgrade, checksum, and publication evidence must be recorded before publishing `v0.7.0`. |
+| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, and dedicated backup exporter, validator, restorer, and platform document-transfer services own recovery workflows. | Phase 8 can add search and filters without moving financial, persistence, or recovery rules into screens. |
+| User experience | Responsive layouts, preserved transaction form state, actionable empty states, shared card-based overlays, and Settings backup, restore-preview, and backup-before-clear workflows are implemented and regression-tested. | Phase 8 can focus on finding transactions without reopening the completed recovery and interface work. |
+| Backup and recovery | Versioned export, complete validation, confirmed replacement restore, rollback protection, Android document selection, and backup-before-clear are implemented and Android-verified. | Phase 7's recovery gate is complete; backup merging is deferred until after statistics. |
 | Search and advanced filters | Transaction-type filtering exists. Search, date range, account, category, and combined filters are not yet complete. | Complete these in Phase 8 rather than mixing them into reliability work. |
 
 ## Phase Overview
@@ -48,8 +45,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 4. Reliable Android Releases | Make Android builds repeatable, correctly signed, clearly versioned, and safe to install as upgrades. | Completed |
 | 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Completed |
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Completed |
-| 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Next |
-| 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Planned |
+| 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Completed |
+| 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Next |
 | 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Planned |
 | 10. Major Feature Expansion | Add reports, budgets, recurring transactions, and other large features after the core is dependable. | Deferred |
 
@@ -353,6 +350,8 @@ Make changes safer by moving business rules out of large screen files and giving
 
 **Passed.** Screens coordinate interface state instead of owning financial or persistence rules, core workflows are tested without rendering the interface, repository and service failures have explicit meanings, and repeated transaction-list and action-result behavior has one maintained implementation.
 
+---
+
 ## Phase 6 — Clear, Accessible, Responsive User Experience
 
 **Status:** Completed
@@ -420,24 +419,32 @@ shortening are recorded in the Phase 6 verification report.
 
 ## Phase 7 — Backup, Restore, and Recovery
 
-**Status:** Next
-**Priority:** High before leaving alpha
+**Status:** Completed in `v0.7.0`
+**Priority achieved:** High before leaving alpha
 
 ### Objective
 
 Give users a safe, understandable way to preserve and recover their local financial records before clearing data, changing devices, or installing risky upgrades.
 
-### Work plan
+### Completed work
 
-1. Define a versioned backup format containing the database version, app version, export date, and record counts.
-2. Export accounts, category groups, categories, and transactions without changing relationships or centavo values.
-3. Validate an entire backup before changing the current database.
-4. Restore inside a database transaction and roll back if any step fails.
-5. Show what will be restored and require confirmation before replacing current data.
-6. Offer a backup before Clear All Data and before any future high-risk migration where practical.
-7. Handle malformed, incomplete, incompatible, and partially corrupted backup files safely.
-8. Explain where Enkryon stores data and backups and how users can transfer them.
-9. Test empty, normal, large, corrupted, and old-version backup round trips.
+1. Defined a versioned JSON backup format with application, database,
+   export-date, and record-count metadata.
+2. Exported accounts, category groups, categories, and transactions while
+   preserving IDs, relationships, dates, notes, names, and integer-centavo
+   values.
+3. Added complete validation before restore can modify the current database.
+4. Added confirmed replacement restore inside a database transaction, with
+   rollback on failure.
+5. Added restore previews showing backup version, export date, and record
+   counts.
+6. Added Android document-picker export and import without requesting broad
+   storage permission.
+7. Added clear failure and cancellation handling for malformed,
+   incompatible, corrupted, or unavailable backups.
+8. Added a two-stage Clear All Data flow that offers backup before the final
+   deletion confirmation.
+9. Verified backup, replacement restore, clearing, and recovery on Android.
 
 ### Deliverables
 
@@ -449,15 +456,19 @@ Give users a safe, understandable way to preserve and recover their local financ
 
 ### Completion gate
 
-Phase 7 is complete when a populated database can be exported, removed, restored, and verified without changing balances, relationships, dates, notes, names, or transaction IDs.
+**Passed.** A populated database was exported, cleared, restored, and
+verified without changing balances, relationships, dates, notes, names,
+transaction IDs, or integer-centavo values.
 
-Cloud synchronization is not part of this phase.
+Restore in `v0.7.0` intentionally replaces existing application data.
+Merging backups is deferred until after statistics. Cloud synchronization
+remains outside this phase.
 
 ---
 
 ## Phase 8 — Transaction Search and Advanced Filters
 
-**Status:** Planned
+**Status:** Next
 **Priority:** Medium
 
 ### Objective
@@ -556,15 +567,12 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Define a versioned backup format with application, schema, export-date,
-   and record-count metadata.
-2. Implement export without changing transaction IDs, relationships, or
-   integer-centavo values.
-3. Validate complete backups before allowing restore to modify current data.
-4. Add transactional restore, replacement confirmation, and recoverable
-   failure handling.
-5. Verify empty, populated, corrupted, and older-version backup round trips
-   before enabling broader recovery workflows.
+1. Define search behavior for notes, accounts, category groups, and
+   categories.
+2. Add account, category, and date-range filters.
+3. Make search and all filters work correctly in combination.
+4. Add active-filter indicators and a reliable Reset All action.
+5. Verify no-results behavior and performance with larger histories.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

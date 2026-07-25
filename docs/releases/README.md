@@ -15,9 +15,9 @@ Enkryon-vX.Y.Z-release-notes.md
 ```
 
 Before version 1.0, Enkryon versions use `major.phase.subphase` as the
-roadmap reference. Phase 6 completion therefore prepares `v0.6.0` from the
-official `v0.4.8` baseline. Phase 5 was completed as an internal architecture
-checkpoint and did not require a public `v0.5.x` APK.
+roadmap reference. Phase 7 completion therefore prepares `v0.7.0` from
+`v0.6.0`. Phase 5 was completed as an internal architecture checkpoint and
+did not require a public `v0.5.x` APK.
 
 `main.py` is the version source. The secure release helper reads that value,
 verifies the permanent Enkryon certificate and APK alignment, then creates

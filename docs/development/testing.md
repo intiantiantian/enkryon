@@ -98,7 +98,7 @@ final total of `395` passing tests.
 Automated coverage now includes source-level responsive-layout contracts,
 transaction-form preservation, actionable empty states, shared overlay
 behavior, option selection, floating-label boundaries, Dashboard amount
-capacity, and overlay-first Back handling Back handling.
+capacity, and overlay-first Back handling.
 
 Real rendering still requires application checks. Relevant Phase 6
 checkpoints used these conditions:
@@ -117,6 +117,37 @@ repeated afterward; that explicit evidence limit is recorded in
 
 Future interface changes must run their focused tests, the complete suite,
 and the device or desktop checks relevant to the changed behavior.
+
+## Phase 7 Recovery Regression
+
+Phase 7 began with `395` tests. Its implementation closeout baseline contains
+`446` passing tests with `79%` total branch coverage. Four Phase 7 closeout
+tests bring the final expected total to `450` after documentation verification.
+
+Automated recovery coverage includes:
+
+- Versioned backup formatting and exact relational export.
+- Complete validation before database modification.
+- Restore previews and explicit replacement confirmation.
+- Transactional restore, rollback, ID sequences, and foreign-key integrity.
+- Empty, populated, malformed, incompatible, and corrupted backup cases.
+- Desktop and Android document-transfer behavior.
+- Settings backup, restore, cancellation, and backup-before-clear workflows.
+- Kivy-thread dispatch for Android document-picker results.
+
+The Android callback correction passed `10` focused document-transfer tests
+and a broader `56`-test recovery and Settings regression. A rebuilt Android
+debug APK then passed the previously failing restore-preview and
+backup-before-clear checks. Replacement restore and Clear All Data were also
+verified functionally on Android.
+
+Restore in `v0.7.0` intentionally replaces current data. Backup merging is
+deferred until after statistics, and cloud synchronization remains outside
+Phase 7.
+
+Future recovery changes must run focused exporter, validator, restorer,
+document-transfer, and Settings tests; the complete suite; and the relevant
+desktop or Android document-selection checks.
 
 ## GitHub Actions
 

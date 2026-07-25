@@ -87,7 +87,11 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Settings
 
+- Export a versioned JSON backup
+- Preview and restore a validated backup
 - Clear all application data
+- Export a backup before clearing data
+- View application, local-data, and privacy information
 
 ---
 
@@ -98,7 +102,7 @@ The latest Android APK is available from the GitHub Releases page.
 Latest release:
 
 ```
-Enkryon-v0.6.0.apk
+Enkryon-v0.7.0.apk
 ```
 
 ---
@@ -161,6 +165,15 @@ connections protect commits, rollbacks, and cleanup, while account,
 category, and transaction services own workflow rules and return explicit,
 testable results to the interface.
 
+User-created backups are stored as versioned JSON documents. Enkryon
+validates the complete backup, shows its metadata and record counts, and
+requires explicit confirmation before replacing current data inside a
+database transaction.
+
+On Android, the system document picker lets users choose where to save or
+open a backup without granting broad storage permission. Android automatic
+cloud backup remains disabled.
+
 ---
 
 ## Development and Quality Checks
@@ -212,8 +225,10 @@ Development follows a reliability-first sequence:
 - Phase 6 improved existing workflows with preserved transaction form state,
   responsive layouts, clearer navigation, actionable empty states, and
   consistent customized overlays.
-- Phase 7 is next and focuses on user-controlled backup, restore, and
+- Phase 7 added versioned backup export, complete validation, confirmed
+  transactional restore, Android document selection, and backup-before-clear
   recovery.
+- Phase 8 is next and focuses on transaction search and advanced filters.
 - Later phases cover search and version 1.0 validation before major feature
   expansion.
 
@@ -235,6 +250,8 @@ deliverables, priorities, and completion gates.
 - Automated tests with coverage reporting
 - GitHub Actions quality checks
 - Android deployment using Buildozer
+- Versioned, validated user-controlled backups
+- Transactional replacement restore with rollback protection
 
 ---
 

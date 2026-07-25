@@ -228,8 +228,26 @@ Phase 5 completed the current architecture separation:
    deletion, confirmation-dialog, and refresh behavior.
 7. Shared action-result rendering owns snackbar and refresh sequencing.
 
-Phase 6 may change layouts and interaction patterns, but it should preserve
-these boundaries and keep persistence and financial rules out of screens.
+Phase 6 changed layouts and interaction patterns while preserving these
+boundaries.
+
+Phase 7 added recovery-specific service boundaries:
+
+1. `services/backup_exporter.py` creates versioned backup documents without
+   involving interface code.
+2. `services/backup_validator.py` validates the complete document and prepares
+   preview metadata before current data can change.
+3. `services/backup_restorer.py` owns the confirmed replacement transaction,
+   dependency ordering, ID preservation, sequence restoration, integrity
+   checks, and rollback behavior.
+4. `services/document_transfer.py` isolates desktop file access and Android
+   document-picker behavior from Settings.
+5. `screens/settings.py` coordinates previews, confirmations, user feedback,
+   and navigation without owning backup-format or persistence rules.
+
+Phase 8 search and filtering work must preserve these boundaries. Query and
+filter rules should remain outside reusable widgets, while screens coordinate
+the resulting interface state.
 
 ## Rule for Future Commits
 
