@@ -104,6 +104,161 @@ def test_get_transactions_can_filter_by_transaction_type():
     assert expense_transactions[0].transaction_type == "expense"
 
 
+def test_get_transactions_can_search_notes_case_insensitively():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Monthly PAY",
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 09:00:00",
+        "Lunch",
+    )
+
+    transactions = get_transactions(search_text="monthly")
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [1]
+
+
+def test_get_transactions_can_search_account_names():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Income",
+    )
+    insert_transaction(
+        2,
+        500,
+        1,
+        "2026-07-15 09:00:00",
+        "Income",
+    )
+
+    transactions = get_transactions(search_text="sav")
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [2]
+
+
+def test_get_transactions_can_search_category_group_names():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        None,
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 09:00:00",
+        None,
+    )
+
+    transactions = get_transactions(search_text="foo")
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [2]
+
+
+def test_get_transactions_can_search_category_names():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        None,
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 09:00:00",
+        None,
+    )
+
+    transactions = get_transactions(search_text="check")
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [1]
+
+
+def test_get_transactions_search_treats_sql_wildcards_as_text():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "100% saved",
+    )
+    insert_transaction(
+        1,
+        500,
+        1,
+        "2026-07-15 09:00:00",
+        "1000 saved",
+    )
+    insert_transaction(
+        1,
+        250,
+        1,
+        "2026-07-15 10:00:00",
+        r"Budget\_plan",
+    )
+
+    percent_matches = get_transactions(search_text="100%")
+    escaped_matches = get_transactions(search_text=r"\_")
+
+    assert [
+        transaction.transaction_id
+        for transaction in percent_matches
+    ] == [1]
+    assert [
+        transaction.transaction_id
+        for transaction in escaped_matches
+    ] == [3]
+
+
+def test_get_transactions_search_returns_empty_list_when_unmatched():
+    create_transaction_test_data()
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Income",
+    )
+
+    assert get_transactions(search_text="missing") == []
+
+
 def test_get_transactions_can_limit_results():
     create_transaction_test_data()
 

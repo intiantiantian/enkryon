@@ -64,7 +64,12 @@ def insert_transaction(
         return False
 
 
-def get_transactions(limit=None, account_id=None, transaction_type=None):
+def get_transactions(
+    limit=None,
+    account_id=None,
+    transaction_type=None,
+    search_text=None,
+):
     with managed_connection() as connection:
         cursor = connection.cursor()
         query = '''SELECT transactions.id,
@@ -86,6 +91,24 @@ def get_transactions(limit=None, account_id=None, transaction_type=None):
 
         conditions = []
         params = []
+
+        if search_text:
+            escaped_search_text = (
+                search_text
+                .replace('\\', '\\\\')
+                .replace('%', '\\%')
+                .replace('_', '\\_')
+            )
+            search_pattern = f'%{escaped_search_text}%'
+            conditions.append(
+                '''(
+                    COALESCE(transactions.notes, '') LIKE ? ESCAPE '\\'
+                    OR accounts.name LIKE ? ESCAPE '\\'
+                    OR category_groups.name LIKE ? ESCAPE '\\'
+                    OR categories.name LIKE ? ESCAPE '\\'
+                )'''
+            )
+            params.extend([search_pattern] * 4)
 
         if account_id is not None:
             conditions.append('transactions.account_id = ?')
