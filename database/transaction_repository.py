@@ -1,4 +1,7 @@
 import sqlite3
+
+from datetime import timedelta
+
 from .connection import connect_database, managed_connection
 from .records import TransactionDetailRecord, TransactionListRecord
 
@@ -69,6 +72,10 @@ def get_transactions(
     account_id=None,
     transaction_type=None,
     search_text=None,
+    group_id=None,
+    category_id=None,
+    start_date=None,
+    end_date=None,
 ):
     with managed_connection() as connection:
         cursor = connection.cursor()
@@ -117,6 +124,27 @@ def get_transactions(
         if transaction_type is not None:
             conditions.append('category_groups.transaction_type = ?')
             params.append(transaction_type)
+
+        if group_id is not None:
+            conditions.append('categories.group_id = ?')
+            params.append(group_id)
+
+        if category_id is not None:
+            conditions.append('transactions.category_id = ?')
+            params.append(category_id)
+
+        if start_date is not None:
+            conditions.append('transactions.date_time >= ?')
+            params.append(
+                f'{start_date.isoformat()} 00:00:00'
+            )
+
+        if end_date is not None:
+            end_date_exclusive = end_date + timedelta(days=1)
+            conditions.append('transactions.date_time < ?')
+            params.append(
+                f'{end_date_exclusive.isoformat()} 00:00:00'
+            )
 
         if conditions:
             query += ' WHERE ' + " AND ".join(conditions)

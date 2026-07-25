@@ -1,3 +1,5 @@
+from datetime import date
+
 from database.account_repository import delete_account, insert_account
 from database.category_group_repository import insert_category_group
 from database.category_repository import delete_category, insert_category
@@ -273,6 +275,228 @@ def test_get_transactions_can_limit_results():
         transaction.transaction_id
         for transaction in transactions
     ] == [3, 2]
+
+
+def test_get_transactions_can_filter_by_category_group():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Income",
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 09:00:00",
+        "Lunch",
+    )
+
+    transactions = get_transactions(group_id=2)
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [2]
+
+
+def test_get_transactions_can_filter_by_category():
+    create_transaction_test_data()
+    insert_category(2, "Dinner")
+
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 08:00:00",
+        "Lunch",
+    )
+    insert_transaction(
+        1,
+        300,
+        3,
+        "2026-07-15 09:00:00",
+        "Dinner",
+    )
+
+    transactions = get_transactions(category_id=2)
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [1]
+
+
+def test_get_transactions_includes_entire_selected_date_range():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        100,
+        1,
+        "2026-07-14 23:59:59",
+        "Before",
+    )
+    insert_transaction(
+        1,
+        200,
+        1,
+        "2026-07-15 00:00:00",
+        "Start",
+    )
+    insert_transaction(
+        1,
+        300,
+        1,
+        "2026-07-15 23:59:59",
+        "End",
+    )
+    insert_transaction(
+        1,
+        400,
+        1,
+        "2026-07-16 00:00:00",
+        "After",
+    )
+
+    transactions = get_transactions(
+        start_date=date(2026, 7, 15),
+        end_date=date(2026, 7, 15),
+    )
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [3, 2]
+
+
+def test_get_transactions_supports_open_ended_date_ranges():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        100,
+        1,
+        "2026-07-14 12:00:00",
+        "First",
+    )
+    insert_transaction(
+        1,
+        200,
+        1,
+        "2026-07-15 12:00:00",
+        "Second",
+    )
+    insert_transaction(
+        1,
+        300,
+        1,
+        "2026-07-16 12:00:00",
+        "Third",
+    )
+
+    transactions_from_date = get_transactions(
+        start_date=date(2026, 7, 15),
+    )
+    transactions_through_date = get_transactions(
+        end_date=date(2026, 7, 15),
+    )
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions_from_date
+    ] == [3, 2]
+    assert [
+        transaction.transaction_id
+        for transaction in transactions_through_date
+    ] == [2, 1]
+
+
+def test_get_transactions_combines_all_repository_filters():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 08:00:00",
+        "Team lunch",
+    )
+    insert_transaction(
+        2,
+        200,
+        2,
+        "2026-07-15 09:00:00",
+        "Team lunch",
+    )
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 10:00:00",
+        "Team income",
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-16 08:00:00",
+        "Team lunch",
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 11:00:00",
+        "Dinner",
+    )
+
+    transactions = get_transactions(
+        search_text="team",
+        account_id=1,
+        transaction_type="expense",
+        group_id=2,
+        category_id=2,
+        start_date=date(2026, 7, 15),
+        end_date=date(2026, 7, 15),
+    )
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [1]
+
+
+def test_get_transactions_applies_filters_before_limit():
+    create_transaction_test_data()
+
+    insert_transaction(
+        1,
+        1000,
+        1,
+        "2026-07-15 08:00:00",
+        "Matching income",
+    )
+    insert_transaction(
+        1,
+        200,
+        2,
+        "2026-07-15 10:00:00",
+        "Newer expense",
+    )
+
+    transactions = get_transactions(
+        transaction_type="income",
+        limit=1,
+    )
+
+    assert [
+        transaction.transaction_id
+        for transaction in transactions
+    ] == [1]
 
 
 def test_update_transaction():
