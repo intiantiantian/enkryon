@@ -373,3 +373,67 @@ def test_dashboard_primary_actions_use_shared_button_height():
 
     assert "orientation: 'vertical'" in action_group
     assert "height: self.minimum_height" in action_group
+
+
+def test_transaction_advanced_filters_scroll_on_small_widths():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+
+    advanced_filters = layout.split(
+        "id: advanced_filter_scroll",
+        maxsplit=1,
+    )[1].split(
+        "id: active_filter_summary",
+        maxsplit=1,
+    )[0]
+
+    assert "do_scroll_x: True" in advanced_filters
+    assert "do_scroll_y: False" in advanced_filters
+    assert "size_hint_x: None" in advanced_filters
+    assert "width: self.minimum_width" in advanced_filters
+
+    selector_ids = (
+        "account_filter",
+        "group_filter",
+        "category_filter",
+        "start_date_filter",
+        "end_date_filter",
+    )
+
+    for index, selector_id in enumerate(selector_ids):
+        selector = advanced_filters.split(
+            f"id: {selector_id}",
+            maxsplit=1,
+        )[1]
+
+        if index < len(selector_ids) - 1:
+            selector = selector.split(
+                f"id: {selector_ids[index + 1]}",
+                maxsplit=1,
+            )[0]
+
+        assert (
+            "height: root.ids.all_filter.height"
+            in selector
+        )
+        assert (
+            "font_size: root.ids.all_filter.font_size"
+            in selector
+        )
+        assert "pos_hint: {'center_y': .5}" in selector
+
+
+    active_summary = layout.split(
+        "id: active_filter_summary",
+        maxsplit=1,
+    )[1].split(
+        "ScrollView:",
+        maxsplit=1,
+    )[0]
+
+    assert "id: active_filters_label" in active_summary
+    assert "text: 'RESET ALL'" in active_summary
+    assert "width: '104dp'" in active_summary
+    assert "height: '48dp'" in active_summary

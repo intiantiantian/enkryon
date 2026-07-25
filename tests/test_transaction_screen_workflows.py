@@ -1,6 +1,7 @@
 from importlib import import_module
 from types import SimpleNamespace
 from unittest.mock import Mock
+from datetime import date
 
 import pytest
 
@@ -75,6 +76,7 @@ def test_clear_transaction_search_preserves_type_filter():
             transaction_search=search_field,
         ),
         load_transactions=Mock(),
+        render_advanced_filter_state=Mock(),
     )
     screen.cancel_pending_search_refresh = lambda: (
         TransactionsScreen.cancel_pending_search_refresh(
@@ -94,6 +96,7 @@ def test_clear_transaction_search_preserves_type_filter():
     assert screen.filter_state.transaction_type == "expense"
     assert search_field.text == ""
     screen.load_transactions.assert_called_once_with()
+    screen.render_advanced_filter_state.assert_called_once_with()
 
 
 def test_show_all_transactions_resets_search_and_type_filters():
@@ -115,6 +118,7 @@ def test_show_all_transactions_resets_search_and_type_filters():
             expense_filter=expense_filter,
         ),
         load_transactions=Mock(),
+        render_advanced_filter_state=Mock(),
     )
     screen.cancel_pending_search_refresh = lambda: (
         TransactionsScreen.cancel_pending_search_refresh(
@@ -139,6 +143,7 @@ def test_show_all_transactions_resets_search_and_type_filters():
     income_filter.set_selected.assert_called_once_with(False)
     expense_filter.set_selected.assert_called_once_with(False)
     screen.load_transactions.assert_called_once_with()
+    screen.render_advanced_filter_state.assert_called_once_with()
 
 
 def test_transaction_history_resets_filters_on_pre_enter():
@@ -155,6 +160,7 @@ def test_transaction_history_resets_filters_on_pre_enter():
         render_filter_state=Mock(),
         set_search_field_text=Mock(),
         load_transactions=Mock(),
+        render_advanced_filter_state=Mock(),
     )
 
     TransactionsScreen.on_pre_enter(screen)
@@ -164,6 +170,7 @@ def test_transaction_history_resets_filters_on_pre_enter():
     screen.render_filter_state.assert_called_once_with()
     screen.set_search_field_text.assert_called_once_with("")
     screen.load_transactions.assert_called_once_with()
+    screen.render_advanced_filter_state.assert_called_once_with()
 
 
 def test_transaction_history_load_forwards_filter_state(
@@ -955,3 +962,283 @@ def test_created_category_is_selected_in_preserved_form(monkeypatch):
     assert screen.form_state.category_id == 12
     assert screen.form_state.category_name == "Dining"
     screen.render_form_state.assert_called_once_with()
+
+
+def test_transaction_history_renders_advanced_filter_state():
+    state = TransactionFilterState(
+        search_text="lunch",
+        transaction_type="expense",
+        account_id=2,
+        account_name="Cash",
+        group_id=5,
+        group_name="Food",
+        category_id=8,
+        category_name="Dining",
+        start_date=date(2026, 7, 1),
+        end_date=date(2026, 7, 20),
+    )
+    category_filter = SimpleNamespace(
+        disabled=True,
+        opacity=.38,
+    )
+    reset_all_filters = SimpleNamespace(
+        disabled=True,
+        opacity=.38,
+    )
+    screen = SimpleNamespace(
+        filter_state=state,
+        ids=SimpleNamespace(
+            account_filter_label=SimpleNamespace(text=""),
+            group_filter_label=SimpleNamespace(text=""),
+            category_filter_label=SimpleNamespace(text=""),
+            category_filter=category_filter,
+            start_date_filter_label=SimpleNamespace(text=""),
+            end_date_filter_label=SimpleNamespace(text=""),
+            active_filters_label=SimpleNamespace(text=""),
+            reset_all_filters=reset_all_filters,
+        ),
+    )
+
+    TransactionsScreen.render_advanced_filter_state(screen)
+
+    assert screen.ids.account_filter_label.text == "Cash"
+    assert screen.ids.group_filter_label.text == "Food"
+    assert screen.ids.category_filter_label.text == "Dining"
+    assert category_filter.disabled is False
+    assert category_filter.opacity == 1
+    assert (
+        screen.ids.start_date_filter_label.text
+        == "From: 2026-07-01"
+    )
+    assert (
+        screen.ids.end_date_filter_label.text
+        == "Through: 2026-07-20"
+    )
+    assert screen.ids.active_filters_label.text == (
+        "Active: "
+        + " • ".join(state.active_filter_labels)
+    )
+    assert reset_all_filters.disabled is False
+    assert reset_all_filters.opacity == 1
+
+
+def test_transaction_history_account_filter_menu(
+    monkeypatch,
+):
+    transactions_module = import_module("screens.transactions")
+    accounts = [
+        AccountRecord(2, "Cash"),
+        AccountRecord(3, "Savings"),
+    ]
+    get_all_accounts = Mock(return_value=accounts)
+    panel = SimpleNamespace(open=Mock())
+    panel_factory = Mock(return_value=panel)
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            account_id=2,
+            account_name="Cash",
+        ),
+        select_account_filter=Mock(),
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "get_all_accounts",
+        get_all_accounts,
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "EnkryonSelectionPanel",
+        panel_factory,
+    )
+
+    TransactionsScreen.open_account_filter_menu(screen)
+
+    get_all_accounts.assert_called_once_with()
+    assert screen.account_filter_menu is panel
+    panel.open.assert_called_once_with()
+
+    options = panel_factory.call_args.kwargs["options"]
+    assert [option["text"] for option in options] == [
+        "All Accounts",
+        "Cash",
+        "Savings",
+    ]
+    assert options[1]["selected"] is True
+
+    options[0]["on_release"]()
+    screen.select_account_filter.assert_called_once_with(
+        None,
+        "All Accounts",
+    )
+
+
+def test_transaction_history_group_filter_uses_type(
+    monkeypatch,
+):
+    transactions_module = import_module("screens.transactions")
+    groups = [
+        CategoryGroupRecord(5, "Food", "expense"),
+    ]
+    get_groups = Mock(return_value=groups)
+    panel = SimpleNamespace(open=Mock())
+    panel_factory = Mock(return_value=panel)
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            transaction_type="expense",
+        ),
+        select_group_filter=Mock(),
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "get_category_groups_by_type",
+        get_groups,
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "EnkryonSelectionPanel",
+        panel_factory,
+    )
+
+    TransactionsScreen.open_group_filter_menu(screen)
+
+    get_groups.assert_called_once_with("expense")
+    options = panel_factory.call_args.kwargs["options"]
+    assert [option["text"] for option in options] == [
+        "All Category Groups",
+        "Food",
+    ]
+    panel.open.assert_called_once_with()
+
+
+def test_transaction_history_category_filter_uses_group(
+    monkeypatch,
+):
+    transactions_module = import_module("screens.transactions")
+    categories = [
+        CategoryRecord(
+            8,
+            5,
+            "Dining",
+            "Food",
+            "expense",
+        ),
+    ]
+    get_categories = Mock(return_value=categories)
+    panel = SimpleNamespace(open=Mock())
+    panel_factory = Mock(return_value=panel)
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            group_id=5,
+            group_name="Food",
+        ),
+        select_category_filter=Mock(),
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "get_categories_by_group",
+        get_categories,
+    )
+    monkeypatch.setattr(
+        transactions_module,
+        "EnkryonSelectionPanel",
+        panel_factory,
+    )
+
+    TransactionsScreen.open_category_filter_menu(screen)
+
+    get_categories.assert_called_once_with(5)
+    options = panel_factory.call_args.kwargs["options"]
+    assert [option["text"] for option in options] == [
+        "All Categories",
+        "Dining",
+    ]
+    panel.open.assert_called_once_with()
+
+
+def test_transaction_history_group_selection_refreshes():
+    state = TransactionFilterState(
+        group_id=3,
+        group_name="Transport",
+        category_id=7,
+        category_name="Fuel",
+    )
+    panel = SimpleNamespace(dismiss=Mock())
+    screen = SimpleNamespace(
+        filter_state=state,
+        group_filter_menu=panel,
+        refresh_transaction_list=Mock(),
+    )
+
+    TransactionsScreen.select_group_filter(
+        screen,
+        5,
+        "Food",
+    )
+
+    assert state.group_id == 5
+    assert state.group_name == "Food"
+    assert state.category_id is None
+    assert state.category_name == "All Categories"
+    panel.dismiss.assert_called_once_with()
+    screen.refresh_transaction_list.assert_called_once_with()
+
+
+def test_transaction_history_date_filters_remain_valid():
+    state = TransactionFilterState(
+        start_date=date(2026, 7, 1),
+        end_date=date(2026, 7, 20),
+    )
+    screen = SimpleNamespace(
+        filter_state=state,
+        refresh_transaction_list=Mock(),
+    )
+
+    TransactionsScreen.set_start_date_filter(
+        screen,
+        date(2026, 7, 25),
+    )
+
+    assert state.start_date == date(2026, 7, 25)
+    assert state.end_date is None
+
+    state.set_date_range(
+        date(2026, 7, 1),
+        date(2026, 7, 20),
+    )
+
+    TransactionsScreen.set_end_date_filter(
+        screen,
+        date(2026, 6, 30),
+    )
+
+    assert state.start_date is None
+    assert state.end_date == date(2026, 6, 30)
+    assert screen.refresh_transaction_list.call_count == 2
+
+
+def test_transaction_history_category_selection_refreshes():
+    state = TransactionFilterState(
+        transaction_type="expense",
+        group_id=5,
+        group_name="Food",
+    )
+    panel = SimpleNamespace(dismiss=Mock())
+    screen = SimpleNamespace(
+        filter_state=state,
+        category_filter_menu=panel,
+        refresh_transaction_list=Mock(),
+    )
+
+    TransactionsScreen.select_category_filter(
+        screen,
+        8,
+        "Dining",
+    )
+
+    assert state.transaction_type == "expense"
+    assert state.group_id == 5
+    assert state.group_name == "Food"
+    assert state.category_id == 8
+    assert state.category_name == "Dining"
+    panel.dismiss.assert_called_once_with()
+    screen.refresh_transaction_list.assert_called_once_with()

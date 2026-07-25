@@ -116,6 +116,172 @@
                     root.set_transaction_filter('expense')
 
         ScrollView:
+            id: advanced_filter_scroll
+            size_hint_y: None
+            height: '64dp'
+            do_scroll_x: True
+            do_scroll_y: False
+            bar_width: '4dp'
+
+            BoxLayout:
+                size_hint_x: None
+                width: self.minimum_width
+                padding: '10dp', '4dp'
+                spacing: '8dp'
+
+                OutlinedCard:
+                    id: account_filter
+                    size_hint: None, None
+                    width: '160dp'
+                    height: root.ids.all_filter.height
+                    pos_hint: {'center_y': .5}
+                    ripple_behavior: True
+                    on_release:
+                        root.open_account_filter_menu()
+
+                    MDLabel:
+                        id: account_filter_label
+                        text: 'All Accounts'
+                        font_size: root.ids.all_filter.font_size
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width - dp(16), self.height
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
+                        theme_text_color: 'Custom'
+                        text_color:
+                            get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    id: group_filter
+                    size_hint: None, None
+                    width: '176dp'
+                    height: root.ids.all_filter.height
+                    pos_hint: {'center_y': .5}
+                    ripple_behavior: True
+                    on_release:
+                        root.open_group_filter_menu()
+
+                    MDLabel:
+                        id: group_filter_label
+                        text: 'All Category Groups'
+                        font_size: root.ids.all_filter.font_size
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width - dp(16), self.height
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
+                        theme_text_color: 'Custom'
+                        text_color:
+                            get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    id: category_filter
+                    size_hint: None, None
+                    width: '160dp'
+                    height: root.ids.all_filter.height
+                    pos_hint: {'center_y': .5}
+                    ripple_behavior: True
+                    disabled: True
+                    opacity: .38
+                    on_release:
+                        root.open_category_filter_menu()
+
+                    MDLabel:
+                        id: category_filter_label
+                        text: 'All Categories'
+                        font_size: root.ids.all_filter.font_size
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width - dp(16), self.height
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
+                        theme_text_color: 'Custom'
+                        text_color:
+                            get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    id: start_date_filter
+                    size_hint: None, None
+                    width: '152dp'
+                    height: root.ids.all_filter.height
+                    pos_hint: {'center_y': .5}
+                    ripple_behavior: True
+                    on_release:
+                        root.open_start_date_filter()
+
+                    MDLabel:
+                        id: start_date_filter_label
+                        text: 'From Date'
+                        font_size: root.ids.all_filter.font_size
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width - dp(16), self.height
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
+                        theme_text_color: 'Custom'
+                        text_color:
+                            get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    id: end_date_filter
+                    size_hint: None, None
+                    width: '152dp'
+                    height: root.ids.all_filter.height
+                    pos_hint: {'center_y': .5}
+                    ripple_behavior: True
+                    on_release:
+                        root.open_end_date_filter()
+
+                    MDLabel:
+                        id: end_date_filter_label
+                        text: 'Through Date'
+                        font_size: root.ids.all_filter.font_size
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width - dp(16), self.height
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'right'
+                        theme_text_color: 'Custom'
+                        text_color:
+                            get_color_from_hex(Colors.BRAND_PRIMARY)
+
+        BoxLayout:
+            id: active_filter_summary
+            size_hint_y: None
+            height: '56dp'
+            padding: '10dp', '4dp'
+            spacing: '8dp'
+
+            MDLabel:
+                id: active_filters_label
+                text: 'No active filters'
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.width, self.height
+                max_lines: 2
+                font_size: '12sp'
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+            EnkryonSecondaryButton:
+                id: reset_all_filters
+                text: 'RESET ALL'
+                size_hint: None, None
+                width: '104dp'
+                height: '48dp'
+                pos_hint: {'center_y': .5}
+                disabled: True
+                opacity: .38
+                on_release:
+                    root.show_all_transactions()
+
+        ScrollView:
             BoxLayout:
                 id: transactions_container
                 orientation: 'vertical'

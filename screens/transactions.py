@@ -1,6 +1,13 @@
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 
+from database.account_repository import get_all_accounts
+from database.category_group_repository import (
+    get_all_category_groups,
+    get_category_groups_by_type,
+)
+from database.category_repository import get_categories_by_group
+
 from .transaction_filter_state import TransactionFilterState
 from .transaction_list_actions import TransactionListActionsMixin
 
@@ -9,6 +16,8 @@ from services.transaction_services import (
 )
 
 from widgets.transaction_list import render_transaction_list
+from widgets.date_time_pickers import DatePickerDialog
+from widgets.overlays import EnkryonSelectionPanel
 
 
 SEARCH_REFRESH_DELAY = 0.25
@@ -35,6 +44,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.cancel_pending_search_refresh()
         self.filter_state.reset()
         self.render_filter_state()
+        self.render_advanced_filter_state()
         self.set_search_field_text("")
         self.load_transactions()
 
@@ -50,6 +60,43 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         )
         self.ids.expense_filter.set_selected(
             transaction_type == "expense"
+        )
+
+
+    def render_advanced_filter_state(self):
+        state = self.filter_state
+
+        self.ids.account_filter_label.text = state.account_name
+        self.ids.group_filter_label.text = state.group_name
+        self.ids.category_filter_label.text = state.category_name
+
+        category_enabled = state.group_id is not None
+        self.ids.category_filter.disabled = not category_enabled
+        self.ids.category_filter.opacity = (
+            1 if category_enabled else .38
+        )
+
+        self.ids.start_date_filter_label.text = (
+            f"From: {state.start_date.isoformat()}"
+            if state.start_date is not None
+            else "From Date"
+        )
+        self.ids.end_date_filter_label.text = (
+            f"Through: {state.end_date.isoformat()}"
+            if state.end_date is not None
+            else "Through Date"
+        )
+
+        active_filter_labels = state.active_filter_labels
+        self.ids.active_filters_label.text = (
+            "Active: " + " • ".join(active_filter_labels)
+            if active_filter_labels
+            else "No active filters"
+        )
+
+        self.ids.reset_all_filters.disabled = not state.is_active
+        self.ids.reset_all_filters.opacity = (
+            1 if state.is_active else .38
         )
 
 
@@ -76,6 +123,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
     def apply_search_text(self, *_args):
         self._search_refresh_event = None
+        self.render_advanced_filter_state()
         self.load_transactions()
 
 
@@ -91,6 +139,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.cancel_pending_search_refresh()
         self.filter_state.set_search_text("")
         self.set_search_field_text("")
+        self.render_advanced_filter_state()
         self.load_transactions()
 
 
@@ -98,8 +147,219 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.cancel_pending_search_refresh()
         self.filter_state.reset()
         self.render_filter_state()
+        self.render_advanced_filter_state()
         self.set_search_field_text("")
         self.load_transactions()
+
+
+    def open_account_filter_menu(self):
+        state = self.filter_state
+        menu_items = [
+            {
+                "text": "All Accounts",
+                "selected": state.account_id is None,
+                "on_release": lambda:
+                    self.select_account_filter(
+                        None,
+                        "All Accounts",
+                    ),
+            },
+        ]
+
+        for account in get_all_accounts():
+            menu_items.append(
+                {
+                    "text": account.name,
+                    "selected": (
+                        account.account_id == state.account_id
+                    ),
+                    "on_release": lambda x=account:
+                        self.select_account_filter(
+                            x.account_id,
+                            x.name,
+                        ),
+                }
+            )
+
+        self.account_filter_menu = EnkryonSelectionPanel(
+            title="Filter by Account",
+            selected_text=state.account_name,
+            options=menu_items,
+        )
+        self.account_filter_menu.open()
+
+
+    def select_account_filter(self, account_id, account_name):
+        self.filter_state.select_account(
+            account_id,
+            account_name,
+        )
+        self.account_filter_menu.dismiss()
+        self.refresh_transaction_list()
+
+
+    def open_group_filter_menu(self):
+        state = self.filter_state
+
+        if state.transaction_type is None:
+            groups = get_all_category_groups()
+        else:
+            groups = get_category_groups_by_type(
+                state.transaction_type
+            )
+
+        menu_items = [
+            {
+                "text": "All Category Groups",
+                "selected": state.group_id is None,
+                "on_release": lambda:
+                    self.select_group_filter(
+                        None,
+                        "All Category Groups",
+                    ),
+            },
+        ]
+
+        for group in groups:
+            group_text = group.name
+            if state.transaction_type is None:
+                group_text = (
+                    f"{group.name} "
+                    f"({group.transaction_type.title()})"
+                )
+
+            menu_items.append(
+                {
+                    "text": group_text,
+                    "selected": group.group_id == state.group_id,
+                    "on_release": lambda x=group:
+                        self.select_group_filter(
+                            x.group_id,
+                            x.name,
+                        ),
+                }
+            )
+
+        self.group_filter_menu = EnkryonSelectionPanel(
+            title="Filter by Category Group",
+            selected_text=state.group_name,
+            options=menu_items,
+        )
+        self.group_filter_menu.open()
+
+
+    def select_group_filter(self, group_id, group_name):
+        self.filter_state.select_group(
+            group_id,
+            group_name,
+        )
+        self.group_filter_menu.dismiss()
+        self.refresh_transaction_list()
+
+
+    def open_category_filter_menu(self):
+        state = self.filter_state
+
+        if state.group_id is None:
+            return
+
+        menu_items = [
+            {
+                "text": "All Categories",
+                "selected": state.category_id is None,
+                "on_release": lambda:
+                    self.select_category_filter(
+                        None,
+                        "All Categories",
+                    ),
+            },
+        ]
+
+        for category in get_categories_by_group(state.group_id):
+            menu_items.append(
+                {
+                    "text": category.name,
+                    "selected": (
+                        category.category_id
+                        == state.category_id
+                    ),
+                    "on_release": lambda x=category:
+                        self.select_category_filter(
+                            x.category_id,
+                            x.name,
+                        ),
+                }
+            )
+
+        self.category_filter_menu = EnkryonSelectionPanel(
+            title="Filter by Category",
+            selected_text=state.category_name,
+            options=menu_items,
+        )
+        self.category_filter_menu.open()
+
+
+    def select_category_filter(
+        self,
+        category_id,
+        category_name,
+    ):
+        state = self.filter_state
+        state.select_category(
+            category_id,
+            category_name,
+            state.group_id,
+            state.group_name,
+            state.transaction_type,
+        )
+        self.category_filter_menu.dismiss()
+        self.refresh_transaction_list()
+
+
+    def open_start_date_filter(self):
+        DatePickerDialog(
+            callback=self.set_start_date_filter,
+            initial_date=self.filter_state.start_date,
+        ).open()
+
+
+    def open_end_date_filter(self):
+        DatePickerDialog(
+            callback=self.set_end_date_filter,
+            initial_date=self.filter_state.end_date,
+        ).open()
+
+
+    def set_start_date_filter(self, selected_date):
+        end_date = self.filter_state.end_date
+
+        if (
+            end_date is not None
+            and selected_date > end_date
+        ):
+            end_date = None
+
+        self.filter_state.set_date_range(
+            selected_date,
+            end_date,
+        )
+        self.refresh_transaction_list()
+
+
+    def set_end_date_filter(self, selected_date):
+        start_date = self.filter_state.start_date
+
+        if (
+            start_date is not None
+            and selected_date < start_date
+        ):
+            start_date = None
+
+        self.filter_state.set_date_range(
+            start_date,
+            selected_date,
+        )
+        self.refresh_transaction_list()
 
 
     def load_transactions(self):
@@ -123,6 +383,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
     def refresh_transaction_list(self):
         self.cancel_pending_search_refresh()
+        self.render_advanced_filter_state()
         self.load_transactions()
 
 

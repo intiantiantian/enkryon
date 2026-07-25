@@ -226,12 +226,14 @@ def test_transactions_screen_refreshes_full_transaction_list():
     screen = SimpleNamespace(
         cancel_pending_search_refresh=Mock(),
         load_transactions=Mock(),
+        render_advanced_filter_state=Mock(),
     )
 
     TransactionsScreen.refresh_transaction_list(screen)
 
     screen.cancel_pending_search_refresh.assert_called_once_with()
     screen.load_transactions.assert_called_once_with()
+    screen.render_advanced_filter_state.assert_called_once_with()
 
 
 @pytest.mark.parametrize("success", [True, False])

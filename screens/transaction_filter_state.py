@@ -36,6 +36,38 @@ class TransactionFilterState:
         )
 
 
+    @property
+    def active_filter_labels(self):
+        labels = []
+
+        if self.search_text:
+            labels.append(f'Search: "{self.search_text}"')
+
+        if self.transaction_type is not None:
+            labels.append(self.transaction_type.title())
+
+        if self.account_id is not None:
+            labels.append(f"Account: {self.account_name}")
+
+        if self.group_id is not None:
+            labels.append(f"Group: {self.group_name}")
+
+        if self.category_id is not None:
+            labels.append(f"Category: {self.category_name}")
+
+        if self.start_date is not None:
+            labels.append(
+                f"From: {self.start_date.isoformat()}"
+            )
+
+        if self.end_date is not None:
+            labels.append(
+                f"Through: {self.end_date.isoformat()}"
+            )
+
+        return labels
+
+
     def to_query_arguments(self):
         return {
             "search_text": self.search_text or None,
@@ -73,12 +105,13 @@ class TransactionFilterState:
         self,
         group_id,
         group_name,
-        transaction_type,
+        transaction_type=None,
     ):
         if group_id != self.group_id:
             self.clear_category_selection()
 
-        self.transaction_type = transaction_type
+        if transaction_type is not None:
+            self.transaction_type = transaction_type
         self.group_id = group_id
         self.group_name = group_name
 
