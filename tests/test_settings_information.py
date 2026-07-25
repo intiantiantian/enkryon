@@ -29,6 +29,7 @@ def test_settings_shows_about_local_data_and_privacy_information():
     assert "on_release: root.export_backup()" in settings_kv
     assert "on_release: root.restore_backup()" in settings_kv
     assert 'text: "Clear All Data"' in settings_kv
+    assert "offers to export a backup before deletion" in settings_kv
 
 
 def test_settings_information_uses_scrollable_dynamic_content():

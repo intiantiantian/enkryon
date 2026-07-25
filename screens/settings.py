@@ -48,6 +48,7 @@ class SettingsScreen(Screen):
         confirm_text,
         confirm_callback,
         cancel_callback,
+        cancel_text="Cancel",
     ):
         self.dialog = EnkryonConfirmationDialog(
             title=title,
@@ -55,6 +56,7 @@ class SettingsScreen(Screen):
             confirm_text=confirm_text,
             confirm_callback=confirm_callback,
             cancel_callback=cancel_callback,
+            cancel_text=cancel_text,
         )
         self.dialog.open()
 
@@ -65,7 +67,10 @@ class SettingsScreen(Screen):
             self.dialog = None
 
 
-    def export_backup(self):
+    def export_backup(self, result_callback=None):
+        if result_callback is None:
+            result_callback = self._handle_export_result
+
         exported_at = datetime.now(timezone.utc)
 
         try:
@@ -79,7 +84,7 @@ class SettingsScreen(Screen):
                     "enkryon-backup-"
                     f"{exported_at.strftime('%Y%m%d-%H%M%S')}.json"
                 ),
-                self._handle_export_result,
+                result_callback,
             )
         except Exception:
             show_snackbar("Backup could not be created.")
@@ -178,6 +183,47 @@ class SettingsScreen(Screen):
 
     def clear_data(self):
         self._open_confirmation_dialog(
+            title="Back Up Before Deleting?",
+            message=(
+                "Clear All Data permanently deletes every account, "
+                "category, and transaction. Export a backup before "
+                "continuing so these records can be restored later, "
+                "or skip the backup to continue to the final deletion "
+                "confirmation."
+            ),
+            confirm_text="Export Backup",
+            confirm_callback=self.export_backup_before_clear_data,
+            cancel_text="Skip Backup",
+            cancel_callback=self.skip_backup_before_clear_data,
+        )
+
+
+    def export_backup_before_clear_data(self):
+        self._close_confirmation_dialog()
+        self.export_backup(self._handle_pre_clear_export_result)
+
+
+    def _handle_pre_clear_export_result(self, result):
+        if result.status == TRANSFER_COMPLETED:
+            show_snackbar("Backup exported successfully.")
+            self._open_clear_data_confirmation()
+        elif result.status == TRANSFER_CANCELLED:
+            show_snackbar(
+                "Backup export cancelled. No data was deleted."
+            )
+        else:
+            show_snackbar(
+                "Backup could not be saved. No data was deleted."
+            )
+
+
+    def skip_backup_before_clear_data(self, *args):
+        self._close_confirmation_dialog()
+        self._open_clear_data_confirmation()
+
+
+    def _open_clear_data_confirmation(self):
+        self._open_confirmation_dialog(
             title="Clear All Data?",
             message=(
                 "This permanently deletes all accounts, "
@@ -186,6 +232,7 @@ class SettingsScreen(Screen):
             ),
             confirm_text="Delete All",
             confirm_callback=self.perform_clear_data,
+            cancel_text="Cancel",
             cancel_callback=self.close_clear_data_dialog,
         )
 

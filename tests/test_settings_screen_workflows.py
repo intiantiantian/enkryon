@@ -348,3 +348,123 @@ def test_restore_failure_keeps_current_screen_and_reports_rollback(
         "Backup could not be restored. "
         "Your current data was not changed."
     )
+
+
+def test_clear_data_offers_backup_before_deletion():
+    open_confirmation = Mock()
+    export_before_clear = Mock()
+    skip_backup = Mock()
+    screen = SimpleNamespace(
+        _open_confirmation_dialog=open_confirmation,
+        export_backup_before_clear_data=export_before_clear,
+        skip_backup_before_clear_data=skip_backup,
+    )
+
+    SettingsScreen.clear_data(screen)
+
+    call = open_confirmation.call_args
+    assert call.kwargs["title"] == "Back Up Before Deleting?"
+    assert call.kwargs["confirm_text"] == "Export Backup"
+    assert call.kwargs["confirm_callback"] is export_before_clear
+    assert call.kwargs["cancel_text"] == "Skip Backup"
+    assert call.kwargs["cancel_callback"] is skip_backup
+    assert "final deletion confirmation" in call.kwargs["message"]
+
+
+def test_export_before_clear_closes_offer_and_starts_export():
+    pre_clear_callback = Mock()
+    screen = SimpleNamespace(
+        _close_confirmation_dialog=Mock(),
+        export_backup=Mock(),
+        _handle_pre_clear_export_result=pre_clear_callback,
+    )
+
+    SettingsScreen.export_backup_before_clear_data(screen)
+
+    screen._close_confirmation_dialog.assert_called_once_with()
+    screen.export_backup.assert_called_once_with(
+        pre_clear_callback
+    )
+
+
+def test_skip_backup_opens_explicit_delete_confirmation():
+    open_confirmation = Mock()
+    screen = SimpleNamespace(
+        _close_confirmation_dialog=Mock(),
+        _open_confirmation_dialog=open_confirmation,
+        perform_clear_data=Mock(),
+        close_clear_data_dialog=Mock(),
+    )
+    screen._open_clear_data_confirmation = Mock(
+        side_effect=lambda: (
+            SettingsScreen._open_clear_data_confirmation(screen)
+        )
+    )
+
+    SettingsScreen.skip_backup_before_clear_data(screen)
+
+    screen._close_confirmation_dialog.assert_called_once_with()
+    screen._open_clear_data_confirmation.assert_called_once_with()
+
+    call = open_confirmation.call_args
+    assert call.kwargs["title"] == "Clear All Data?"
+    assert call.kwargs["confirm_text"] == "Delete All"
+    assert (
+        call.kwargs["confirm_callback"]
+        is screen.perform_clear_data
+    )
+    assert call.kwargs["cancel_text"] == "Cancel"
+    assert (
+        call.kwargs["cancel_callback"]
+        is screen.close_clear_data_dialog
+    )
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_message", "opens_confirmation"),
+    [
+        (
+            TRANSFER_COMPLETED,
+            "Backup exported successfully.",
+            True,
+        ),
+        (
+            TRANSFER_CANCELLED,
+            "Backup export cancelled. No data was deleted.",
+            False,
+        ),
+        (
+            TRANSFER_FAILED,
+            "Backup could not be saved. No data was deleted.",
+            False,
+        ),
+    ],
+)
+def test_pre_clear_export_result_controls_delete_confirmation(
+    monkeypatch,
+    status,
+    expected_message,
+    opens_confirmation,
+):
+    settings_module = import_module("screens.settings")
+    show_snackbar = Mock()
+    screen = SimpleNamespace(
+        _open_clear_data_confirmation=Mock(),
+    )
+    monkeypatch.setattr(
+        settings_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+
+    SettingsScreen._handle_pre_clear_export_result(
+        screen,
+        DocumentTransferResult(status),
+    )
+
+    show_snackbar.assert_called_once_with(expected_message)
+
+    if opens_confirmation:
+        screen._open_clear_data_confirmation.assert_called_once_with()
+    else:
+        screen._open_clear_data_confirmation.assert_not_called()
