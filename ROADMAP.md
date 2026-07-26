@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 25, 2026
-Current release: `v0.7.0`
-Current position: Phase 7 is complete; Phase 8 is next
+Updated: July 26, 2026
+Current release: `v0.8.0`
+Current position: Phase 8 is complete; Phase 9 is next
 
 ## Purpose
 
@@ -22,18 +22,20 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 ## Current Project Snapshot
 
+## Current Project Snapshot
+
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, transaction-type filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
+| Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, advanced transaction filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
-| Database upgrades | A `schema_migrations` table and three ordered, transactional migrations are present. They create the schema, convert old amounts to centavos, and add validation rules. | Future database changes can build on the migration framework instead of replacing user data. |
+| Database upgrades | A `schema_migrations` table and four ordered, transactional migrations are present, including transaction-history indexes. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The pre-documentation Phase 7 closeout baseline contains `446` passing tests, including backup validation, transactional restore, document transfer, Settings workflows, migrations, repositories, services, and interface behavior. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
-| Android release | The `v0.7.0` source is prepared to use the permanent signing and reproducible release process established by verified `v0.4.8`; Phase 7 recovery flows were verified in an Android debug build. | Build, signature, alignment, official upgrade, checksum, and publication evidence must be recorded before publishing `v0.7.0`. |
-| Architecture | Named records cross repository boundaries, managed connections protect database work, services own account/category/transaction workflows, and dedicated backup exporter, validator, restorer, and platform document-transfer services own recovery workflows. | Phase 8 can add search and filters without moving financial, persistence, or recovery rules into screens. |
-| User experience | Responsive layouts, preserved transaction form state, actionable empty states, shared card-based overlays, and Settings backup, restore-preview, and backup-before-clear workflows are implemented and regression-tested. | Phase 8 can focus on finding transactions without reopening the completed recovery and interface work. |
-| Backup and recovery | Versioned export, complete validation, confirmed replacement restore, rollback protection, Android document selection, and backup-before-clear are implemented and Android-verified. | Phase 7's recovery gate is complete; backup merging is deferred until after statistics. |
-| Search and advanced filters | Transaction-type filtering exists. Search, date range, account, category, and combined filters are not yet complete. | Complete these in Phase 8 rather than mixing them into reliability work. |
+| Automated tests | The pre-documentation Phase 8 closeout baseline contains `495` passing tests with `81%` total coverage. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
+| Android release | The `v0.8.0` source is prepared, but signed artifact verification is still required before publication. | Build, signature, alignment, official upgrade, checksum, and publication evidence must be recorded before publishing `v0.8.0`. |
+| Architecture | Shared filter state and list actions serve Dashboard and Transaction History, while repositories own transaction-query construction. | Phase 9 can test the complete release without duplicating filtering or persistence rules in screens. |
+| User experience | Combined search and filters, active-filter summaries, Reset All behavior, and filter-specific no-results recovery are implemented and regression-tested. | Phase 8's transaction-discovery work is complete and ready for broader beta testing. |
+| Backup and recovery | New exports use database version 4, while compatible version 3 backups remain restorable. Versioned export, validation, confirmed replacement restore, rollback protection, Android document selection, and backup-before-clear remain implemented. | Recovery compatibility is preserved across the index-only database migration. |
+| Search and advanced filters | Search, account, transaction-type, category-group, category, inclusive date-range, and combined filters are complete. Large-history queries use migration-managed indexes. | Phase 8 is complete; proceed to Phase 9 beta testing and version 1.0 readiness. |
 
 ## Phase Overview
 
@@ -46,8 +48,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 5. Simpler, More Maintainable Code | Move business rules out of large screens and give each code layer one clear job. | Completed |
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Completed |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Completed |
-| 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Next |
-| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Planned |
+| 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Completed |
+| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Next |
 | 10. Major Feature Expansion | Add reports, budgets, recurring transactions, and other large features after the core is dependable. | Deferred |
 
 ---
@@ -468,23 +470,23 @@ remains outside this phase.
 
 ## Phase 8 — Transaction Search and Advanced Filters
 
-**Status:** Next
-**Priority:** Medium
+**Status:** Completed in `v0.8.0`
+**Priority achieved:** Medium
 
 ### Objective
 
 Help users quickly find a specific transaction by its text, account, category, type, or date—even when the history becomes large.
 
-### Work plan
+### Completed work
 
-1. Add search across notes, account names, category-group names, and category names.
-2. Add filters for account, category group, category, and date range.
-3. Make search, transaction type, account, category, and date filters work together.
-4. Show active filters and provide a reliable Reset All action.
-5. Show a specific no-results state when filters match nothing.
-6. Keep filter behavior consistent between Dashboard recent transactions and the full history screen.
-7. Add database indexes needed for larger histories.
-8. Test same-day date ranges, blank notes, renamed records, combined filters, no results, and reset behavior.
+1. Added search across notes, account names, category-group names, and category names.
+2. Added filters for account, transaction type, category group, category, and inclusive date range.
+3. Made every search and filter option work alone and in combination.
+4. Added active-filter summaries and a reliable Reset All action.
+5. Added filter-specific no-results recovery.
+6. Unified Dashboard and Transaction History filter state and list actions.
+7. Added migration-managed indexes for larger transaction histories.
+8. Tested wildcard searches, same-day ranges, blank notes, renamed records, combined filters, reset behavior, and large histories.
 
 ### Deliverables
 
@@ -496,13 +498,15 @@ Help users quickly find a specific transaction by its text, account, category, t
 
 ### Completion gate
 
-Phase 8 is complete when every filter works alone and in combination, Reset All always restores the full list, no-results states are clear, and larger histories remain responsive.
+**Passed.** Every filter works alone and in combination, Reset All restores the
+full list, no-results states provide clear recovery, and stable newest-first
+queries use migration-managed indexes on a tested 10,000-record history.
 
 ---
 
 ## Phase 9 — Beta Testing and Version 1.0 Readiness
 
-**Status:** Planned
+**Status:** Next
 **Priority:** Final release gate
 
 ### Objective

@@ -8,7 +8,7 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_7_is_closed_and_phase_8_is_next():
+def test_phase_7_remains_closed_after_phase_8():
     roadmap = read_project_file("ROADMAP.md")
     phase_seven = roadmap.split(
         "## Phase 7 — Backup, Restore, and Recovery",
@@ -17,27 +17,14 @@ def test_phase_7_is_closed_and_phase_8_is_next():
         "## Phase 8 — Transaction Search and Advanced Filters",
         maxsplit=1,
     )[0]
-    phase_eight = roadmap.split(
-        "## Phase 8 — Transaction Search and Advanced Filters",
-        maxsplit=1,
-    )[1]
 
-    assert "Updated: July 25, 2026" in roadmap
-    assert "Current release: `v0.7.0`" in roadmap
-    assert "Current position: Phase 7 is complete; Phase 8 is next" in roadmap
     assert (
         "| 7. Backup, Restore, and Recovery | "
         "Let users preserve and recover their local financial records "
         "safely. | Completed |"
     ) in roadmap
-    assert (
-        "| 8. Transaction Search and Advanced Filters | "
-        "Help users find specific transactions quickly, even in large "
-        "histories. | Next |"
-    ) in roadmap
     assert "**Status:** Completed in `v0.7.0`" in phase_seven
     assert "**Passed.**" in phase_seven
-    assert "**Status:** Next" in phase_eight
 
 
 def test_phase_7_changes_are_recorded_for_users_and_developers():

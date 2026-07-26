@@ -9,6 +9,35 @@ version reference.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-26
+
+### Added
+
+- Transaction search across notes, account names, category-group names, and
+  category names.
+- Combined account, transaction-type, category-group, category, and inclusive
+  date-range filters.
+- Active-filter summaries, Reset All behavior, and filter-specific no-results
+  recovery.
+- Migration-managed transaction-history indexes and a 10,000-record query-plan
+  regression test.
+
+### Changed
+
+- Transaction History now uses stable newest-first ordering by date and
+  transaction ID.
+- Dashboard recent transactions and the full history use shared transaction
+  filter state and list actions.
+- New backup exports record database version 4, while compatible version 3
+  backups remain restorable.
+
+### Fixed
+
+- Search wildcard characters are treated literally instead of changing the
+  intended search pattern.
+- Same-day date ranges include the complete selected day.
+- Blank transaction notes remain safe during combined searches.
+
 ## [0.7.0] - 2026-07-25
 
 ### Added

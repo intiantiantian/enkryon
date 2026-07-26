@@ -149,6 +149,37 @@ Future recovery changes must run focused exporter, validator, restorer,
 document-transfer, and Settings tests; the complete suite; and the relevant
 desktop or Android document-selection checks.
 
+## Phase 8 Search and Filter Regression
+
+Phase 8 began with `450` tests. Its implementation closeout baseline contains
+`495` passing tests with `81%` total branch coverage. Four Phase 8 closeout
+tests bring the final expected total to `499` after documentation verification.
+
+Automated search and filter coverage includes:
+
+- Search across notes, accounts, category groups, and categories.
+- Literal wildcard handling and safe blank-note searches.
+- Account, transaction-type, category-group, category, and inclusive
+  date-range filters.
+- Independent and combined filter behavior.
+- Active-filter summaries, Reset All, and filter-specific no-results recovery.
+- Shared Dashboard and Transaction History filter state and list actions.
+- Stable newest-first ordering by date and transaction ID.
+- Migration-managed transaction-history indexes.
+- Backup compatibility across database versions 3 and 4.
+
+The large-history regression seeds `10,000` transactions and verifies both
+correct query results and SQLite query-plan use of the intended indexes. It
+does not use a machine-dependent elapsed-time threshold.
+
+Real-application checks confirmed successful migration and restart,
+newest-first history, responsive account and category filtering, backup
+export, and restore preview.
+
+Future transaction-discovery changes must run focused filter-state,
+repository, screen-workflow, migration, and backup tests; the complete suite;
+and real-application checks relevant to the changed behavior.
+
 ## GitHub Actions
 
 `.github/workflows/quality.yml` runs on pushes, pull requests, and manual

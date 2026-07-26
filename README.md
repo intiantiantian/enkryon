@@ -80,8 +80,12 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Transaction History
 
-- View all transactions
-- Filter by transaction type
+- View all transactions newest-first
+- Search notes, accounts, category groups, and categories
+- Filter by transaction type, account, category group, and category
+- Filter by an inclusive date range
+- Combine search and filters
+- Review active filters and reset them together
 - Edit transactions
 - Delete transactions
 
@@ -102,7 +106,7 @@ The latest Android APK is available from the GitHub Releases page.
 Latest release:
 
 ```
-Enkryon-v0.7.0.apk
+Enkryon-v0.8.0.apk
 ```
 
 ---
@@ -228,9 +232,10 @@ Development follows a reliability-first sequence:
 - Phase 7 added versioned backup export, complete validation, confirmed
   transactional restore, Android document selection, and backup-before-clear
   recovery.
-- Phase 8 is next and focuses on transaction search and advanced filters.
-- Later phases cover search and version 1.0 validation before major feature
-  expansion.
+- Phase 8 added transaction search, combined advanced filters, active-filter
+  summaries, clear no-results recovery, and indexed large-history queries.
+- Phase 9 is next and focuses on beta testing and version 1.0 readiness.
+- Later phases cover major feature expansion after the version 1.0 gate.
 
 See the [complete development roadmap](ROADMAP.md) for objectives,
 deliverables, priorities, and completion gates.
@@ -252,6 +257,8 @@ deliverables, priorities, and completion gates.
 - Android deployment using Buildozer
 - Versioned, validated user-controlled backups
 - Transactional replacement restore with rollback protection
+- Combined transaction search and advanced filters
+- Indexed newest-first transaction history
 
 ---
 
