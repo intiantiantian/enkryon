@@ -49,3 +49,16 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 - Critical and high-severity defects block `v1.0.0`.
 - Medium and low-severity defects must be fixed or explicitly documented as accepted limits.
 - Every correction requires focused verification followed by the complete regression suite before closeout.
+
+## Clean Installation and First Use
+
+Passed on July 27, 2026.
+
+- Device: `Xiaomi 2312DRA50G`
+- Android: `16` (API `36`)
+- APK: `Enkryon-v0.8.0.apk`
+- The clean installation and first launch completed without errors.
+- All empty states, six-screen navigation, Back behavior, and invalid-form protection passed.
+- The controlled income of `₱1,234.56` and expense of `₱10.21` produced income of `₱1,234.56`, expenses of `₱10.21`, and balance of `₱1,224.35`.
+- Accounts, categories, transactions, notes, and totals persisted after force-stop and relaunch.
+- Complete automated regression: `499 passed`.
