@@ -28,7 +28,7 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 
 | ID | Check | Required result | Checkpoint | Status |
 |---|---|---|---:|---|
-| P9-01 | Clean installation and first launch | App starts without errors and every empty state provides the correct next action. | 2 | Pending |
+| P9-01 | Clean installation and first launch | App starts without errors and every empty state provides the correct next action. | 2 | Passed |
 | P9-02 | Legacy database migrations | Every retained supported database fixture upgrades without changing IDs, relationships, exact centavo values, or totals. | 2 | Pending |
 | P9-03 | Official `v0.8.0` upgrade | The signed release candidate installs over `v0.8.0` and preserves all controlled data. | 5 | Pending |
 | P9-04 | Core workflows and persistence | Account, category, and transaction creation, editing, deletion, filtering, and relaunch persistence pass. | 2 | Pending |
