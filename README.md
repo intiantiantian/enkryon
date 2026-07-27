@@ -24,7 +24,7 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Transaction History (Filtered)
 
-![Transaction History (Filtered)](assets\screenshots\transactions\transaction_history_filtered.jpg)
+![Transaction History (Filtered)](assets/screenshots/transactions/transaction_history_filtered.jpg)
 
 ### Accounts
 
