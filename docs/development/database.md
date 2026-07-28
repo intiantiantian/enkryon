@@ -101,21 +101,26 @@ rules remain the final protection against invalid stored data.
 
 ## Legacy Upgrade Verification
 
-`tests/fixtures/enkryon_v0_3_0.db` preserves the database structure used
-before Phase 2. Its transactions use the legacy `amount REAL` column and
-it has no migration-history table.
+`tests/fixtures/enkryon_v0_3_0.db` represents the pre-`v0.4.0`
+legacy schema. It stores transaction values in the legacy `amount REAL`
+column and has no migration-history table.
 
-Migration tests copy the fixture to a temporary directory before upgrading
-it. The committed historical database must never be migrated in place.
+`tests/fixtures/enkryon_v0_7_0.db` represents the migration-version-3
+schema used by `v0.4.0` through `v0.7.0`. It intentionally has no
+transaction-history indexes.
 
-The upgrade test verifies:
+Migration tests copy each fixture to a temporary directory before upgrading
+it. The committed historical databases must never be migrated in place.
 
-- all three migrations are recorded once;
-- transaction IDs and record counts are preserved;
-- amounts convert to exact centavos;
-- income, expense, and balance totals remain correct;
-- foreign-key relationships remain valid; and
-- running the migrations again does not change the data.
+The upgrade tests verify:
+
+- all applicable migrations are recorded exactly once;
+- IDs, records, relationships, notes, dates, and SQLite sequences remain
+  unchanged;
+- amounts and financial totals remain exact integer-centavo values;
+- foreign-key validation succeeds;
+- all required transaction-history indexes are created; and
+- repeating the migration produces no additional changes.
 
 ## Adding a Future Migration
 
