@@ -15,7 +15,7 @@ from services.transaction_services import (
     get_transaction_list_data,
 )
 
-from widgets.transaction_list import render_transaction_list
+from widgets.transaction_list import render_transaction_history
 from widgets.date_time_pickers import DatePickerDialog
 from widgets.overlays import EnkryonSelectionPanel
 
@@ -371,8 +371,11 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
             self.get_empty_transaction_action()
         )
 
-        render_transaction_list(
-            container=self.ids.transactions_container,
+        render_transaction_history(
+            recycle_view=self.ids.transactions_recycle_view,
+            empty_state_container=(
+                self.ids.transaction_empty_state_container
+            ),
             transactions=transaction_list_data["transactions"],
             screen=self,
             empty_state=transaction_list_data["empty_state"],

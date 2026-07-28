@@ -85,23 +85,8 @@ def test_transaction_rows_use_multiple_type_cues(
     expected_color,
     expected_amount,
 ):
-    screen = SimpleNamespace(
-        ids=SimpleNamespace(
-            account_name=SimpleNamespace(text=""),
-            group_name=SimpleNamespace(text=""),
-            category_name=SimpleNamespace(text=""),
-            amount=SimpleNamespace(text="", text_color=None),
-            date_time=SimpleNamespace(text=""),
-            transaction_type=SimpleNamespace(
-                text="",
-                text_color=None,
-            ),
-            transaction_type_icon=SimpleNamespace(
-                icon="",
-                text_color=None,
-            ),
-        ),
-    )
+    owner_screen = object()
+    card = SimpleNamespace(screen=owner_screen)
     transaction = SimpleNamespace(
         transaction_id=17,
         account_name="Cash",
@@ -112,11 +97,15 @@ def test_transaction_rows_use_multiple_type_cues(
         date_time="2026-07-22 17:30:00",
     )
 
-    TransactionCard.set_transaction(screen, transaction)
+    TransactionCard.set_transaction(card, transaction)
 
-    assert screen.ids.transaction_type_icon.icon == expected_icon
-    assert screen.ids.transaction_type.text == expected_label
-    assert screen.ids.amount.text == expected_amount
-    assert screen.ids.transaction_type_icon.text_color == expected_color
-    assert screen.ids.transaction_type.text_color == expected_color
-    assert screen.ids.amount.text_color == expected_color
+    assert card.transaction_id == 17
+    assert card.screen is owner_screen
+    assert card.account_name == "Cash"
+    assert card.group_name == "Salary"
+    assert card.category_name == "Monthly"
+    assert card.transaction_type_icon == expected_icon
+    assert card.transaction_type_label == expected_label
+    assert card.amount_text == expected_amount
+    assert card.date_time_text == "2026-07-22 05:30 PM"
+    assert card.transaction_type_color == expected_color

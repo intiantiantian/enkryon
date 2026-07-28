@@ -191,12 +191,13 @@ def test_transaction_history_load_forwards_filter_state(
         },
     }
     get_transaction_list_data = Mock(return_value=list_data)
-    render_transaction_list = Mock()
+    render_transaction_history = Mock()
     action_callback = Mock()
     screen = SimpleNamespace(
         filter_state=filter_state,
         ids=SimpleNamespace(
-            transactions_container=object(),
+            transactions_recycle_view=object(),
+            transaction_empty_state_container=object(),
         ),
         get_empty_transaction_action=Mock(
             return_value=("SHOW ALL", action_callback)
@@ -209,8 +210,8 @@ def test_transaction_history_load_forwards_filter_state(
     )
     monkeypatch.setattr(
         transactions_module,
-        "render_transaction_list",
-        render_transaction_list,
+        "render_transaction_history",
+        render_transaction_history,
     )
 
     TransactionsScreen.load_transactions(screen)
@@ -218,8 +219,11 @@ def test_transaction_history_load_forwards_filter_state(
     get_transaction_list_data.assert_called_once_with(
         **filter_state.to_query_arguments()
     )
-    render_transaction_list.assert_called_once_with(
-        container=screen.ids.transactions_container,
+    render_transaction_history.assert_called_once_with(
+        recycle_view=screen.ids.transactions_recycle_view,
+        empty_state_container=(
+            screen.ids.transaction_empty_state_container
+        ),
         transactions=[],
         screen=screen,
         empty_state=list_data["empty_state"],

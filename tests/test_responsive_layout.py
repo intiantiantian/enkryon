@@ -138,6 +138,30 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert transaction_card.count("adaptive_height: True") == 9
     assert transaction_card.count("spacing: '4dp'") == 3
 
+    assert "RecycleView:" in transactions_layout
+    assert (
+        "viewclass: 'TransactionHistoryCard'"
+        in transactions_layout
+    )
+    assert "RecycleBoxLayout:" in transactions_layout
+    assert (
+        "id: transactions_recycle_view"
+        in transactions_layout
+    )
+    assert (
+        "id: transaction_empty_state_container"
+        in transactions_layout
+    )
+    assert "id: transactions_container" not in transactions_layout
+    assert (
+        "dp(72) * max(1, Metrics.fontscale)"
+        in transactions_layout
+    )
+    assert (
+        "<TransactionHistoryCard>:"
+        in widgets_layout
+    )
+
     amount_block = transaction_card.split(
         "id: amount",
         maxsplit=1,
