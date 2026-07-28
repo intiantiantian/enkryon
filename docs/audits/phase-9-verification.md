@@ -31,11 +31,11 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 | P9-01 | Clean installation and first launch | App starts without errors and every empty state provides the correct next action. | 2 | Passed |
 | P9-02 | Legacy database migrations | Every retained supported database fixture upgrades without changing IDs, relationships, exact centavo values, or totals. | 3 | Passed |
 | P9-03 | Official `v0.8.0` upgrade | The signed release candidate installs over `v0.8.0` and preserves all controlled data. | 5 | Pending |
-| P9-04 | Core workflows and persistence | Account, category, and transaction creation, editing, deletion, filtering, and relaunch persistence pass. | 2 | Pending |
-| P9-05 | Backup round trip | Export, preview, replacement restore, IDs, relationships, notes, dates, and totals remain correct. | 2 | Pending |
-| P9-06 | Restore failure protection | Invalid, incompatible, corrupted, cancelled, and failed restores cannot partially replace current data. | 2 | Pending |
-| P9-07 | Clear, reinstall, and recovery | Clear All Data, clean reinstall, and restore recovery behave as documented. | 2 | Pending |
-| P9-08 | Financial integrity | Balances and income/expense totals remain exact integer-centavo calculations. | 2 | Pending |
+| P9-04 | Core workflows and persistence | Account, category, and transaction creation, editing, deletion, filtering, and relaunch persistence pass. | 4 | Passed |
+| P9-05 | Backup round trip | Export, preview, replacement restore, IDs, relationships, notes, dates, and totals remain correct. | 4 | Passed |
+| P9-06 | Restore failure protection | Invalid, incompatible, corrupted, cancelled, and failed restores cannot partially replace current data. | 4 | Passed |
+| P9-07 | Clear, reinstall, and recovery | Clear All Data, clean reinstall, and restore recovery behave as documented. | 4 | Passed |
+| P9-08 | Financial integrity | Balances and income/expense totals remain exact integer-centavo calculations. | 4 | Passed |
 | P9-09 | Large-dataset stability | Startup, history loading, scrolling, search, combined filters, and saving remain correct and usable with at least 10,000 transactions. | 3 | Pending |
 | P9-10 | Responsive layouts | Supported narrow and larger phone profiles have no clipped, overlapping, or inaccessible controls. | 3 | Pending |
 | P9-11 | Enlarged fonts | Core workflows remain readable and usable at the supported enlarged-font setting. | 3 | Pending |
@@ -79,3 +79,22 @@ Passed on July 27, 2026.
 - A second migration run made no additional changes.
 - Focused migration regression: `13 passed`.
 - Complete automated regression: `500 passed`.
+
+## Core, Backup, and Recovery Verification
+
+Passed on July 28, 2026.
+
+- Device: `Xiaomi 2312DRA50G`
+- Android: `16` (API `36`)
+- Core account, category-group, category, and transaction creation, editing, deletion, search, filtering, Reset All, and relaunch persistence passed.
+- Temporary transaction totals changed to income of `₱1,234.56`, expenses of `₱210.23`, and balance of `₱1,024.33`; deleting the temporary records restored the original totals.
+- Backup SHA-256: `<actual SHA-256>`
+- Restore preview contained `1` account, `2` category groups, `2` categories, `2` transactions, and `7` total records.
+- Backup round-trip comparison: `ROUND TRIP: PASS`.
+- Export cancellation preserved the existing data.
+- Clear All Data produced empty screens and zero totals.
+- The verified backup restored all records, relationships, notes, dates, and exact totals.
+- Malformed, incompatible, corrupted, and cancelled restore attempts were rejected without changing current data.
+- Clean reinstallation produced an empty profile; backup recovery and force-stop/relaunch persistence passed.
+- Focused backup and recovery regression: `<actual result>`.
+- Complete automated regression: `<actual result and coverage>`.
