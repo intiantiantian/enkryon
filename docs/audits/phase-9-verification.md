@@ -36,7 +36,7 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 | P9-06 | Restore failure protection | Invalid, incompatible, corrupted, cancelled, and failed restores cannot partially replace current data. | 4 | Passed |
 | P9-07 | Clear, reinstall, and recovery | Clear All Data, clean reinstall, and restore recovery behave as documented. | 4 | Passed |
 | P9-08 | Financial integrity | Balances and income/expense totals remain exact integer-centavo calculations. | 4 | Passed |
-| P9-09 | Large-dataset stability | Startup, history loading, scrolling, search, combined filters, and saving remain correct and usable with at least 10,000 transactions. | 3 | Pending |
+| P9-09 | Large-dataset stability | Startup, history loading, scrolling, search, combined filters, and saving remain correct and usable with at least 10,000 transactions. | 3 | Passed |
 | P9-10 | Responsive layouts | Supported narrow and larger phone profiles have no clipped, overlapping, or inaccessible controls. | 3 | Pending |
 | P9-11 | Enlarged fonts | Core workflows remain readable and usable at the supported enlarged-font setting. | 3 | Pending |
 | P9-12 | Accessibility | Important states do not rely on color alone; labels, focus, Back behavior, and touch targets remain usable. | 3 | Pending |
@@ -98,3 +98,21 @@ Passed on July 28, 2026.
 - Clean reinstallation produced an empty profile; backup recovery and force-stop/relaunch persistence passed.
 - Focused backup and recovery regression: `53 passed`.
 - Complete automated regression: `500 passed`; branch coverage `81%`.
+
+## Large-Dataset Stability Verification
+
+Passed on July 28, 2026.
+
+- Device: `Xiaomi 2312DRA50G`
+- Android: `16` (API `36`)
+- The scale profile contained `1` account, `2` category groups, `2` categories, `10,000` transactions, and `10,005` total records.
+- Dashboard totals remained income of `₱100,000.00`, expenses of `₱50,000.00`, and balance of `₱50,000.00`.
+- Transaction History loaded and scrolled responsively without freezing.
+- Exact search, date-range filtering, combined filtering, Reset All, and relaunch persistence passed.
+- Transaction History was virtualized with `RecycleView` after the original implementation exhausted device memory by creating 10,000 complete card widgets.
+- Recycled card data, actions, colors, and fixed row heights remained correct.
+- First-entry spacing remained stable after waiting, scrolling, filtering, and re-entering.
+- The complete automated regression passed with `504` tests after both corrections.
+- Creating a temporary `₱0.01` expense remained responsive, persisted after force-stop and relaunch, and deleting it restored the original scale totals.
+- The virtualization-focused suite passed `80` tests, and the row-height-focused suite passed `54` tests.
+- The rebuilt APK passed checksum and signature verification; desktop and Android application checks also passed.
