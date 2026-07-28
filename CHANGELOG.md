@@ -9,6 +9,30 @@ version reference.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-28
+
+### Added
+
+- Proprietary source-code terms that allow viewing and portfolio evaluation
+  while reserving copying, modification, distribution, and reuse rights.
+- Release-readiness evidence covering clean installation, legacy database
+  upgrades, backup and recovery, financial integrity, responsive layouts,
+  enlarged fonts, and accessibility.
+
+### Changed
+
+- Transaction History now virtualizes card rendering so 10,000-record
+  histories remain responsive without creating every complete card at once.
+- Application, Android package, release documentation, and roadmap identity
+  now use version `1.0.0`.
+
+### Fixed
+
+- Large Transaction History datasets no longer exhaust device memory during
+  initial screen loading.
+- Recycled transaction cards keep stable row heights on first entry, after
+  delayed content measurement, while scrolling, and after filtering.
+
 ## [0.8.0] - 2026-07-26
 
 ### Added

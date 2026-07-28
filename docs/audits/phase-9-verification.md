@@ -131,3 +131,21 @@ Passed on July 28, 2026.
 - Selected filters, input labels, touch targets, and keyboard interactions remained usable.
 - Android Back dismissed an open selector or dialog before navigating away.
 - The destructive confirmation remained readable and was cancelled without changing data.
+
+## Version 1.0 Release-Candidate Preparation
+
+Prepared on July 28, 2026; final verification remains pending.
+
+- The application version source, Android artifact name, changelog, roadmap,
+  README, and release notes were advanced to `1.0.0`.
+- A proprietary source-code license permits viewing and portfolio evaluation
+  while withholding permission to copy, modify, distribute, or reuse the
+  repository materials.
+- Architecture, database, testing, and release documentation were updated to
+  describe the shipped search, migration, backup, virtualization, and
+  large-history behavior.
+- The real Settings screenshot, complete post-change regression, GitHub
+  Actions run, signed artifact evidence, clean installation, and official
+  `v0.8.0` in-place upgrade remain required.
+- `P9-13`, `P9-14`, and `P9-15` remain pending until their complete evidence
+  is recorded.

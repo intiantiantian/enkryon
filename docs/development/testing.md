@@ -180,6 +180,29 @@ Future transaction-discovery changes must run focused filter-state,
 repository, screen-workflow, migration, and backup tests; the complete suite;
 and real-application checks relevant to the changed behavior.
 
+## Phase 9 Release-Readiness Regression
+
+Phase 9 began with `499` tests. Legacy-migration coverage raised the suite to
+`500` tests, and the two large-history corrections raised it to `504` passing
+tests with `81%` total branch coverage. The version 1.0 documentation and
+identity closeout adds four tests for an expected total of `508`.
+
+The release-readiness evidence includes:
+
+- Clean installation, first-use workflows, and relaunch persistence.
+- `v0.3.0` and `v0.7.0` database-fixture upgrades.
+- Backup round trips, rejected restores, Clear All Data, reinstall, and
+  recovery.
+- Exact controlled totals and a 10,000-transaction scale profile.
+- Virtualized history rendering and stable recycled-card row heights.
+- Narrow, larger-phone, and 200% enlarged-font profiles.
+- Accessibility, keyboard, Android Back, and destructive-confirmation
+  behavior.
+
+The final `v1.0.0` gate additionally requires a green complete suite and
+GitHub Actions run, real Settings screenshot, verified signed artifact, clean
+installation, and official in-place upgrade from `v0.8.0`.
+
 ## GitHub Actions
 
 `.github/workflows/quality.yml` runs on pushes, pull requests, and manual

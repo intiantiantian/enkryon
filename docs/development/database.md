@@ -122,6 +122,20 @@ The upgrade tests verify:
 - all required transaction-history indexes are created; and
 - repeating the migration produces no additional changes.
 
+## Large-History Access
+
+Migration 4 creates three transaction-history indexes for newest-first and
+filtered access. Repository queries combine search and filters with bound
+parameters, treat wildcard characters literally, include complete selected
+dates, and use transaction ID as the stable secondary ordering key.
+
+Phase 9 verified startup, totals, history loading, scrolling, exact search,
+date-range and combined filters, saving, deletion, and relaunch persistence
+with 10,000 transactions. Query-plan tests confirm index use without relying
+on a machine-dependent elapsed-time threshold. Interface virtualization is
+documented separately because it changes rendering cost, not database
+semantics.
+
 ## Adding a Future Migration
 
 When the schema changes:
@@ -149,7 +163,7 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-This policy remains in effect after Phase 7:
+This policy remains in effect for version 1.0:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.
@@ -180,5 +194,6 @@ SQLite transaction:
 
 Android uses the system document picker for backup export and import without
 requesting broad storage permission.
-Restore in `v0.7.0` does not merge records; backup merging is deferred until
-after statistics.
+Restore in `v0.7.0` does not merge records.
+Restore in `v1.0.0` does not merge records either; this replacement-only behavior remains unchanged.
+Backup merging is deferred until after statistics.
