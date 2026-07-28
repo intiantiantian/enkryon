@@ -1,8 +1,8 @@
 # Enkryon Development Roadmap
 
-Updated: July 26, 2026
-Current release: `v0.8.0`
-Current position: Phase 8 is complete; Phase 9 is next
+Updated: July 28, 2026
+Current release candidate: `v1.0.0`
+Current position: Phase 9 is in progress; final release verification remains
 
 ## Purpose
 
@@ -22,20 +22,18 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 ## Current Project Snapshot
 
-## Current Project Snapshot
-
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
 | Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, advanced transaction filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
 | Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
 | Database upgrades | A `schema_migrations` table and four ordered, transactional migrations are present, including transaction-history indexes. | Future database changes can build on the migration framework instead of replacing user data. |
 | Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The pre-documentation Phase 8 closeout baseline contains `495` passing tests with `81%` total coverage. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
-| Android release | The `v0.8.0` source is prepared, but signed artifact verification is still required before publication. | Build, signature, alignment, official upgrade, checksum, and publication evidence must be recorded before publishing `v0.8.0`. |
-| Architecture | Shared filter state and list actions serve Dashboard and Transaction History, while repositories own transaction-query construction. | Phase 9 can test the complete release without duplicating filtering or persistence rules in screens. |
-| User experience | Combined search and filters, active-filter summaries, Reset All behavior, and filter-specific no-results recovery are implemented and regression-tested. | Phase 8's transaction-discovery work is complete and ready for broader beta testing. |
+| Automated tests | The verified Phase 9 implementation baseline contains `504` passing tests with `81%` total coverage. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
+| Android release | The `v1.0.0` source candidate is being prepared after signed `v0.8.0` beta checks. | Signature, alignment, clean installation, official `v0.8.0` upgrade, checksum, and publication evidence must pass before `v1.0.0` is released. |
+| Architecture | Shared filter state and list actions serve Dashboard and Transaction History, repositories own transaction-query construction, and `RecycleView` virtualizes full-history cards. | The verified architecture keeps 10,000-record histories responsive without moving persistence or workflow rules into widgets. |
+| User experience | Combined search and filters, active-filter summaries, Reset All behavior, filter-specific no-results recovery, responsive layouts, and enlarged-font behavior are implemented and verified. | The complete six-screen core remains usable across the tested display and accessibility profiles. |
 | Backup and recovery | New exports use database version 4, while compatible version 3 backups remain restorable. Versioned export, validation, confirmed replacement restore, rollback protection, Android document selection, and backup-before-clear remain implemented. | Recovery compatibility is preserved across the index-only database migration. |
-| Search and advanced filters | Search, account, transaction-type, category-group, category, inclusive date-range, and combined filters are complete. Large-history queries use migration-managed indexes. | Phase 8 is complete; proceed to Phase 9 beta testing and version 1.0 readiness. |
+| Search and advanced filters | Search, account, transaction-type, category-group, category, inclusive date-range, and combined filters are complete. Large-history queries use migration-managed indexes and virtualized card rendering. | Functional and 10,000-record Android verification passed; final release-candidate verification remains. |
 
 ## Phase Overview
 
@@ -49,7 +47,7 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Completed |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Completed |
 | 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Completed |
-| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Next |
+| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | In progress |
 | 10. Major Feature Expansion | Add reports, budgets, recurring transactions, and other large features after the core is dependable. | Deferred |
 
 ---
@@ -506,7 +504,7 @@ queries use migration-managed indexes on a tested 10,000-record history.
 
 ## Phase 9 — Beta Testing and Version 1.0 Readiness
 
-**Status:** Next
+**Status:** In progress — final release-candidate verification
 **Priority:** Final release gate
 
 ### Objective
@@ -571,12 +569,15 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Define search behavior for notes, accounts, category groups, and
-   categories.
-2. Add account, category, and date-range filters.
-3. Make search and all filters work correctly in combination.
-4. Add active-filter indicators and a reliable Reset All action.
-5. Verify no-results behavior and performance with larger histories.
+1. Verify the `v1.0.0` identity, proprietary source terms, documentation,
+   release notes, and real Settings screenshot.
+2. Run the complete automated suite, Python compilation, whitespace checks,
+   and GitHub Actions for the release commit.
+3. Build the signed `v1.0.0` Android candidate and verify its signature,
+   alignment, package metadata, API levels, ABIs, contents, and checksum.
+4. Verify a clean install and an official in-place upgrade from `v0.8.0`
+   without changing controlled records, relationships, notes, or totals.
+5. Finalize the release notes and Phase 9 evidence before publication.
 
 Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
 

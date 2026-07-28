@@ -1,3 +1,10 @@
+from kivy.properties import (
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    StringProperty,
+)
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivymd.uix.card import MDCard
 
 from datetime import datetime
@@ -28,49 +35,57 @@ def get_transaction_type_presentation(transaction_type):
         f"Unsupported transaction type: {transaction_type}"
     )
 
+
+def create_transaction_card_data(transaction, screen):
+    presentation = get_transaction_type_presentation(
+        transaction.transaction_type
+    )
+    date_time = datetime.strptime(
+        transaction.date_time,
+        "%Y-%m-%d %H:%M:%S",
+    )
+
+    return {
+        "transaction_id": transaction.transaction_id,
+        "screen": screen,
+        "account_name": transaction.account_name,
+        "group_name": transaction.group_name,
+        "category_name": transaction.category_name,
+        "amount_text": format_signed_money(
+            transaction.amount_centavos,
+            transaction.transaction_type,
+            compact=True,
+        ),
+        "date_time_text": date_time.strftime(
+            "%Y-%m-%d %I:%M %p"
+        ),
+        "transaction_type_icon": presentation["icon"],
+        "transaction_type_label": presentation["label"],
+        "transaction_type_color": presentation["color"],
+    }
+
+
 class TransactionCard(MDCard):
 
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.transaction_id = None
+    fixed_height = NumericProperty(0)
+    transaction_id = ObjectProperty(None, allownone=True)
+    screen = ObjectProperty(None, allownone=True)
+    account_name = StringProperty("")
+    group_name = StringProperty("")
+    category_name = StringProperty("")
+    amount_text = StringProperty("")
+    date_time_text = StringProperty("")
+    transaction_type_icon = StringProperty("")
+    transaction_type_label = StringProperty("")
+    transaction_type_color = ListProperty([0, 0, 0, 1])
 
 
     def set_transaction(self, transaction):
-        self.transaction_id = transaction.transaction_id
-
-        self.ids.account_name.text = transaction.account_name
-        self.ids.group_name.text = transaction.group_name
-        self.ids.category_name.text = transaction.category_name
-
-        amount_centavos = transaction.amount_centavos
-        transaction_type = transaction.transaction_type
-        presentation = get_transaction_type_presentation(
-            transaction_type
-        )
-
-        self.ids.amount.text = format_signed_money(
-            amount_centavos,
-            transaction_type,
-            compact=True
-        )
-
-        self.ids.amount.text_color = presentation["color"]
-
-        dt = datetime.strptime(
-            transaction.date_time,
-            "%Y-%m-%d %H:%M:%S",
-        )
-        self.ids.date_time.text = dt.strftime(
-            "%Y-%m-%d %I:%M %p"
-        )
-
-        self.ids.transaction_type_icon.icon = presentation["icon"]
-        self.ids.transaction_type_icon.text_color = (
-            presentation["color"]
-        )
-        self.ids.transaction_type.text = presentation["label"]
-        self.ids.transaction_type.text_color = presentation["color"]
+        for name, value in create_transaction_card_data(
+            transaction,
+            self.screen,
+        ).items():
+            setattr(self, name, value)
 
 
     def edit_transaction(self):
@@ -79,6 +94,13 @@ class TransactionCard(MDCard):
 
     def delete_transaction(self):
         self.screen.confirm_delete_transaction(self.transaction_id)
+
+
+class TransactionHistoryCard(
+    RecycleDataViewBehavior,
+    TransactionCard,
+):
+    pass
 
 
 def create_transaction_empty_state(

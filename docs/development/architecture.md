@@ -245,9 +245,20 @@ Phase 7 added recovery-specific service boundaries:
 5. `screens/settings.py` coordinates previews, confirmations, user feedback,
    and navigation without owning backup-format or persistence rules.
 
-Phase 8 search and filtering work must preserve these boundaries. Query and
-filter rules should remain outside reusable widgets, while screens coordinate
-the resulting interface state.
+Phase 8 preserved these boundaries while adding transaction discovery:
+
+1. `screens/transaction_filter_state.py` owns filter selections and their
+   dependent transitions.
+2. `database/transaction_repository.py` owns search, combined query
+   construction, stable newest-first ordering, and indexed data access.
+3. Shared screen actions coordinate filtering, editing, deletion, and
+   refresh behavior without duplicating those workflows.
+4. `widgets/transaction_list.py` adapts repository records into lightweight
+   `RecycleView` data, while recycled cards remain display-only widgets.
+
+Phase 9 verified the same boundaries with 10,000 transactions. Virtualization
+keeps the full history responsive without moving SQL, filtering rules, or
+record mutations into reusable cards.
 
 ## Rule for Future Commits
 

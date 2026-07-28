@@ -22,10 +22,6 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ![Transaction History](assets/screenshots/transactions/transaction_history.jpg)
 
-### Transaction History (Filtered)
-
-![Transaction History (Filtered)](assets/screenshots/transactions/transaction_history_filtered.jpg)
-
 ### Accounts
 
 ![Accounts](assets/screenshots/accounts/accounts_populated.jpg)
@@ -105,12 +101,13 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ## Download
 
-The latest Android APK is available from the GitHub Releases page.
+Official Android APKs are published on the GitHub Releases page after their
+release checks pass.
 
-Latest release:
+The version 1.0 candidate uses this artifact name:
 
 ```
-Enkryon-v0.8.0.apk
+Enkryon-v1.0.0.apk
 ```
 
 ---
@@ -140,6 +137,7 @@ enkryon/
 ├── theme/           # Shared design values and app theme
 ├── utils/           # Helper utilities
 ├── widgets/         # Reusable UI components
+├── LICENSE
 ├── main.py
 ├── ROADMAP.md
 ├── requirements-dev.txt
@@ -238,7 +236,9 @@ Development follows a reliability-first sequence:
   recovery.
 - Phase 8 added transaction search, combined advanced filters, active-filter
   summaries, clear no-results recovery, and indexed large-history queries.
-- Phase 9 is next and focuses on beta testing and version 1.0 readiness.
+- Phase 9 verifies clean installation, legacy upgrades, backup and recovery,
+  10,000-record histories, responsive layouts, enlarged fonts, accessibility,
+  and the signed version 1.0 release candidate.
 - Later phases cover major feature expansion after the version 1.0 gate.
 
 See the [complete development roadmap](ROADMAP.md) for objectives,
@@ -263,11 +263,17 @@ deliverables, priorities, and completion gates.
 - Transactional replacement restore with rollback protection
 - Combined transaction search and advanced filters
 - Indexed newest-first transaction history
+- Virtualized large-history rendering
 
 ---
 
 ## License
 
-This project was developed for educational and portfolio purposes.
+Copyright (c) 2026 Christian Jay Villaria. All rights reserved.
 
-It is not intended for commercial use.
+The source code and repository materials are available only for viewing and
+portfolio evaluation. No permission is granted to copy, modify, distribute,
+or reuse them in another project. Public repository hosting terms may still
+permit platform-level viewing and forking.
+
+See [LICENSE](LICENSE) for the complete terms.

@@ -55,6 +55,7 @@ The current migrations are:
 | 1 | `initial_schema` | Create the original tables in dependency order. |
 | 2 | `transactions_amount_centavos` | Convert legacy decimal amounts to integer centavos. |
 | 3 | `validation_constraints` | Add transaction, name, type, and date/time rules. |
+| 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -100,21 +101,40 @@ rules remain the final protection against invalid stored data.
 
 ## Legacy Upgrade Verification
 
-`tests/fixtures/enkryon_v0_3_0.db` preserves the database structure used
-before Phase 2. Its transactions use the legacy `amount REAL` column and
-it has no migration-history table.
+`tests/fixtures/enkryon_v0_3_0.db` represents the pre-`v0.4.0`
+legacy schema. It stores transaction values in the legacy `amount REAL`
+column and has no migration-history table.
 
-Migration tests copy the fixture to a temporary directory before upgrading
-it. The committed historical database must never be migrated in place.
+`tests/fixtures/enkryon_v0_7_0.db` represents the migration-version-3
+schema used by `v0.4.0` through `v0.7.0`. It intentionally has no
+transaction-history indexes.
 
-The upgrade test verifies:
+Migration tests copy each fixture to a temporary directory before upgrading
+it. The committed historical databases must never be migrated in place.
 
-- all three migrations are recorded once;
-- transaction IDs and record counts are preserved;
-- amounts convert to exact centavos;
-- income, expense, and balance totals remain correct;
-- foreign-key relationships remain valid; and
-- running the migrations again does not change the data.
+The upgrade tests verify:
+
+- all applicable migrations are recorded exactly once;
+- IDs, records, relationships, notes, dates, and SQLite sequences remain
+  unchanged;
+- amounts and financial totals remain exact integer-centavo values;
+- foreign-key validation succeeds;
+- all required transaction-history indexes are created; and
+- repeating the migration produces no additional changes.
+
+## Large-History Access
+
+Migration 4 creates three transaction-history indexes for newest-first and
+filtered access. Repository queries combine search and filters with bound
+parameters, treat wildcard characters literally, include complete selected
+dates, and use transaction ID as the stable secondary ordering key.
+
+Phase 9 verified startup, totals, history loading, scrolling, exact search,
+date-range and combined filters, saving, deletion, and relaunch persistence
+with 10,000 transactions. Query-plan tests confirm index use without relying
+on a machine-dependent elapsed-time threshold. Interface virtualization is
+documented separately because it changes rendering cost, not database
+semantics.
 
 ## Adding a Future Migration
 
@@ -143,7 +163,7 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-This policy remains in effect after Phase 7:
+This policy remains in effect for version 1.0:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.
@@ -174,5 +194,6 @@ SQLite transaction:
 
 Android uses the system document picker for backup export and import without
 requesting broad storage permission.
-Restore in `v0.7.0` does not merge records; backup merging is deferred until
-after statistics.
+Restore in `v0.7.0` does not merge records.
+Restore in `v1.0.0` does not merge records either; this replacement-only behavior remains unchanged.
+Backup merging is deferred until after statistics.

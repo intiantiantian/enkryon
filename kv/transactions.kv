@@ -281,18 +281,32 @@
                 on_release:
                     root.show_all_transactions()
 
-        ScrollView:
-            BoxLayout:
-                id: transactions_container
-                orientation: 'vertical'
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: '5dp'
-                padding: '5dp'
-                canvas.before:
-                    Color:
-                        rgba: get_color_from_hex(Colors.BACKGROUND)
+        FloatLayout:
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex(Colors.BACKGROUND)
 
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            RecycleView:
+                id: transactions_recycle_view
+                viewclass: 'TransactionHistoryCard'
+                bar_width: '4dp'
+
+                RecycleBoxLayout:
+                    default_size:
+                        None, dp(72) * max(1, Metrics.fontscale)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: '5dp'
+                    padding: '5dp'
+
+            AnchorLayout:
+                id: transaction_empty_state_container
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: '5dp'

@@ -8,7 +8,7 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_phase_8_is_closed_and_phase_9_is_next():
+def test_phase_8_remains_recorded_as_closed():
     roadmap = read_project_file("ROADMAP.md")
     phase_eight = roadmap.split(
         "## Phase 8 — Transaction Search and Advanced Filters",
@@ -17,27 +17,13 @@ def test_phase_8_is_closed_and_phase_9_is_next():
         "## Phase 9 — Beta Testing and Version 1.0 Readiness",
         maxsplit=1,
     )[0]
-    phase_nine = roadmap.split(
-        "## Phase 9 — Beta Testing and Version 1.0 Readiness",
-        maxsplit=1,
-    )[1]
-
-    assert "Updated: July 26, 2026" in roadmap
-    assert "Current release: `v0.8.0`" in roadmap
-    assert "Current position: Phase 8 is complete; Phase 9 is next" in roadmap
     assert (
         "| 8. Transaction Search and Advanced Filters | "
         "Help users find specific transactions quickly, even in large "
         "histories. | Completed |"
     ) in roadmap
-    assert (
-        "| 9. Beta Testing and Version 1.0 Readiness | "
-        "Prove that the complete core app is stable enough for a version "
-        "1.0 release. | Next |"
-    ) in roadmap
     assert "**Status:** Completed in `v0.8.0`" in phase_eight
     assert "**Passed.**" in phase_eight
-    assert "**Status:** Next" in phase_nine
 
 
 def test_phase_8_changes_are_recorded_for_users_and_developers():
@@ -52,8 +38,7 @@ def test_phase_8_changes_are_recorded_for_users_and_developers():
     assert "## Phase 8 Search and Filter Regression" in testing
     assert "`499` after documentation verification" in testing
     assert (
-        "Phase 8 completion therefore prepares `v0.8.0` from "
-        "`v0.7.0`."
+        "Phase 8 prepared `v0.8.0` from `v0.7.0`"
         in " ".join(release_guide.split())
     )
 

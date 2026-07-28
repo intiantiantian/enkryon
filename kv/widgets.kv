@@ -2,6 +2,7 @@
 #:import Colors theme.tokens.Colors
 #:import Window kivy.core.window.Window
 #:import dp kivy.metrics.dp
+#:import Metrics kivy.metrics.Metrics
 
 
 <OutlinedCard@MDCard>:
@@ -84,7 +85,7 @@
 
 <TransactionCard>
     size_hint_y: None
-    height: self.minimum_height
+    height: root.fixed_height or self.minimum_height
 
     canvas.after:
         Color:
@@ -117,6 +118,7 @@
 
                 MDLabel:
                     id: account_name
+                    text: root.account_name
                     text_size: self.size
                     max_lines: 1
                     shorten: True
@@ -125,6 +127,7 @@
 
                 MDLabel:
                     id: date_time
+                    text: root.date_time_text
                     font_size: '8sp'
                     text_size: self.size
                     max_lines: 1
@@ -141,6 +144,7 @@
 
                 MDLabel:
                     id: group_name
+                    text: root.group_name
                     font_size: '12sp'
                     text_size: self.size
                     max_lines: 1
@@ -150,6 +154,7 @@
 
                 MDLabel:
                     id: category_name
+                    text: root.category_name
                     font_size: '12sp'
                     text_size: self.size
                     max_lines: 1
@@ -170,6 +175,7 @@
 
                     MDIcon:
                         id: transaction_type_icon
+                        icon: root.transaction_type_icon
                         size_hint_x: None
                         width: '18dp'
                         font_size: '14sp'
@@ -177,9 +183,11 @@
                         valign: 'middle'
                         text_size: self.size
                         theme_text_color: 'Custom'
+                        text_color: root.transaction_type_color
 
                     MDLabel:
                         id: transaction_type
+                        text: root.transaction_type_label
                         adaptive_height: True
                         font_size: '12sp'
                         text_size: self.size
@@ -187,9 +195,11 @@
                         shorten: True
                         shorten_from: 'right'
                         theme_text_color: 'Custom'
+                        text_color: root.transaction_type_color
 
                 MDLabel:
                     id: amount
+                    text: root.amount_text
                     adaptive_height: True
                     halign: 'right'
                     valign: 'middle'
@@ -199,6 +209,7 @@
                     shorten: True
                     shorten_from: 'left'
                     theme_text_color: 'Custom'
+                    text_color: root.transaction_type_color
 
         BoxLayout:
             size_hint_x: None
@@ -215,6 +226,10 @@
                 icon_size: '18sp'
                 on_release:
                     root.delete_transaction()
+
+
+<TransactionHistoryCard>:
+    fixed_height: dp(72) * max(1, Metrics.fontscale)
 
 
 <EmptyState>:
