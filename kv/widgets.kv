@@ -85,7 +85,7 @@
 
 <TransactionCard>
     size_hint_y: None
-    height: self.minimum_height
+    height: root.fixed_height or self.minimum_height
 
     canvas.after:
         Color:
@@ -229,7 +229,7 @@
 
 
 <TransactionHistoryCard>:
-    height: dp(72) * max(1, Metrics.fontscale)
+    fixed_height: dp(72) * max(1, Metrics.fontscale)
 
 
 <EmptyState>:

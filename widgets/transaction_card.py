@@ -1,5 +1,6 @@
 from kivy.properties import (
     ListProperty,
+    NumericProperty,
     ObjectProperty,
     StringProperty,
 )
@@ -66,6 +67,7 @@ def create_transaction_card_data(transaction, screen):
 
 class TransactionCard(MDCard):
 
+    fixed_height = NumericProperty(0)
     transaction_id = ObjectProperty(None, allownone=True)
     screen = ObjectProperty(None, allownone=True)
     account_name = StringProperty("")

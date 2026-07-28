@@ -115,6 +115,13 @@ def test_transaction_list_uses_responsive_filters_and_cards():
         "<TransactionCard>",
         maxsplit=1,
     )[1].split(
+        "<TransactionHistoryCard>:",
+        maxsplit=1,
+    )[0]
+    transaction_history_card = widgets_layout.split(
+        "<TransactionHistoryCard>:",
+        maxsplit=1,
+    )[1].split(
         "<EmptyState>",
         maxsplit=1,
     )[0]
@@ -137,6 +144,10 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert transaction_card.count("pos_hint: {'top': 1}") == 3
     assert transaction_card.count("adaptive_height: True") == 9
     assert transaction_card.count("spacing: '4dp'") == 3
+    assert (
+        "height: root.fixed_height or self.minimum_height"
+        in transaction_card
+    )
 
     assert "RecycleView:" in transactions_layout
     assert (
@@ -158,9 +169,10 @@ def test_transaction_list_uses_responsive_filters_and_cards():
         in transactions_layout
     )
     assert (
-        "<TransactionHistoryCard>:"
-        in widgets_layout
+        "fixed_height: dp(72) * max(1, Metrics.fontscale)"
+        in transaction_history_card
     )
+    assert "\n    height:" not in transaction_history_card
 
     amount_block = transaction_card.split(
         "id: amount",
