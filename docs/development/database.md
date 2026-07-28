@@ -55,6 +55,7 @@ The current migrations are:
 | 1 | `initial_schema` | Create the original tables in dependency order. |
 | 2 | `transactions_amount_centavos` | Convert legacy decimal amounts to integer centavos. |
 | 3 | `validation_constraints` | Add transaction, name, type, and date/time rules. |
+| 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the

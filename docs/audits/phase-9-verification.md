@@ -29,7 +29,7 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 | ID | Check | Required result | Checkpoint | Status |
 |---|---|---|---:|---|
 | P9-01 | Clean installation and first launch | App starts without errors and every empty state provides the correct next action. | 2 | Passed |
-| P9-02 | Legacy database migrations | Every retained supported database fixture upgrades without changing IDs, relationships, exact centavo values, or totals. | 2 | Pending |
+| P9-02 | Legacy database migrations | Every retained supported database fixture upgrades without changing IDs, relationships, exact centavo values, or totals. | 3 | Passed |
 | P9-03 | Official `v0.8.0` upgrade | The signed release candidate installs over `v0.8.0` and preserves all controlled data. | 5 | Pending |
 | P9-04 | Core workflows and persistence | Account, category, and transaction creation, editing, deletion, filtering, and relaunch persistence pass. | 2 | Pending |
 | P9-05 | Backup round trip | Export, preview, replacement restore, IDs, relationships, notes, dates, and totals remain correct. | 2 | Pending |
@@ -62,3 +62,20 @@ Passed on July 27, 2026.
 - The controlled income of `₱1,234.56` and expense of `₱10.21` produced income of `₱1,234.56`, expenses of `₱10.21`, and balance of `₱1,224.35`.
 - Accounts, categories, transactions, notes, and totals persisted after force-stop and relaunch.
 - Complete automated regression: `499 passed`.
+
+## Legacy Database Migration Verification
+
+Passed on July 27, 2026.
+
+- The retained `v0.3.0` fixture upgraded through migrations 1–4.
+- A `v0.7.0` fixture generated from official source commit `8ddc6e9`
+  upgraded from migration version 3 to version 4.
+- All record counts, IDs, relationships, notes, dates, and SQLite
+  sequences remained unchanged.
+- Income remained `123456` centavos, expenses remained `1021` centavos,
+  and balance remained `122435` centavos.
+- Foreign-key validation passed.
+- All three transaction-history indexes were created correctly.
+- A second migration run made no additional changes.
+- Focused migration regression: `13 passed`.
+- Complete automated regression: `500 passed`.
