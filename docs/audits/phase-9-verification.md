@@ -88,7 +88,7 @@ Passed on July 28, 2026.
 - Android: `16` (API `36`)
 - Core account, category-group, category, and transaction creation, editing, deletion, search, filtering, Reset All, and relaunch persistence passed.
 - Temporary transaction totals changed to income of `₱1,234.56`, expenses of `₱210.23`, and balance of `₱1,024.33`; deleting the temporary records restored the original totals.
-- Backup SHA-256: `<actual SHA-256>`
+- Backup SHA-256: `0741aaf7a387f29c4a88a750d71bf42f154f15a09c3e709a37f18ec89cdfa362`
 - Restore preview contained `1` account, `2` category groups, `2` categories, `2` transactions, and `7` total records.
 - Backup round-trip comparison: `ROUND TRIP: PASS`.
 - Export cancellation preserved the existing data.
@@ -96,5 +96,5 @@ Passed on July 28, 2026.
 - The verified backup restored all records, relationships, notes, dates, and exact totals.
 - Malformed, incompatible, corrupted, and cancelled restore attempts were rejected without changing current data.
 - Clean reinstallation produced an empty profile; backup recovery and force-stop/relaunch persistence passed.
-- Focused backup and recovery regression: `<actual result>`.
-- Complete automated regression: `<actual result and coverage>`.
+- Focused backup and recovery regression: `53 passed`.
+- Complete automated regression: `500 passed`; branch coverage `81%`.
