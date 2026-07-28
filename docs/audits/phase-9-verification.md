@@ -37,9 +37,9 @@ In progress. The Phase 9 baseline was established on July 27, 2026.
 | P9-07 | Clear, reinstall, and recovery | Clear All Data, clean reinstall, and restore recovery behave as documented. | 4 | Passed |
 | P9-08 | Financial integrity | Balances and income/expense totals remain exact integer-centavo calculations. | 4 | Passed |
 | P9-09 | Large-dataset stability | Startup, history loading, scrolling, search, combined filters, and saving remain correct and usable with at least 10,000 transactions. | 3 | Passed |
-| P9-10 | Responsive layouts | Supported narrow and larger phone profiles have no clipped, overlapping, or inaccessible controls. | 3 | Pending |
-| P9-11 | Enlarged fonts | Core workflows remain readable and usable at the supported enlarged-font setting. | 3 | Pending |
-| P9-12 | Accessibility | Important states do not rely on color alone; labels, focus, Back behavior, and touch targets remain usable. | 3 | Pending |
+| P9-10 | Responsive layouts | Supported narrow and larger phone profiles have no clipped, overlapping, or inaccessible controls. | 3 | Passed |
+| P9-11 | Enlarged fonts | Core workflows remain readable and usable at the supported enlarged-font setting. | 3 | Passed |
+| P9-12 | Accessibility | Important states do not rely on color alone; labels, focus, Back behavior, and touch targets remain usable. | 3 | Passed |
 | P9-13 | Defect regression | All critical and high-severity defects are resolved and the complete automated suite passes. | 3 | Pending |
 | P9-14 | Documentation and identity | License, README, roadmap, architecture, database guide, changelog, release notes, screenshots, and version values match `v1.0.0`. | 4 | Pending |
 | P9-15 | Release candidate | APK signature, alignment, package contents, API levels, ABIs, checksum, clean installation, and official upgrade all pass. | 5 | Pending |
@@ -116,3 +116,18 @@ Passed on July 28, 2026.
 - Creating a temporary `₱0.01` expense remained responsive, persisted after force-stop and relaunch, and deleting it restored the original scale totals.
 - The virtualization-focused suite passed `80` tests, and the row-height-focused suite passed `54` tests.
 - The rebuilt APK passed checksum and signature verification; desktop and Android application checks also passed.
+
+## Display and Accessibility Verification
+
+Passed on July 28, 2026.
+
+- Device: `Xiaomi 2312DRA50G`
+- Android: `16` (API `36`)
+- The narrow `S / 90%`, larger-phone default-font, and enlarged-font display profiles passed.
+- The enlarged-font profile was tested at `200%`, exceeding the required minimum of `130%`.
+- All six screens remained usable without clipped, overlapping, clustered, or inaccessible controls.
+- Navigation, scrolling, long content, transaction cards, filters, Add Transaction controls, and Settings actions remained readable and reachable.
+- Income and expenses remained distinguishable through text, icons, and amount signs rather than color alone.
+- Selected filters, input labels, touch targets, and keyboard interactions remained usable.
+- Android Back dismissed an open selector or dialog before navigating away.
+- The destructive confirmation remained readable and was cancelled without changing data.
