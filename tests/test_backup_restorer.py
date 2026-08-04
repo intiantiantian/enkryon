@@ -7,8 +7,11 @@ from database import migrations
 import services.backup_restorer as backup_restorer
 from services.backup_format import (
     BACKUP_RECORD_COLUMNS,
+    LEGACY_BACKUP_FORMAT_VERSION,
     create_backup_document,
+    serialize_backup_document,
 )
+from services.backup_exporter import export_backup_document
 from services.backup_restorer import (
     BackupRestoreError,
     restore_backup_json,
@@ -79,6 +82,16 @@ def make_backup_document():
                     "notes": "",
                 },
             ],
+            "account_transfers": [
+                {
+                    "id": 30,
+                    "source_account_id": 8,
+                    "destination_account_id": 3,
+                    "amount_centavos": 10025,
+                    "date_time": "2026-07-03 09:15:00",
+                    "notes": "Move to wallet",
+                },
+            ],
         },
     )
 
@@ -90,7 +103,9 @@ def seed_current_records():
         connection.executescript(
             """
             INSERT INTO accounts (id, name)
-            VALUES (1, 'Old account');
+            VALUES
+                (1, 'Old account'),
+                (2, 'Old destination');
 
             INSERT INTO category_groups (
                 group_id,
@@ -121,6 +136,23 @@ def seed_current_records():
                 1,
                 '2026-07-20 12:00:00',
                 'Old transaction'
+            );
+
+            INSERT INTO account_transfers (
+                id,
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time,
+                notes
+            )
+            VALUES (
+                1,
+                1,
+                2,
+                250,
+                '2026-07-21 12:00:00',
+                'Old transfer'
             );
             """
         )
@@ -255,6 +287,24 @@ def insert_next_records():
             """,
             (account_id, category_id),
         ).lastrowid
+        transfer_id = connection.execute(
+            """
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time,
+                notes
+            )
+            VALUES (
+                3,
+                8,
+                1,
+                '2026-07-04 12:00:00',
+                NULL
+            )
+            """
+        ).lastrowid
         connection.commit()
 
         return (
@@ -262,6 +312,7 @@ def insert_next_records():
             group_id,
             category_id,
             transaction_id,
+            transfer_id,
         )
     finally:
         connection.close()
@@ -283,6 +334,54 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
     ]
+
+
+def test_restore_legacy_backup_replaces_transfers_with_empty_set():
+    seed_current_records()
+    document = make_backup_document()
+    document["format_version"] = LEGACY_BACKUP_FORMAT_VERSION
+    del document["records"]["account_transfers"]
+    del document["metadata"]["record_counts"]["account_transfers"]
+
+    restore_backup_json(serialize_backup_document(document))
+
+    restored_records = read_current_records()
+    assert restored_records["account_transfers"] == []
+    assert {
+        table_name: restored_records[table_name]
+        for table_name in document["records"]
+    } == document["records"]
+
+
+def test_current_backup_round_trip_preserves_transfer_records():
+    seed_current_records()
+    original_records = read_current_records()
+    document = export_backup_document(
+        app_version="1.1.0",
+        exported_at=datetime(
+            2026,
+            8,
+            4,
+            12,
+            30,
+            tzinfo=timezone.utc,
+        ),
+    )
+
+    connection = migrations.connect_database()
+    try:
+        connection.execute("DELETE FROM account_transfers")
+        connection.execute("DELETE FROM transactions")
+        connection.execute("DELETE FROM categories")
+        connection.execute("DELETE FROM category_groups")
+        connection.execute("DELETE FROM accounts")
+        connection.commit()
+    finally:
+        connection.close()
+
+    restore_backup_json(serialize_backup_document(document))
+
+    assert read_current_records() == original_records
 
 
 def test_restore_revalidates_preview_before_opening_transaction():
@@ -325,8 +424,9 @@ def test_restore_normalizes_autoincrement_sequences():
         "category_groups": 9,
         "categories": 12,
         "transactions": 21,
+        "account_transfers": 30,
     }
-    assert insert_next_records() == (9, 10, 13, 22)
+    assert insert_next_records() == (9, 10, 13, 22, 31)
 
 
 def test_restore_rolls_back_data_and_sequences_after_late_failure(

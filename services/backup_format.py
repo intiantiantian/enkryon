@@ -2,8 +2,9 @@ import json
 from datetime import datetime, timezone
 
 BACKUP_FORMAT = "enkryon-backup"
-BACKUP_FORMAT_VERSION = 1
-BACKUP_RECORD_COLUMNS = {
+LEGACY_BACKUP_FORMAT_VERSION = 1
+BACKUP_FORMAT_VERSION = 2
+LEGACY_BACKUP_RECORD_COLUMNS = {
     "accounts": (
         "id",
         "name",
@@ -26,6 +27,21 @@ BACKUP_RECORD_COLUMNS = {
         "date_time",
         "notes",
     ),
+}
+BACKUP_RECORD_COLUMNS = {
+    **LEGACY_BACKUP_RECORD_COLUMNS,
+    "account_transfers": (
+        "id",
+        "source_account_id",
+        "destination_account_id",
+        "amount_centavos",
+        "date_time",
+        "notes",
+    ),
+}
+BACKUP_RECORD_COLUMNS_BY_VERSION = {
+    LEGACY_BACKUP_FORMAT_VERSION: LEGACY_BACKUP_RECORD_COLUMNS,
+    BACKUP_FORMAT_VERSION: BACKUP_RECORD_COLUMNS,
 }
 BACKUP_TABLES = tuple(BACKUP_RECORD_COLUMNS)
 

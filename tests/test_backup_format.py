@@ -38,6 +38,7 @@ def make_records():
                 "notes": None,
             },
         ],
+        "account_transfers": [],
     }
 
 
@@ -70,6 +71,7 @@ def test_create_backup_document_defines_versioned_metadata():
                 "category_groups": 1,
                 "categories": 1,
                 "transactions": 1,
+                "account_transfers": 0,
             },
         },
         "records": records,
@@ -82,6 +84,7 @@ def test_create_backup_document_counts_empty_tables():
         "category_groups": [],
         "categories": [],
         "transactions": [],
+        "account_transfers": [],
     }
 
     document = create_backup_document(
@@ -101,6 +104,7 @@ def test_create_backup_document_counts_empty_tables():
         "category_groups": 0,
         "categories": 0,
         "transactions": 0,
+        "account_transfers": 0,
     }
 
 

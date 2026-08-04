@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 import pytest
 
 from services.backup_format import (
+    BACKUP_FORMAT_VERSION,
+    LEGACY_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
 )
@@ -28,6 +30,7 @@ def make_valid_document():
         records={
             "accounts": [
                 {"id": 3, "name": "Banco – Savings"},
+                {"id": 8, "name": "Cash / Wallet"},
             ],
             "category_groups": [
                 {
@@ -63,6 +66,16 @@ def make_valid_document():
                     "notes": None,
                 },
             ],
+            "account_transfers": [
+                {
+                    "id": 20,
+                    "source_account_id": 3,
+                    "destination_account_id": 8,
+                    "amount_centavos": 10025,
+                    "date_time": "2026-07-02 09:15:00",
+                    "notes": "Move to wallet",
+                },
+            ],
         },
     )
 
@@ -89,13 +102,30 @@ def test_valid_backup_returns_restore_preview():
         database_version=3,
         exported_at="2026-07-24T12:30:00Z",
         record_counts={
-            "accounts": 1,
+            "accounts": 2,
             "category_groups": 2,
             "categories": 2,
             "transactions": 1,
+            "account_transfers": 1,
         },
-        total_records=6,
+        total_records=8,
     )
+
+
+def test_accepts_legacy_backup_with_empty_transfer_set():
+    document = make_valid_document()
+    document["format_version"] = LEGACY_BACKUP_FORMAT_VERSION
+    del document["records"]["account_transfers"]
+    del document["metadata"]["record_counts"]["account_transfers"]
+
+    validated_backup = validate_document(document)
+
+    assert validated_backup.document["format_version"] == (
+        BACKUP_FORMAT_VERSION
+    )
+    assert validated_backup.document["records"]["account_transfers"] == []
+    assert validated_backup.preview.record_counts["account_transfers"] == 0
+    assert validated_backup.preview.total_records == 7
 
 
 @pytest.mark.parametrize("database_version", (4, 5))
@@ -127,7 +157,7 @@ def test_rejects_invalid_identity_and_metadata():
 
     for path, value in (
         (("format",), "other-backup"),
-        (("format_version",), 2),
+        (("format_version",), 3),
         (("metadata", "database_version"), 6),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
@@ -154,7 +184,7 @@ def test_rejects_invalid_fields_and_record_counts():
     unexpected_field["records"]["accounts"][0]["balance"] = 123
 
     wrong_count = make_valid_document()
-    wrong_count["metadata"]["record_counts"]["accounts"] = 2
+    wrong_count["metadata"]["record_counts"]["accounts"] = 3
 
     for document in (
         missing_field,
@@ -186,6 +216,14 @@ def test_rejects_invalid_record_values():
             "2026-02-30 08:30:00",
         ),
         ("transactions", 0, "notes", 42),
+        ("account_transfers", 0, "amount_centavos", 0),
+        (
+            "account_transfers",
+            0,
+            "date_time",
+            "2026-02-30 08:30:00",
+        ),
+        ("account_transfers", 0, "notes", 42),
     ):
         document = make_valid_document()
         document["records"][table_name][row_number][field_name] = value
@@ -229,6 +267,17 @@ def test_rejects_duplicate_or_conflicting_records():
                 "notes": "",
             },
         ),
+        (
+            "account_transfers",
+            {
+                "id": 20,
+                "source_account_id": 8,
+                "destination_account_id": 3,
+                "amount_centavos": 1,
+                "date_time": "2026-07-03 12:00:00",
+                "notes": "",
+            },
+        ),
     )
 
     for table_name, record in invalid_records:
@@ -244,9 +293,21 @@ def test_rejects_missing_parent_records():
         ("categories", 0, "group_id"),
         ("transactions", 0, "account_id"),
         ("transactions", 0, "category_id"),
+        ("account_transfers", 0, "source_account_id"),
+        ("account_transfers", 0, "destination_account_id"),
     ):
         document = make_valid_document()
         document["records"][table_name][row_number][field_name] = 999
 
         with pytest.raises(BackupValidationError):
             validate_document(document)
+
+
+def test_rejects_transfer_between_same_account():
+    document = make_valid_document()
+    document["records"]["account_transfers"][0][
+        "destination_account_id"
+    ] = 3
+
+    with pytest.raises(BackupValidationError):
+        validate_document(document)

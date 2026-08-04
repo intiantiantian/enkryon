@@ -110,7 +110,8 @@ def remove_account(account_id):
     if reason == "referenced":
         return AccountActionResult(
             False,
-            "Cannot delete account because it has existing transactions.",
+            "Cannot delete account because it has existing "
+            "transactions or transfers.",
         )
 
     return AccountActionResult(

@@ -163,8 +163,9 @@ def test_import_backup_validates_and_previews_selected_document(
             "category_groups": 3,
             "categories": 4,
             "transactions": 5,
+            "account_transfers": 6,
         },
-        total_records=14,
+        total_records=20,
     )
     validated_backup = SimpleNamespace(preview=preview)
     validate_backup_json = Mock(return_value=validated_backup)
@@ -202,7 +203,8 @@ def test_import_backup_validates_and_previews_selected_document(
     assert call.kwargs["cancel_callback"] is close_restore_dialog
     assert "Accounts: 2" in call.kwargs["message"]
     assert "Transactions: 5" in call.kwargs["message"]
-    assert "Total records: 14" in call.kwargs["message"]
+    assert "Transfers: 6" in call.kwargs["message"]
+    assert "Total records: 20" in call.kwargs["message"]
     assert "permanently replaces" in call.kwargs["message"]
 
 
@@ -368,6 +370,7 @@ def test_clear_data_offers_backup_before_deletion():
     assert call.kwargs["confirm_callback"] is export_before_clear
     assert call.kwargs["cancel_text"] == "Skip Backup"
     assert call.kwargs["cancel_callback"] is skip_backup
+    assert "transaction, and transfer" in call.kwargs["message"]
     assert "final deletion confirmation" in call.kwargs["message"]
 
 
@@ -418,6 +421,7 @@ def test_skip_backup_opens_explicit_delete_confirmation():
         call.kwargs["cancel_callback"]
         is screen.close_clear_data_dialog
     )
+    assert "transactions, and transfers" in call.kwargs["message"]
 
 
 @pytest.mark.parametrize(

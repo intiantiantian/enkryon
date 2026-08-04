@@ -73,6 +73,23 @@ def seed_export_data():
                     '2026-07-01 08:30:00',
                     NULL
                 );
+
+            INSERT INTO account_transfers (
+                id,
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time,
+                notes
+            )
+            VALUES (
+                30,
+                8,
+                3,
+                10025,
+                '2026-07-03 09:15:00',
+                'Move to wallet'
+            );
             """
         )
         connection.commit()
@@ -97,6 +114,7 @@ def test_export_backup_document_reads_exact_relational_rows():
             "category_groups": 2,
             "categories": 2,
             "transactions": 2,
+            "account_transfers": 1,
         },
     }
     assert document["records"] == {
@@ -146,6 +164,16 @@ def test_export_backup_document_reads_exact_relational_rows():
                 "notes": "",
             },
         ],
+        "account_transfers": [
+            {
+                "id": 30,
+                "source_account_id": 8,
+                "destination_account_id": 3,
+                "amount_centavos": 10025,
+                "date_time": "2026-07-03 09:15:00",
+                "notes": "Move to wallet",
+            },
+        ],
     }
 
 
@@ -178,3 +206,13 @@ def test_export_backup_json_serializes_database_records():
     assert serialized_backup.endswith("\n")
     assert document["records"]["transactions"][0]["notes"] is None
     assert document["records"]["transactions"][1]["notes"] == ""
+    assert document["records"]["account_transfers"] == [
+        {
+            "id": 30,
+            "source_account_id": 8,
+            "destination_account_id": 3,
+            "amount_centavos": 10025,
+            "date_time": "2026-07-03 09:15:00",
+            "notes": "Move to wallet",
+        }
+    ]

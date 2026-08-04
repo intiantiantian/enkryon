@@ -60,6 +60,26 @@ USER_TABLES = {
             ),
         ],
     },
+    "account_transfers": {
+        "columns": (
+            "id",
+            "source_account_id",
+            "destination_account_id",
+            "amount_centavos",
+            "date_time",
+            "notes",
+        ),
+        "rows": [
+            (
+                40,
+                8,
+                3,
+                10025,
+                "2026-07-04 09:15:00",
+                "Move to wallet",
+            ),
+        ],
+    },
 }
 
 MIGRATION_ROWS = [
@@ -196,7 +216,8 @@ def test_clear_data_keeps_recovery_metadata_and_id_sequences():
                     'accounts',
                     'category_groups',
                     'categories',
-                    'transactions'
+                    'transactions',
+                    'account_transfers'
                 )
                 ORDER BY name
                 """
@@ -212,7 +233,36 @@ def test_clear_data_keeps_recovery_metadata_and_id_sequences():
     assert migration_rows == MIGRATION_ROWS
     assert sequences == {
         "accounts": 8,
+        "account_transfers": 40,
         "categories": 12,
         "category_groups": 9,
         "transactions": 34,
     }
+
+
+def test_clear_data_rolls_back_every_table_after_late_failure():
+    connection = migrations.connect_database()
+
+    try:
+        seed_recovery_state(connection)
+        original_rows = read_user_rows(connection)
+        connection.execute(
+            """
+            CREATE TRIGGER prevent_account_clear
+            BEFORE DELETE ON accounts
+            BEGIN
+                SELECT RAISE(ABORT, 'forced clear failure');
+            END
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    assert clear_database() is False
+
+    connection = migrations.connect_database()
+    try:
+        assert read_user_rows(connection) == original_rows
+    finally:
+        connection.close()

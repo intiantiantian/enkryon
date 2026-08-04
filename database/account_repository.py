@@ -128,13 +128,26 @@ def delete_account(account_id):
         with managed_connection() as connection:
             cursor = connection.cursor()
             cursor.execute(
-                "SELECT COUNT(*) FROM transactions WHERE account_id = ?",
-                (account_id,)
+                '''
+                SELECT
+                    EXISTS(
+                        SELECT 1
+                        FROM transactions
+                        WHERE account_id = ?
+                    )
+                    OR EXISTS(
+                        SELECT 1
+                        FROM account_transfers
+                        WHERE source_account_id = ?
+                           OR destination_account_id = ?
+                    )
+                ''',
+                (account_id, account_id, account_id),
             )
 
-            transaction_count = cursor.fetchone()[0]
+            is_referenced = bool(cursor.fetchone()[0])
 
-            if transaction_count > 0:
+            if is_referenced:
                 return False, "referenced"
 
             cursor.execute(
