@@ -24,7 +24,7 @@ def test_version_1_source_terms_reserve_copy_and_reuse_rights():
     assert "See [LICENSE](LICENSE)" in readme
 
 
-def test_version_1_candidate_identity_is_consistent():
+def test_version_1_release_identity_remains_recorded():
     changelog = read_project_file("CHANGELOG.md")
     roadmap = read_project_file("ROADMAP.md")
     release_notes = read_project_file(
@@ -32,7 +32,7 @@ def test_version_1_candidate_identity_is_consistent():
     )
 
     assert "## [1.0.0] - 2026-07-28" in changelog
-    assert "Current release candidate: `v1.0.0`" in roadmap
+    assert "**Status:** Completed in `v1.0.0`" in roadmap
     assert "# Enkryon v1.0.0" in release_notes
     assert "Enkryon-v1.0.0.apk" in release_notes
 
@@ -44,9 +44,9 @@ def test_roadmap_points_to_the_remaining_release_gate():
     assert (
         "| 9. Beta Testing and Version 1.0 Readiness | "
         "Prove that the complete core app is stable enough for a version "
-        "1.0 release. | In progress |"
+        "1.0 release. | Completed |"
     ) in roadmap
-    assert "official in-place upgrade from `v0.8.0`" in roadmap
+    assert "**Status:** Completed in `v1.0.0`" in roadmap
     assert "Define search behavior for notes" not in roadmap
 
 

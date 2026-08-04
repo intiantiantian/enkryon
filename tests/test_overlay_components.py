@@ -660,7 +660,7 @@ def test_confirmation_prompts_use_custom_overlay():
     ) == 2
     assert sources["transactions"].count(
         "EnkryonConfirmationDialog("
-    ) == 1
+    ) == 2
     assert sources["settings"].count(
         "EnkryonConfirmationDialog("
     ) == 1

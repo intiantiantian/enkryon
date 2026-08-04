@@ -1,7 +1,8 @@
 # Account Transfer Contract
 
-This document locks the product, persistence, and integration rules for
-Enkryon v1.1.0 account transfers before implementation begins.
+This document records the product, persistence, and integration rules for
+Enkryon v1.1.0 account transfers. The implementation is complete; final
+release-candidate verification remains the release gate.
 
 ## Release Baseline
 
@@ -79,7 +80,7 @@ unchanged.
 - Existing v1.0 backups remain supported and restore with an empty transfer
   collection.
 
-## Planned Architecture
+## Implemented Architecture
 
 - `database/transfer_repository.py` owns transfer persistence and queries.
 - `services/transfer_services.py` owns transfer validation and workflows.
@@ -98,3 +99,8 @@ Implementation must prove migration safety, database constraints, atomic CRUD,
 exact balances, all-account net-zero behavior, income/expense exclusion,
 account-deletion protection, activity filtering, old/new backup recovery, full
 regression, and clean-install and v1.0.0-to-v1.1.0 Android upgrades.
+
+The focused checkpoint gates cover the persistence, workflow, interface,
+balance/history, backup, rollback, and account-safety requirements. The final
+verification record is maintained in
+`docs/audits/update-1-account-transfers-verification.md`.

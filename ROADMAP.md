@@ -1,12 +1,14 @@
 # Enkryon Development Roadmap
 
-Updated: July 28, 2026
-Current release candidate: `v1.0.0`
-Current position: Phase 9 is in progress; final release verification remains
+Updated: August 4, 2026
+Current release candidate: `v1.1.0`
+Current position: Update 1 account transfers are implemented; final release
+verification remains
 
 ## Purpose
 
-This roadmap guides Enkryon from its current working Android release to a dependable version 1.0 personal finance tracker.
+This roadmap records Enkryon's completed version 1.0 foundation and guides
+the backward-compatible version 1.x feature updates built on it.
 
 The phases are ordered by risk. Enkryon must first protect financial data, calculate money exactly, catch defects automatically, and survive app upgrades. Only after that foundation is dependable should the project add major features such as reports, budgets, recurring transactions, or cloud synchronization.
 
@@ -18,22 +20,22 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Next | This is the immediate development priority. |
 | Partially completed | Some work is already proven, but the phase still has required items. |
 | Planned | The phase has not started in a focused way. |
-| Deferred | Do not begin this work until the version 1.0 foundation is ready. |
+| Deferred | Do not begin this work until its prerequisite release is stable. |
 
 ## Current Project Snapshot
 
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, category groups, categories, income and expense transactions, editing, deletion, dashboard totals, advanced transaction filters, and local storage are implemented. | Improve reliability and usability before adding major features. |
-| Financial accuracy | Transaction amounts are stored and calculated as integer centavos instead of decimal `REAL`/Python `float` values. | The main money-rounding risk identified in the old roadmap has been resolved. |
-| Database upgrades | A `schema_migrations` table and four ordered, transactional migrations are present, including transaction-history indexes. | Future database changes can build on the migration framework instead of replacing user data. |
-| Data rules | The database rejects invalid amounts, dates, transaction types, blank names, untrimmed names, and several duplicate-name cases. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The verified Phase 9 implementation baseline contains `504` passing tests with `81%` total coverage. | Continue targeting meaningful correctness, interaction, and failure risks rather than an arbitrary coverage percentage. |
-| Android release | The `v1.0.0` source candidate is being prepared after signed `v0.8.0` beta checks. | Signature, alignment, clean installation, official `v0.8.0` upgrade, checksum, and publication evidence must pass before `v1.0.0` is released. |
-| Architecture | Shared filter state and list actions serve Dashboard and Transaction History, repositories own transaction-query construction, and `RecycleView` virtualizes full-history cards. | The verified architecture keeps 10,000-record histories responsive without moving persistence or workflow rules into widgets. |
-| User experience | Combined search and filters, active-filter summaries, Reset All behavior, filter-specific no-results recovery, responsive layouts, and enlarged-font behavior are implemented and verified. | The complete six-screen core remains usable across the tested display and accessibility profiles. |
-| Backup and recovery | New exports use database version 4, while compatible version 3 backups remain restorable. Versioned export, validation, confirmed replacement restore, rollback protection, Android document selection, and backup-before-clear remain implemented. | Recovery compatibility is preserved across the index-only database migration. |
-| Search and advanced filters | Search, account, transaction-type, category-group, category, inclusive date-range, and combined filters are complete. Large-history queries use migration-managed indexes and virtualized card rendering. | Functional and 10,000-record Android verification passed; final release-candidate verification remains. |
+| Core product | Accounts, categories, income, expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Complete the v1.1.0 release gate before starting statistics. |
+| Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
+| Database upgrades | A `schema_migrations` table and five ordered, transactional migrations are present; migration 5 adds constrained and indexed account transfers. | The official v1.0.0-to-v1.1.0 Android upgrade must prove migration 5 on real data. |
+| Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
+| Automated tests | The released v1.0 baseline contains `504` implementation tests with `81%` total coverage; every Update 1 checkpoint passed its focused gate. | The complete post-update Windows suite and GitHub Actions remain part of the final release gate. |
+| Android release | The `v1.1.0` source candidate is being prepared from official `v1.0.0`. | Signature, alignment, clean installation, official v1.0.0 upgrade, checksum, and publication evidence must pass before release. |
+| Architecture | Focused transfer repositories/services/form state feed a unified SQL activity query and the existing virtualized list. | Transfer behavior remains testable without moving SQL or workflow rules into screens and widgets. |
+| User experience | A dedicated transfer screen, responsive two-by-two Dashboard actions, direction-aware balances, and transfer-aware activity filters are implemented. | Final small-phone, enlarged-font, clean-install, and upgrade checks remain. |
+| Backup and recovery | Backup format 2 and database version 5 include transfers; compatible v1.0 format-1 backups restore with zero transfers. | New/old round trips, Clear All Data, and rollback behavior are covered; Android release verification remains. |
+| Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Transfers preserve stable newest-first history without entering category totals. |
 
 ## Phase Overview
 
@@ -47,8 +49,8 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | 6. Clear, Accessible, Responsive User Experience | Make all existing workflows comfortable and understandable across supported phones. | Completed |
 | 7. Backup, Restore, and Recovery | Let users preserve and recover their local financial records safely. | Completed |
 | 8. Transaction Search and Advanced Filters | Help users find specific transactions quickly, even in large histories. | Completed |
-| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | In progress |
-| 10. Major Feature Expansion | Add reports, budgets, recurring transactions, and other large features after the core is dependable. | Deferred |
+| 9. Beta Testing and Version 1.0 Readiness | Prove that the complete core app is stable enough for a version 1.0 release. | Completed |
+| 10. Version 1.x Feature Expansion | Add transfers, statistics, and later financial capabilities without weakening the stable core. | In progress |
 
 ---
 
@@ -504,7 +506,7 @@ queries use migration-managed indexes on a tested 10,000-record history.
 
 ## Phase 9 — Beta Testing and Version 1.0 Readiness
 
-**Status:** In progress — final release-candidate verification
+**Status:** Completed in `v1.0.0`
 **Priority:** Final release gate
 
 ### Objective
@@ -544,11 +546,14 @@ Enkryon may become version 1.0 only when:
 - Accessibility and responsive-layout tests pass.
 - Documentation, version values, and the released artifact agree.
 
+**Passed.** Version 1.0 established the official stable baseline used by the
+version 1.x feature updates below.
+
 ---
 
-## Phase 10 — Major Feature Expansion
+## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** Deferred until the version 1.0 gate passes
+**Status:** In progress — Update 1 release verification
 
 ### Objective
 
@@ -556,12 +561,31 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 
 ### Candidate order after version 1.0
 
-1. Reports and charts.
-2. Budget tracking.
-3. Recurring transactions.
-4. Broader import/export formats such as CSV.
-5. Dark mode.
-6. Optional cloud synchronization.
+1. Account transfers (`v1.1.0`) — implemented; final release gate remains.
+2. Statistical visualizations (`v1.2.0`) — planned after v1.1.0 is stable.
+3. Budget tracking.
+4. Recurring transactions.
+5. Broader import/export formats such as CSV.
+6. Dark mode.
+7. Optional cloud synchronization.
+
+### Update 1 — Account Transfers (`v1.1.0`)
+
+The implementation adds one atomic transfer record with exact centavos,
+direction-aware per-account balances, all-account net-zero behavior, unified
+activity history, edit/delete/undo, account-deletion protection, migration 5,
+backup format 2, and format-1 restore compatibility.
+
+The final gate requires the complete suite, GitHub Actions, signed Android
+artifact checks, clean installation, and an official v1.0.0-to-v1.1.0
+in-place upgrade with controlled transfer and recovery scenarios.
+
+### Update 2 — Statistical Visualizations (`v1.2.0`)
+
+Statistics will add exact income/expense/net summaries, time-bucket
+comparisons, expense breakdowns, and textual equivalents. Transfers remain
+separate context and must never enter income, expense, net-cash-flow, or
+category-spending metrics.
 
 Each major feature should have its own objective, user flow, data design, database migration, automated tests, Android regression test, and release notes before implementation begins.
 
@@ -569,17 +593,18 @@ Each major feature should have its own objective, user flow, data design, databa
 
 The next work should be completed in this order:
 
-1. Verify the `v1.0.0` identity, proprietary source terms, documentation,
-   release notes, and real Settings screenshot.
-2. Run the complete automated suite, Python compilation, whitespace checks,
-   and GitHub Actions for the release commit.
-3. Build the signed `v1.0.0` Android candidate and verify its signature,
+1. Run the complete v1.1.0 Windows suite, compilation, whitespace checks, and
+   real-application transfer/recovery regression.
+2. Push the release candidate and require green GitHub Actions.
+3. Build the signed `v1.1.0` Android candidate and verify its signature,
    alignment, package metadata, API levels, ABIs, contents, and checksum.
-4. Verify a clean install and an official in-place upgrade from `v0.8.0`
+4. Verify a clean install and an official in-place upgrade from `v1.0.0`
    without changing controlled records, relationships, notes, or totals.
-5. Finalize the release notes and Phase 9 evidence before publication.
+5. Finalize the v1.1.0 release notes and Update 1 evidence, commit the verified
+   release, and create the signed tag.
 
-Do not begin reports, budgets, recurring transactions, dark mode, or cloud synchronization while the version 1.0 foundation remains incomplete.
+Do not begin statistical visualizations until the v1.1.0 transfer release gate
+passes.
 
 ## Rule for Completing Every Phase
 

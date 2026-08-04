@@ -260,6 +260,24 @@ Phase 9 verified the same boundaries with 10,000 transactions. Virtualization
 keeps the full history responsive without moving SQL, filtering rules, or
 record mutations into reusable cards.
 
+Update 1 extends the same boundaries for account transfers:
+
+1. `database/transfer_repository.py` owns the atomic transfer record,
+   constraints, CRUD operations, and account-direction queries.
+2. `database/activity_repository.py` combines transactions and transfers in
+   SQL before stable newest-first ordering and limiting.
+3. `services/transfer_services.py` owns create, edit, delete, restore, and
+   validation workflows; `services/activity_services.py` prepares the unified
+   feed for screens.
+4. `screens/transfer_form_state.py` owns UI-independent source, destination,
+   amount, date/time, notes, and edit state.
+5. `screens/transfer.py` coordinates the form and navigation without owning
+   SQL or financial calculations.
+6. Shared transaction-list actions and widgets dispatch by activity record
+   type while remaining presentation and coordination code.
+7. Backup export, validation, and restore preserve transfers as first-class
+   records without weakening the version-1 compatibility path.
+
 ## Rule for Future Commits
 
 Each refactor commit should be small and reversible.
