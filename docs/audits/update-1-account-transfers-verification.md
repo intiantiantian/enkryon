@@ -2,8 +2,10 @@
 
 ## Status
 
-Release-candidate preparation is in progress. Checkpoints 1-6 are verified and
-committed; the final 10% release gate remains pending.
+Release approved with an accepted verification exception. Implementation,
+automated regression, GitHub Actions, signed-artifact verification, and clean
+installation passed. The official v1.0.0 in-place upgrade and post-upgrade
+transfer/backup/restore cycle were waived by the release owner.
 
 ## Verified Checkpoints
 
@@ -56,3 +58,14 @@ The remaining 10% requires all of the following evidence:
    finalized before publication and tagging.
 
 Update 1 must remain at `90%` until the complete gate passes.
+
+## Accepted Release Exception
+
+The release owner elected to publish v1.1.0 without completing the official
+physical-device v1.0.0-to-v1.1.0 in-place upgrade test. Migration 5 and data
+preservation are covered by automated tests, but preservation of an existing
+official Android installation was not independently verified on a device.
+
+The release therefore does not claim that the official upgrade gate passed.
+Users should export a backup before installing v1.1.0 over an existing
+installation.

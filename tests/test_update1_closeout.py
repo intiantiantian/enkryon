@@ -20,7 +20,7 @@ def test_update_1_release_candidate_identity_is_consistent():
     assert '__version__ = "1.1.0"' in main_source
     assert "Enkryon-v1.1.0.apk" in readme
     assert "## [1.1.0] - 2026-08-04" in changelog
-    assert "Current release candidate: `v1.1.0`" in roadmap
+    assert "Current release: `v1.1.0`" in roadmap
     assert "# Enkryon v1.1.0" in release_notes
     assert "Enkryon-v1.1.0.apk" in release_notes
 
@@ -57,7 +57,7 @@ def test_update_1_documents_migration_and_backup_compatibility():
     assert "Compatible format-1" in release_notes
 
 
-def test_update_1_verification_keeps_release_evidence_pending():
+def test_update_1_verification_records_release_exception():
     verification = read_project_file(
         "docs/audits/update-1-account-transfers-verification.md"
     )
@@ -69,7 +69,18 @@ def test_update_1_verification_keeps_release_evidence_pending():
     )
 
     assert "Verified weighted progress: `90%`." in verification
-    assert "Complete Windows suite with coverage" in verification
-    assert "Official `v1.0.0` upgrades in place" in verification
-    assert "PENDING FINAL RELEASE BUILD" in release_notes
-    assert "A v1.0.0 installation upgrades through migration 5" in checklist
+    assert "Accepted Release Exception" in verification
+    assert "waived by the release owner" in verification
+    assert "637 PASSED; 83% TOTAL COVERAGE" in release_notes
+    assert "SKIPPED BY RELEASE OWNER" in release_notes
+    assert "45,763,428 bytes" in release_notes
+    assert (
+        "3fa66d0e5804fd8bbb5b9707157f951d"
+        "d062ef06d2f3f9377e4ed31c2c4db79a"
+        in release_notes
+    )
+    assert "PENDING FINAL RELEASE BUILD" not in release_notes
+    assert (
+        "A v1.0.0 installation upgrades through migration 5"
+        in checklist
+    )

@@ -1,9 +1,9 @@
 # Enkryon Development Roadmap
 
 Updated: August 4, 2026
-Current release candidate: `v1.1.0`
-Current position: Update 1 account transfers are implemented; final release
-verification remains
+Current release: `v1.1.0`
+Current position: Update 1 account transfers are released; the official
+v1.0.0 in-place Android upgrade remains unverified by release-owner waiver
 
 ## Purpose
 

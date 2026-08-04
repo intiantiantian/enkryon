@@ -1,6 +1,6 @@
 # Enkryon v1.1.0
 
-Release date: `2026-08-04` (candidate; publication pending)
+Release date: `2026-08-04`
 
 ## Summary
 
@@ -26,10 +26,10 @@ by the expanded backup and recovery flow.
 
 ## Upgrade and stored data
 
-- Upgrade tested from: `v1.0.0`
-- In-place upgrade result: `PENDING FINAL ANDROID VERIFICATION`
-- Database migration result: `AUTOMATED TESTS PASS; ANDROID VERIFICATION PENDING`
-- User-data preservation result: `PENDING FINAL ANDROID VERIFICATION`
+- Upgrade tested from: `v1.0.0 baseline prepared; in-place upgrade test waived`
+- In-place upgrade result: `NOT VERIFIED — TEST WAIVED BY RELEASE OWNER`
+- Database migration result: `AUTOMATED TESTS PASS; PHYSICAL-DEVICE IN-PLACE UPGRADE NOT VERIFIED`
+- User-data preservation result: `NOT VERIFIED FOR AN IN-PLACE UPGRADE`
 
 Migration 5 creates one constrained `account_transfers` table and its
 newest-first, outgoing, and incoming indexes. Existing migrations 1-4 remain
@@ -57,22 +57,25 @@ and explicit confirmation; it does not merge datasets.
   ledger behavior for expenses.
 - Transfers are intentionally excluded from Income, Expenses, and category
   totals. Statistical visualizations are planned for a later release.
+- The official Android `v1.0.0` to `v1.1.0` in-place upgrade and
+  post-upgrade backup/restore cycle were not executed for this release.
+  Users should export a backup before upgrading.
 
 ## Verification
 
 - Focused implementation checkpoints: `PASS`
-- Complete automated tests: `PENDING FINAL RELEASE GATE`
-- GitHub Actions: `PENDING RELEASE CANDIDATE PUSH`
-- Signature: `PENDING FINAL RELEASE BUILD`
-- Alignment: `PENDING FINAL RELEASE BUILD`
-- Clean install and launch: `PENDING FINAL ANDROID VERIFICATION`
-- Official in-place upgrade: `PENDING FINAL ANDROID VERIFICATION`
-- Core workflow smoke test: `PENDING FINAL ANDROID VERIFICATION`
+- Complete automated tests: `637 PASSED; 83% TOTAL COVERAGE`
+- GitHub Actions: `PASS`
+- Signature: `PASS`
+- Alignment: `PASS`
+- Clean install and launch: `PASS`
+- Official in-place upgrade: `SKIPPED BY RELEASE OWNER`
+- Core workflow smoke test: `CLEAN-INSTALL CHECKS PASS; POST-UPGRADE CYCLE SKIPPED`
 
 ## Artifact
 
 - Filename: `Enkryon-v1.1.0.apk`
-- Size: `PENDING FINAL BUILD`
-- SHA-256: `PENDING FINAL BUILD`
+- Size: `45,763,428 bytes`
+- SHA-256: `3fa66d0e5804fd8bbb5b9707157f951dd062ef06d2f3f9377e4ed31c2c4db79a`
 - Signing certificate SHA-256:
   `E3:D2:9B:10:8A:69:4A:ED:75:87:FD:99:5F:00:B0:22:64:97:B5:66:A6:53:3A:E8:47:EF:23:71:A0:12:C4:3D`
