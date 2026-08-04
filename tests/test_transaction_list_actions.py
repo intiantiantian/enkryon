@@ -1,6 +1,6 @@
 from importlib import import_module
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -14,6 +14,10 @@ from services.transaction_services import (
     TransactionDeleteResult,
     TransactionRestoreResult,
 )
+from services.transfer_services import (
+    TransferDeleteResult,
+    TransferRestoreResult,
+)
 
 action_results_module = import_module("screens.action_results")
 
@@ -24,11 +28,13 @@ action_results_module = import_module("screens.action_results")
         "all_selected",
         "income_selected",
         "expense_selected",
+        "transfer_selected",
     ),
     [
-        (None, True, False, False),
-        ("income", False, True, False),
-        ("expense", False, False, True),
+        (None, True, False, False, False),
+        ("income", False, True, False, False),
+        ("expense", False, False, True, False),
+        ("transfer", False, False, False, True),
     ],
 )
 def test_set_transaction_filter_updates_buttons_and_refreshes(
@@ -36,10 +42,12 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
     all_selected,
     income_selected,
     expense_selected,
+    transfer_selected,
 ):
     all_filter = SimpleNamespace(set_selected=Mock())
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
+    transfer_filter = SimpleNamespace(set_selected=Mock())
     state = TransactionFilterState(
         transaction_type="old-value",
     )
@@ -49,6 +57,7 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
             all_filter=all_filter,
             income_filter=income_filter,
             expense_filter=expense_filter,
+            transfer_filter=transfer_filter,
         ),
         refresh_transaction_list=Mock(),
     )
@@ -62,6 +71,7 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
     all_filter.set_selected.assert_called_once_with(all_selected)
     income_filter.set_selected.assert_called_once_with(income_selected)
     expense_filter.set_selected.assert_called_once_with(expense_selected)
+    transfer_filter.set_selected.assert_called_once_with(transfer_selected)
     screen.refresh_transaction_list.assert_called_once_with()
 
 
@@ -79,6 +89,7 @@ def test_set_transaction_filter_updates_shared_filter_state():
             all_filter=SimpleNamespace(set_selected=Mock()),
             income_filter=SimpleNamespace(set_selected=Mock()),
             expense_filter=SimpleNamespace(set_selected=Mock()),
+            transfer_filter=SimpleNamespace(set_selected=Mock()),
         ),
         refresh_transaction_list=Mock(),
     )
@@ -107,6 +118,21 @@ def test_edit_transaction_loads_form_before_navigation():
     manager.get_screen.assert_called_once_with("add_transaction")
     add_transaction_screen.load_transaction.assert_called_once_with(17)
     assert manager.current == "add_transaction"
+
+
+def test_edit_transfer_loads_form_before_navigation():
+    transfer_screen = SimpleNamespace(load_transfer=Mock())
+    manager = SimpleNamespace(
+        current="dashboard",
+        get_screen=Mock(return_value=transfer_screen),
+    )
+    screen = SimpleNamespace(manager=manager)
+
+    TransactionListActionsMixin.edit_transfer(screen, 17)
+
+    manager.get_screen.assert_called_once_with("transfer")
+    transfer_screen.load_transfer.assert_called_once_with(17)
+    assert manager.current == "transfer"
 
 
 @pytest.mark.parametrize("success", [True, False])
@@ -202,6 +228,35 @@ def test_confirm_delete_transaction_builds_working_dialog(
     screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
+def test_confirm_delete_transfer_builds_working_dialog(monkeypatch):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        actions_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        delete_transfer=Mock(),
+        close_delete_transaction_dialog=Mock(),
+    )
+
+    TransactionListActionsMixin.confirm_delete_transfer(screen, 17)
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+    assert dialog_kwargs["title"] == "Delete Transfer?"
+    assert dialog_kwargs["message"] == (
+        "This transfer will be permanently deleted."
+    )
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+    screen.delete_transfer.assert_called_once_with(17)
+    screen.close_delete_transaction_dialog.assert_called_once_with()
+
+
 def test_default_delete_refresh_uses_transaction_list_refresh():
     screen = SimpleNamespace(refresh_transaction_list=Mock())
 
@@ -234,6 +289,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     all_filter = SimpleNamespace(set_selected=Mock())
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
+    transfer_filter = SimpleNamespace(set_selected=Mock())
     account_label = SimpleNamespace(text="")
     screen = SimpleNamespace(
         filter_state=state,
@@ -241,6 +297,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
             all_filter=all_filter,
             income_filter=income_filter,
             expense_filter=expense_filter,
+            transfer_filter=transfer_filter,
             account_label=account_label,
         ),
     )
@@ -253,6 +310,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     all_filter.set_selected.assert_called_once_with(True)
     income_filter.set_selected.assert_called_once_with(False)
     expense_filter.set_selected.assert_called_once_with(False)
+    transfer_filter.set_selected.assert_called_once_with(False)
     assert account_label.text == "Cash"
 
 
@@ -265,9 +323,9 @@ def test_dashboard_recent_transactions_use_shared_filter_state(
         account_id=7,
         account_name="Cash",
     )
-    get_transaction_list_data = Mock(
+    get_activity_list_data = Mock(
         return_value={
-            "transactions": [],
+            "activities": [],
             "empty_state": {},
         }
     )
@@ -283,22 +341,70 @@ def test_dashboard_recent_transactions_use_shared_filter_state(
 
     monkeypatch.setattr(
         dashboard_module,
-        "get_transaction_list_data",
-        get_transaction_list_data,
+        "get_activity_list_data",
+        get_activity_list_data,
     )
     monkeypatch.setattr(
         dashboard_module,
-        "render_transaction_list",
+        "render_activity_list",
         Mock(),
     )
 
     DashboardScreen.load_recent_transactions(screen)
 
-    get_transaction_list_data.assert_called_once_with(
+    get_activity_list_data.assert_called_once_with(
         **state.to_query_arguments(),
         limit=3,
         compact_empty_state=True,
     )
+
+
+def test_dashboard_summary_uses_transfer_aware_balance_repository(
+    monkeypatch,
+):
+    dashboard_module = import_module("screens.dashboard")
+    get_current_balance_centavos = Mock(return_value=69_975)
+    get_total_centavos = Mock(
+        side_effect=lambda activity_type, _account_id: {
+            "income": 100_000,
+            "expense": 5_000,
+        }[activity_type]
+    )
+    monkeypatch.setattr(
+        dashboard_module,
+        "get_current_balance_centavos",
+        get_current_balance_centavos,
+    )
+    monkeypatch.setattr(
+        dashboard_module,
+        "get_total_centavos",
+        get_total_centavos,
+    )
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            account_id=1,
+            account_name="Cash",
+        ),
+        balance_visible=True,
+        ids=SimpleNamespace(
+            balance_label=SimpleNamespace(text=""),
+            income_label=SimpleNamespace(text=""),
+            expense_label=SimpleNamespace(text=""),
+            eye_button=SimpleNamespace(icon=""),
+        ),
+    )
+
+    DashboardScreen.load_summary(screen)
+
+    get_current_balance_centavos.assert_called_once_with(1)
+    assert get_total_centavos.call_args_list == [
+        call("income", 1),
+        call("expense", 1),
+    ]
+    assert screen.ids.balance_label.text == "₱ 699.75"
+    assert screen.ids.income_label.text == "₱ 1,000.00"
+    assert screen.ids.expense_label.text == "₱ 50.00"
+    assert screen.ids.eye_button.icon == "eye"
 
 
 def test_transactions_screen_refreshes_full_transaction_list():
@@ -355,6 +461,91 @@ def test_undo_transaction_delete_renders_restore_result(
         transaction
     )
     show_snackbar.assert_called_once_with(service_result.message)
+    assert (
+        screen.refresh_after_transaction_delete.call_count
+        == int(success)
+    )
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_delete_transfer_renders_service_result(monkeypatch, success):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    deleted_transfer = object() if success else None
+    result = TransferDeleteResult(
+        success=success,
+        message="Transfer deletion result.",
+        deleted_transfer=deleted_transfer,
+    )
+    delete_transfer_by_id = Mock(return_value=result)
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "delete_transfer_by_id",
+        delete_transfer_by_id,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        close_delete_transaction_dialog=Mock(),
+        refresh_after_transaction_delete=Mock(),
+        undo_transfer_delete=Mock(),
+    )
+
+    TransactionListActionsMixin.delete_transfer(screen, 17)
+
+    delete_transfer_by_id.assert_called_once_with(17)
+    snackbar_call = show_snackbar.call_args
+    assert snackbar_call.args == (result.message,)
+    if success:
+        snackbar_call.kwargs["action_callback"]()
+        screen.undo_transfer_delete.assert_called_once_with(
+            deleted_transfer
+        )
+    else:
+        assert snackbar_call.kwargs == {}
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_undo_transfer_delete_renders_restore_result(
+    monkeypatch,
+    success,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    transfer = object()
+    result = TransferRestoreResult(
+        success=success,
+        message="Transfer restore result.",
+    )
+    restore_deleted_transfer = Mock(return_value=result)
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "restore_deleted_transfer",
+        restore_deleted_transfer,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        refresh_after_transaction_delete=Mock(),
+    )
+
+    TransactionListActionsMixin.undo_transfer_delete(
+        screen,
+        transfer,
+    )
+
+    restore_deleted_transfer.assert_called_once_with(transfer)
+    show_snackbar.assert_called_once_with(result.message)
     assert (
         screen.refresh_after_transaction_delete.call_count
         == int(success)

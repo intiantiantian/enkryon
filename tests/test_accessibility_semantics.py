@@ -25,7 +25,7 @@ def test_dashboard_totals_use_words_and_semantic_colors():
         "# go to expense overview",
         maxsplit=1,
     )[1].split(
-        "text: 'Recent Transactions'",
+        "text: 'Recent Activity'",
         maxsplit=1,
     )[0]
 

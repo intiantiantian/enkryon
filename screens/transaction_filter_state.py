@@ -68,11 +68,21 @@ class TransactionFilterState:
         return labels
 
 
+    @property
+    def activity_type(self):
+        return self.transaction_type
+
+
+    @activity_type.setter
+    def activity_type(self, value):
+        self.transaction_type = value
+
+
     def to_query_arguments(self):
         return {
             "search_text": self.search_text or None,
             "account_id": self.account_id,
-            "transaction_type": self.transaction_type,
+            "activity_type": self.transaction_type,
             "group_id": self.group_id,
             "category_id": self.category_id,
             "start_date": self.start_date,

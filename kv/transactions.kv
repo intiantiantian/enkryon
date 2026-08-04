@@ -36,7 +36,7 @@
                 pos_hint: {'center_y': .5}
 
             MDLabel:
-                text: 'Transactions'
+                text: 'Activity History'
                 font_size: '26sp'
                 size_hint_x: 1
                 theme_text_color: 'Custom'
@@ -63,8 +63,8 @@
 
             MDTextField:
                 id: transaction_search
-                hint_text: 'Search transactions'
-                helper_text: 'Notes, account, group, or category'
+                hint_text: 'Search activity'
+                helper_text: 'Notes, accounts, groups, or categories'
                 helper_text_mode: 'on_focus'
                 icon_left: 'magnify'
                 mode: 'rectangle'
@@ -85,7 +85,7 @@
                     root.clear_search()
 
         GridLayout:
-            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 4
             size_hint_y: None
             height: self.minimum_height
             padding: '10dp'
@@ -114,6 +114,13 @@
                 size_hint_x: 1
                 on_release:
                     root.set_transaction_filter('expense')
+
+            EnkryonFilterButton:
+                id: transfer_filter
+                text: 'TRANSFER'
+                size_hint_x: 1
+                on_release:
+                    root.set_transaction_filter('transfer')
 
         ScrollView:
             id: advanced_filter_scroll

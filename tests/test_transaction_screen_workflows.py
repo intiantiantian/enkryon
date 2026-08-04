@@ -173,6 +173,63 @@ def test_transaction_history_resets_filters_on_pre_enter():
     screen.render_advanced_filter_state.assert_called_once_with()
 
 
+def test_transaction_history_renders_transfer_type_filter():
+    all_filter = SimpleNamespace(set_selected=Mock())
+    income_filter = SimpleNamespace(set_selected=Mock())
+    expense_filter = SimpleNamespace(set_selected=Mock())
+    transfer_filter = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            transaction_type="transfer",
+        ),
+        ids=SimpleNamespace(
+            all_filter=all_filter,
+            income_filter=income_filter,
+            expense_filter=expense_filter,
+            transfer_filter=transfer_filter,
+        ),
+    )
+
+    TransactionsScreen.render_filter_state(screen)
+
+    all_filter.set_selected.assert_called_once_with(False)
+    income_filter.set_selected.assert_called_once_with(False)
+    expense_filter.set_selected.assert_called_once_with(False)
+    transfer_filter.set_selected.assert_called_once_with(True)
+
+
+def test_transfer_type_disables_category_only_filters():
+    group_filter = SimpleNamespace(disabled=False, opacity=1)
+    category_filter = SimpleNamespace(disabled=False, opacity=1)
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            transaction_type="transfer",
+        ),
+        ids=SimpleNamespace(
+            account_filter_label=SimpleNamespace(text=""),
+            group_filter_label=SimpleNamespace(text=""),
+            category_filter_label=SimpleNamespace(text=""),
+            group_filter=group_filter,
+            category_filter=category_filter,
+            start_date_filter_label=SimpleNamespace(text=""),
+            end_date_filter_label=SimpleNamespace(text=""),
+            active_filters_label=SimpleNamespace(text=""),
+            reset_all_filters=SimpleNamespace(
+                disabled=True,
+                opacity=.38,
+            ),
+        ),
+    )
+
+    TransactionsScreen.render_advanced_filter_state(screen)
+
+    assert group_filter.disabled is True
+    assert group_filter.opacity == .38
+    assert category_filter.disabled is True
+    assert category_filter.opacity == .38
+    assert screen.ids.active_filters_label.text == "Active: Transfer"
+
+
 def test_transaction_history_load_forwards_filter_state(
     monkeypatch,
 ):
@@ -182,7 +239,7 @@ def test_transaction_history_load_forwards_filter_state(
         transaction_type="expense",
     )
     list_data = {
-        "transactions": [],
+        "activities": [],
         "empty_state": {
             "title": "No matching transactions",
             "message": (
@@ -190,7 +247,7 @@ def test_transaction_history_load_forwards_filter_state(
             ),
         },
     }
-    get_transaction_list_data = Mock(return_value=list_data)
+    get_activity_list_data = Mock(return_value=list_data)
     render_transaction_history = Mock()
     action_callback = Mock()
     screen = SimpleNamespace(
@@ -205,8 +262,8 @@ def test_transaction_history_load_forwards_filter_state(
     )
     monkeypatch.setattr(
         transactions_module,
-        "get_transaction_list_data",
-        get_transaction_list_data,
+        "get_activity_list_data",
+        get_activity_list_data,
     )
     monkeypatch.setattr(
         transactions_module,
@@ -216,7 +273,7 @@ def test_transaction_history_load_forwards_filter_state(
 
     TransactionsScreen.load_transactions(screen)
 
-    get_transaction_list_data.assert_called_once_with(
+    get_activity_list_data.assert_called_once_with(
         **filter_state.to_query_arguments()
     )
     render_transaction_history.assert_called_once_with(

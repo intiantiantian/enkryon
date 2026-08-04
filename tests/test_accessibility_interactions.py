@@ -59,7 +59,7 @@ def test_filter_buttons_meet_touch_floor_and_show_press_feedback():
     assert "self.ripple_alpha = 0\n" not in button_source
 
     filter_section = dashboard_layout.split(
-        "text: 'Recent Transactions'",
+        "text: 'Recent Activity'",
         maxsplit=1,
     )[1].split(
         "id: transactions_container",

@@ -6,8 +6,8 @@ from database.transaction_repository import (
     get_total_centavos,
 )
 
-from services.transaction_services import (
-    get_transaction_list_data,
+from services.activity_services import (
+    get_activity_list_data,
 )
 
 from .transaction_filter_state import TransactionFilterState
@@ -15,7 +15,7 @@ from .transaction_list_actions import (
     TransactionListActionsMixin,
 )
 
-from widgets.transaction_list import render_transaction_list
+from widgets.transaction_list import render_activity_list
 from widgets.overlays import EnkryonSelectionPanel
 
 from utils.money import format_money
@@ -73,6 +73,13 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         self.ids.all_filter.set_selected(True)
         self.ids.income_filter.set_selected(False)
         self.ids.expense_filter.set_selected(False)
+        transfer_filter = getattr(
+            self.ids,
+            "transfer_filter",
+            None,
+        )
+        if transfer_filter is not None:
+            transfer_filter.set_selected(False)
         self.ids.account_label.text = (
             self.filter_state.account_name
         )
@@ -126,7 +133,7 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
 
     def load_recent_transactions(self):
-        transaction_list_data = get_transaction_list_data(
+        activity_list_data = get_activity_list_data(
             **self.filter_state.to_query_arguments(),
             limit=3,
             compact_empty_state=True,
@@ -134,11 +141,11 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         action_text, action_callback = (
             self.get_empty_transaction_action()
         )
-        render_transaction_list(
+        render_activity_list(
             container=self.ids.transactions_container,
-            transactions=transaction_list_data["transactions"],
+            activities=activity_list_data["activities"],
             screen=self,
-            empty_state=transaction_list_data["empty_state"],
+            empty_state=activity_list_data["empty_state"],
             action_text=action_text,
             action_callback=action_callback,
         )

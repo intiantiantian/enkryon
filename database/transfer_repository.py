@@ -160,6 +160,37 @@ def get_transfer_by_id(transfer_id):
     return TransferRecord(*row)
 
 
+def get_transfer_balance_centavos(account_id=None):
+    if account_id is None:
+        return 0
+
+    try:
+        with managed_connection() as connection:
+            row = connection.execute(
+                '''
+                SELECT COALESCE(
+                    SUM(
+                        CASE
+                            WHEN destination_account_id = ?
+                                THEN amount_centavos
+                            WHEN source_account_id = ?
+                                THEN -amount_centavos
+                            ELSE 0
+                        END
+                    ),
+                    0
+                )
+                FROM account_transfers
+                WHERE source_account_id = ?
+                   OR destination_account_id = ?
+                ''',
+                (account_id, account_id, account_id, account_id),
+            ).fetchone()
+        return int(row[0])
+    except sqlite3.Error:
+        return False
+
+
 def update_transfer(
     source_account_id,
     destination_account_id,

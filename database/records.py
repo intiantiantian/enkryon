@@ -54,3 +54,28 @@ class TransferRecord(NamedTuple):
     notes: str | None
     source_account_name: str
     destination_account_name: str
+
+
+class ActivityRecord(NamedTuple):
+    record_id: int
+    record_type: str
+    account_name: str
+    group_name: str
+    category_name: str
+    amount_centavos: int
+    date_time: str
+    notes: str | None
+    activity_type: str
+    source_account_id: int | None
+    destination_account_id: int | None
+    source_account_name: str | None
+    destination_account_name: str | None
+    direction: str
+
+    @property
+    def transaction_id(self):
+        return self.record_id
+
+    @property
+    def transaction_type(self):
+        return self.activity_type

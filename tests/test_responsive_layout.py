@@ -274,7 +274,7 @@ def test_transaction_search_controls_fit_small_widths():
         maxsplit=1,
     )[0]
 
-    assert "hint_text: 'Search transactions'" in search_controls
+    assert "hint_text: 'Search activity'" in search_controls
     assert "size_hint_x: 1" in search_controls
     assert "text: 'CLEAR'" in search_controls
     assert "width: '88dp'" in search_controls
@@ -287,6 +287,21 @@ def test_transaction_search_controls_fit_small_widths():
         "search_controls.padding[3])}"
         in clear_button
     )
+
+
+def test_activity_type_filters_include_transfer_without_overflow():
+    project_root = Path(__file__).resolve().parents[1]
+    dashboard_layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+    history_layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+
+    for layout in (dashboard_layout, history_layout):
+        assert "id: transfer_filter" in layout
+        assert "text: 'TRANSFER'" in layout
+        assert "else 4" in layout
 
 
 def test_settings_content_remains_scrollable_and_contained():

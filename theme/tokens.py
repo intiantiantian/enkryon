@@ -32,6 +32,7 @@ class Colors:
 
     INCOME = "#0E7A5F"
     EXPENSE = "#B94A48"
+    TRANSFER = "#3F51B5"
 
     SUCCESS = "#0E7A5F"
     WARNING = "#B8860B"

@@ -11,8 +11,8 @@ from database.category_repository import get_categories_by_group
 from .transaction_filter_state import TransactionFilterState
 from .transaction_list_actions import TransactionListActionsMixin
 
-from services.transaction_services import (
-    get_transaction_list_data,
+from services.activity_services import (
+    get_activity_list_data,
 )
 
 from widgets.transaction_list import render_transaction_history
@@ -61,6 +61,15 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.ids.expense_filter.set_selected(
             transaction_type == "expense"
         )
+        transfer_filter = getattr(
+            self.ids,
+            "transfer_filter",
+            None,
+        )
+        if transfer_filter is not None:
+            transfer_filter.set_selected(
+                transaction_type == "transfer"
+            )
 
 
     def render_advanced_filter_state(self):
@@ -70,11 +79,19 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.ids.group_filter_label.text = state.group_name
         self.ids.category_filter_label.text = state.category_name
 
-        category_enabled = state.group_id is not None
+        category_enabled = (
+            state.group_id is not None
+            and state.transaction_type != "transfer"
+        )
         self.ids.category_filter.disabled = not category_enabled
         self.ids.category_filter.opacity = (
             1 if category_enabled else .38
         )
+        group_enabled = state.transaction_type != "transfer"
+        group_filter = getattr(self.ids, "group_filter", None)
+        if group_filter is not None:
+            group_filter.disabled = not group_enabled
+            group_filter.opacity = 1 if group_enabled else .38
 
         self.ids.start_date_filter_label.text = (
             f"From: {state.start_date.isoformat()}"
@@ -200,6 +217,9 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
     def open_group_filter_menu(self):
         state = self.filter_state
+
+        if state.transaction_type == "transfer":
+            return
 
         if state.transaction_type is None:
             groups = get_all_category_groups()
@@ -363,7 +383,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
 
     def load_transactions(self):
-        transaction_list_data = get_transaction_list_data(
+        activity_list_data = get_activity_list_data(
             **self.filter_state.to_query_arguments(),
         )
 
@@ -376,9 +396,9 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
             empty_state_container=(
                 self.ids.transaction_empty_state_container
             ),
-            transactions=transaction_list_data["transactions"],
+            transactions=activity_list_data["activities"],
             screen=self,
-            empty_state=transaction_list_data["empty_state"],
+            empty_state=activity_list_data["empty_state"],
             action_text=action_text,
             action_callback=action_callback,
         )
