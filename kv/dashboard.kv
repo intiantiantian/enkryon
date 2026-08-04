@@ -141,10 +141,14 @@
                                 shorten: True
                                 shorten_from: 'left'
 
-                BoxLayout:
-                    orientation: 'vertical'
+                GridLayout:
+                    id: dashboard_actions
+                    cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                     size_hint_y: None
                     height: self.minimum_height
+                    row_default_height: '48dp'
+                    row_force_default: True
+                    spacing: '5dp'
 
                     EnkryonPrimaryButton:
                         size_hint: 1, None
@@ -155,31 +159,32 @@
                         theme_text_color: 'Custom'
                         text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                    GridLayout:
-                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
-                        size_hint_y: None
-                        height: self.minimum_height
-                        row_default_height: '48dp'
-                        row_force_default: True
-                        spacing: '5dp'
+                    EnkryonPrimaryButton:
+                        size_hint: 1, None
+                        on_release:
+                            root.go_to_transfer()
 
-                        EnkryonPrimaryButton:
-                            size_hint: 1, None
-                            on_release:
-                                root.go_to_accounts()
+                        text: 'Transfer Funds'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                            text: 'Manage Accounts'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                    EnkryonPrimaryButton:
+                        size_hint: 1, None
+                        on_release:
+                            root.go_to_accounts()
 
-                        EnkryonPrimaryButton:
-                            size_hint: 1, None
-                            on_release:
-                                root.go_to_categories()
+                        text: 'Manage Accounts'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
-                            text: 'Manage Categories'
-                            theme_text_color: 'Custom'
-                            text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                    EnkryonPrimaryButton:
+                        size_hint: 1, None
+                        on_release:
+                            root.go_to_categories()
+
+                        text: 'Manage Categories'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
 
                 GridLayout:
                     cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2

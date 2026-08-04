@@ -37,6 +37,74 @@ def test_transaction_selectors_use_responsive_grids():
     assert layout.count("row_force_default: True") >= 2
 
 
+def test_transfer_controls_stack_and_grow_for_enlarged_fonts():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+
+    assert layout.count("should_stack_controls(") == 2
+    assert layout.count("row_force_default: True") == 2
+    assert layout.count("max(1, Metrics.fontscale)") >= 5
+    assert "height: self.minimum_height" in layout
+    assert "do_scroll_x: False" in layout
+
+
+def test_transfer_account_selectors_constrain_long_names():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+
+    for label_id in (
+        "source_account_label",
+        "destination_account_label",
+    ):
+        label_block = layout.split(
+            f"id: {label_id}",
+            maxsplit=1,
+        )[1].split(
+            "theme_text_color:",
+            maxsplit=1,
+        )[0]
+
+        assert "max_lines: 1" in label_block
+        assert "shorten: True" in label_block
+        assert "shorten_from: 'right'" in label_block
+
+
+def test_transfer_screen_uses_shared_spacing_and_touch_targets():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+
+    scroll_content = layout.split(
+        "id: transfer_scroll_content",
+        maxsplit=1,
+    )[1]
+    account_grid = layout.split(
+        "id: transfer_account_selectors",
+        maxsplit=1,
+    )[1].split(
+        "id: source_account_selector",
+        maxsplit=1,
+    )[0]
+    date_grid = layout.split(
+        "id: transfer_datetime_selectors",
+        maxsplit=1,
+    )[1].split(
+        "id: date_selector",
+        maxsplit=1,
+    )[0]
+
+    assert "padding: '16dp'" in scroll_content
+    assert "spacing: '12dp'" in scroll_content
+    assert "row_default_height: dp(88)" in account_grid
+    assert "row_default_height: dp(64)" in date_grid
+    assert "height: dp(56) * max(1, Metrics.fontscale)" in layout
+
+
 def test_dashboard_uses_responsive_grids():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
@@ -386,6 +454,7 @@ def test_dashboard_primary_actions_use_shared_button_height():
 
     for label in (
         "+ Add Transaction",
+        "Transfer Funds",
         "Manage Accounts",
         "Manage Categories",
     ):
@@ -399,16 +468,36 @@ def test_dashboard_primary_actions_use_shared_button_height():
 
         assert "size_hint: 1, None" in button_rule
 
-    action_group = layout.split(
-        "text: '+ Add Transaction'",
-        maxsplit=1,
-    )[0].rsplit(
-        "BoxLayout:",
-        maxsplit=1,
-    )[1]
+    actions_start = layout.index("id: dashboard_actions")
+    actions_end = layout.index(
+        "row_default_height: '144dp'",
+        actions_start,
+    )
+    action_group = layout[actions_start:actions_end]
 
-    assert "orientation: 'vertical'" in action_group
+    assert (
+        "cols: 1 if should_stack_controls("
+        "Window.width / dp(1), Metrics.fontscale) else 2"
+        in action_group
+    )
     assert "height: self.minimum_height" in action_group
+    assert "row_default_height: '48dp'" in action_group
+    assert "row_force_default: True" in action_group
+    assert "spacing: '5dp'" in action_group
+    assert action_group.count("EnkryonPrimaryButton:") == 4
+
+    action_labels = [
+        "text: '+ Add Transaction'",
+        "text: 'Transfer Funds'",
+        "text: 'Manage Accounts'",
+        "text: 'Manage Categories'",
+    ]
+    positions = [
+        action_group.index(label)
+        for label in action_labels
+    ]
+
+    assert positions == sorted(positions)
 
 
 def test_transaction_advanced_filters_scroll_on_small_widths():

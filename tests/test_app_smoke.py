@@ -9,6 +9,7 @@ def test_application_module_imports_ui_dependencies():
     imported_screen_names = {
         application.DashboardScreen.__name__,
         application.AddTransactionScreen.__name__,
+        application.TransferScreen.__name__,
         application.SettingsScreen.__name__,
         application.AccountsScreen.__name__,
         application.CategoriesScreen.__name__,
@@ -18,6 +19,7 @@ def test_application_module_imports_ui_dependencies():
     assert imported_screen_names == {
         "DashboardScreen",
         "AddTransactionScreen",
+        "TransferScreen",
         "SettingsScreen",
         "AccountsScreen",
         "CategoriesScreen",

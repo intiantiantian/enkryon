@@ -13,6 +13,7 @@ from main import EnkryonApp
         ("accounts", "go_back"),
         ("categories", "go_back"),
         ("add_transaction", "go_to_dashboard"),
+        ("transfer", "go_to_dashboard"),
         ("transactions", "go_to_dashboard"),
         ("settings", "go_to_dashboard"),
     ],

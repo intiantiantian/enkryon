@@ -39,6 +39,10 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         self.manager.current = 'add_transaction'
 
 
+    def go_to_transfer(self):
+        self.manager.current = 'transfer'
+
+
     def go_to_settings(self):
         self.manager.current = 'settings'
 
