@@ -1,0 +1,273 @@
+#:import Window kivy.core.window.Window
+#:import Metrics kivy.metrics.Metrics
+#:import should_stack_controls utils.responsive_layout.should_stack_controls
+
+
+<TransferScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: get_color_from_hex(Colors.BACKGROUND)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(64) * max(1, Metrics.fontscale)
+            padding: '16dp', 0
+            spacing: '8dp'
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            MDIconButton:
+                icon: 'arrow-left'
+                on_release: root.go_to_dashboard()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                pos_hint: {'center_y': .5}
+
+            MDLabel:
+                text: 'Transfer Funds'
+                font_size: '26sp'
+                size_hint_x: 1
+                max_lines: 1
+                shorten: True
+                shorten_from: 'right'
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+
+            MDIconButton:
+                icon: 'content-save'
+                on_release: root.save_transfer()
+                theme_icon_color: 'Custom'
+                icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
+                pos_hint: {'center_y': .5}
+
+        Widget:
+            size_hint_y: None
+            height: '1dp'
+
+            canvas.before:
+                Color:
+                    rgba: get_color_from_hex(Colors.BORDER)
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        ScrollView:
+            do_scroll_x: False
+
+            BoxLayout:
+                id: transfer_scroll_content
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '16dp'
+                spacing: '12dp'
+
+                OutlinedCard:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: '16dp'
+                    spacing: '12dp'
+
+                    MDLabel:
+                        text: 'Move money between accounts'
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        halign: 'center'
+                        valign: 'middle'
+                        font_size: '16sp'
+                        bold: True
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                    GridLayout:
+                        id: transfer_account_selectors
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+                        size_hint_y: None
+                        height: self.minimum_height
+                        row_default_height: dp(88) * max(1, Metrics.fontscale)
+                        row_force_default: True
+                        spacing: '12dp'
+
+                        OutlinedCard:
+                            id: source_account_selector
+                            orientation: 'vertical'
+                            padding: '10dp'
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
+                            on_release: root.open_source_account_menu()
+
+                            MDLabel:
+                                text: 'FROM'
+                                size_hint_y: .35
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.size
+                                font_size: '12sp'
+                                bold: True
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                            MDLabel:
+                                id: source_account_label
+                                text: 'Select Source Account'
+                                size_hint_y: .65
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                        OutlinedCard:
+                            id: destination_account_selector
+                            orientation: 'vertical'
+                            padding: '10dp'
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
+                            on_release: root.open_destination_account_menu()
+
+                            MDLabel:
+                                text: 'TO'
+                                size_hint_y: .35
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.size
+                                font_size: '12sp'
+                                bold: True
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+
+                            MDLabel:
+                                id: destination_account_label
+                                text: 'Select Destination Account'
+                                size_hint_y: .65
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    size_hint_y: None
+                    height: dp(104) * max(1, Metrics.fontscale)
+                    padding: '16dp'
+
+                    MDLabel:
+                        id: amount_label
+                        text: '₱ 0'
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.size
+                        max_lines: 1
+                        shorten: True
+                        shorten_from: 'left'
+                        font_size: min(sp(32), self.width / max(len(self.text) * .58, 1))
+
+                GridLayout:
+                    id: keypad_container
+                    cols: 4
+                    spacing: '8dp'
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                OutlinedCard:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: '16dp'
+                    spacing: '12dp'
+
+                    GridLayout:
+                        id: transfer_datetime_selectors
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+                        size_hint_y: None
+                        height: self.minimum_height
+                        row_default_height: dp(64) * max(1, Metrics.fontscale)
+                        row_force_default: True
+                        spacing: '12dp'
+
+                        OutlinedCard:
+                            id: date_selector
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
+                            on_release: root.open_date_picker()
+
+                            MDLabel:
+                                id: date_label
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                        OutlinedCard:
+                            id: time_selector
+                            ripple_behavior: True
+                            md_bg_color: get_color_from_hex(Colors.BRAND_ACCENT_SOFT)
+                            on_release: root.open_time_picker()
+
+                            MDLabel:
+                                id: time_label
+                                halign: 'center'
+                                valign: 'middle'
+                                text_size: self.width - dp(16), self.height
+                                max_lines: 1
+                                shorten: True
+                                shorten_from: 'right'
+                                theme_text_color: 'Custom'
+                                text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                OutlinedCard:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: dp(16)
+                    spacing: '8dp'
+
+                    MDLabel:
+                        text: 'Notes'
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56) * max(1, Metrics.fontscale)
+                        ripple_behavior: True
+                        on_release: root.add_notes()
+                        padding: dp(16)
+
+                        MDLabel:
+                            id: notes_label
+                            text: 'Add notes'
+                            halign: 'left'
+                            valign: 'middle'
+                            text_size: self.size
+                            max_lines: 1
+                            shorten: True
+                            shorten_from: 'right'
+                            theme_text_color: 'Custom'
+                            text_color: get_color_from_hex(Colors.TEXT_SECONDARY)

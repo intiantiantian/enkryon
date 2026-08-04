@@ -50,6 +50,7 @@ def _contrast_ratio(foreground, background):
         (Colors.BRAND_PRIMARY, Colors.BRAND_ACCENT_SOFT),
         (Colors.INCOME, Colors.SURFACE),
         (Colors.EXPENSE, Colors.SURFACE),
+        (Colors.TRANSFER, Colors.SURFACE),
         (Colors.ERROR, Colors.SURFACE),
     ],
 )

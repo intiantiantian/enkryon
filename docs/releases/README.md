@@ -18,7 +18,8 @@ Before version 1.0, Enkryon versions used `major.phase.subphase` as the
 roadmap reference. Phase 8 prepared `v0.8.0` from `v0.7.0`; Phase 5 was an
 internal architecture checkpoint and did not require a public `v0.5.x`
 APK. Phase 9 prepares the first stable release, `v1.0.0`, from official
-`v0.8.0`.
+`v0.8.0`. Update 1 prepares `v1.1.0` from official `v1.0.0` and adds the
+first database migration and backup-format expansion after the stable release.
 
 `main.py` is the version source. The secure release helper reads that value,
 verifies the permanent Enkryon certificate and APK alignment, then creates

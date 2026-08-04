@@ -31,6 +31,24 @@ def render_transaction_list(
         )
 
 
+def render_activity_list(
+    container,
+    activities,
+    screen,
+    empty_state,
+    action_text="",
+    action_callback=None,
+):
+    render_transaction_list(
+        container=container,
+        transactions=activities,
+        screen=screen,
+        empty_state=empty_state,
+        action_text=action_text,
+        action_callback=action_callback,
+    )
+
+
 def render_transaction_history(
     recycle_view,
     empty_state_container,

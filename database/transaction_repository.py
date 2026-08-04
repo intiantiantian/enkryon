@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from .connection import connect_database, managed_connection
 from .records import TransactionDetailRecord, TransactionListRecord
+from .transfer_repository import get_transfer_balance_centavos
 
 
 def create_transactions_table(connection=None):
@@ -317,4 +318,5 @@ def get_current_balance_centavos(account_id=None):
     return (
         get_total_centavos("income", account_id)
         - get_total_centavos("expense", account_id)
+        + get_transfer_balance_centavos(account_id)
     )

@@ -203,6 +203,33 @@ The final `v1.0.0` gate additionally requires a green complete suite and
 GitHub Actions run, real Settings screenshot, verified signed artifact, clean
 installation, and official in-place upgrade from `v0.8.0`.
 
+## Update 1 Account-Transfer Regression
+
+Update 1 adds focused coverage for:
+
+- migration 5, repeat runs, rollback, constraints, foreign keys, indexes, and
+  upgrades from the released migration-4 schema;
+- exact transfer CRUD, stable ordering, source/destination queries, and named
+  transfer records;
+- form-state transitions and service validation for distinct accounts,
+  positive integer-centavo amounts, missing records, and database failures;
+- transfer-screen navigation, Back behavior, account selectors, reusable
+  amount/date/time/notes controls, responsive layout, and enlarged fonts;
+- per-account outgoing/incoming balance effects, all-account net zero,
+  Income/Expenses exclusion, unified activity ordering, search, filters,
+  edit/delete/undo, and large-history behavior;
+- backup format 2 export, strict validation, replacement restore, record
+  counts, ID sequences, integrity checks, Clear All Data, and late-failure
+  rollback;
+- compatibility restore of format-1 v1.0 backups with zero transfers; and
+- protection against deleting accounts referenced by a transfer.
+
+Every implementation checkpoint passed its focused Windows and
+real-application gate before commit. The final v1.1.0 gate still requires the
+complete suite with coverage, compilation, whitespace validation, green
+GitHub Actions, a signed Android build, clean installation, and an official
+in-place v1.0.0-to-v1.1.0 upgrade using controlled transfer data.
+
 ## GitHub Actions
 
 `.github/workflows/quality.yml` runs on pushes, pull requests, and manual

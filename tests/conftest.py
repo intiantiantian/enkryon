@@ -9,6 +9,7 @@ from database import category_repository
 from database import transaction_repository
 from database.schema import initialize_database
 from database import migrations
+from database import transfer_repository
 
 
 @pytest.fixture(autouse=True)
@@ -26,6 +27,7 @@ def test_database(tmp_path, monkeypatch):
         category_group_repository,
         category_repository,
         migrations,
+        transfer_repository,
         transaction_repository,
     ]
 

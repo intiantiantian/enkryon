@@ -6,6 +6,7 @@ from database.account_repository import (
     update_account,
 )
 from database.records import AccountRecord
+from database.transfer_repository import insert_transfer
 
 
 def test_insert_account():
@@ -49,6 +50,24 @@ def test_delete_unused_account():
     assert result is True
     assert reason is None
     assert get_all_accounts() == []
+
+
+def test_delete_account_referenced_by_transfer_is_rejected():
+    insert_account("Cash")
+    insert_account("Savings")
+    assert insert_transfer(
+        source_account_id=1,
+        destination_account_id=2,
+        amount_centavos=10025,
+        date_time="2026-08-04 12:30:00",
+        notes="Move to savings",
+    ) is True
+
+    source_result = delete_account(1)
+    destination_result = delete_account(2)
+
+    assert source_result == (False, "referenced")
+    assert destination_result == (False, "referenced")
 
 
 def test_reject_exact_duplicate_account_name():

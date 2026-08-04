@@ -43,6 +43,9 @@ The initial schema creates tables in dependency order:
 3. Categories
 4. Transactions
 
+Migration 5 adds account transfers after both participating account records
+exist.
+
 ## Versioned Migrations
 
 `database/migrations.py` contains the ordered migration history.
@@ -56,6 +59,7 @@ The current migrations are:
 | 2 | `transactions_amount_centavos` | Convert legacy decimal amounts to integer centavos. |
 | 3 | `validation_constraints` | Add transaction, name, type, and date/time rules. |
 | 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
+| 5 | `account_transfers` | Add atomic transfer records plus newest-first, outgoing, and incoming indexes. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -66,7 +70,8 @@ whose name does not match the application definition.
 
 ## Monetary Values
 
-Transactions store money in the `amount_centavos INTEGER` column.
+Transactions and account transfers store money in the
+`amount_centavos INTEGER` column.
 
 Examples:
 
@@ -77,7 +82,7 @@ Examples:
 | `1234.56` | `123456` |
 
 Integer centavos prevent binary floating-point rounding from affecting
-saved values, totals, expenses, income, or balances.
+saved values, totals, expenses, income, transfers, or balances.
 
 `utils/money.py` owns conversion and display formatting. New database or
 service code must not convert financial values back to `float`.
@@ -95,6 +100,9 @@ The current schema enforces these core rules:
 - Category names follow the application's normalized duplicate rules.
 - Category-group transaction types must be `income` or `expense`.
 - Foreign-key relationships must reference existing records.
+- Transfer source and destination accounts must both exist and must differ.
+- Transfer amounts must be positive integer centavos.
+- Transfer date/time values must use the supported valid format.
 
 Application validation should provide friendly messages, while database
 rules remain the final protection against invalid stored data.
@@ -136,6 +144,13 @@ on a machine-dependent elapsed-time threshold. Interface virtualization is
 documented separately because it changes rendering cost, not database
 semantics.
 
+The unified activity repository combines income/expense transactions and
+account transfers in SQLite before applying stable newest-first ordering and
+limits. Transfer indexes support outgoing and incoming account views. A
+selected source account sees a negative transfer effect, a selected
+destination sees a positive effect, and the all-accounts transfer contribution
+is always zero. Transfers never change Income, Expenses, or category totals.
+
 ## Adding a Future Migration
 
 When the schema changes:
@@ -163,7 +178,7 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-This policy remains in effect for version 1.0:
+This policy remains in effect for version 1.1:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.
@@ -176,7 +191,10 @@ This policy remains in effect for version 1.0:
 
 Phase 7 introduced versioned JSON backup documents containing application and
 database versions, export metadata, record counts, and the account, category
-group, category, and transaction records needed for recovery.
+group, category, and transaction records needed for recovery. Version 1.1 uses
+backup format 2, which adds `account_transfers` as a fifth record collection.
+Compatible format-1 documents from version 1.0 are normalized to an empty
+transfer collection before validation and restore.
 
 Before restore begins, the complete document is validated for supported
 versions, structure, field values, record counts, IDs, uniqueness, and
@@ -186,8 +204,10 @@ database.
 Confirmed restore deliberately replaces current application data inside one
 SQLite transaction:
 
-1. Existing records are removed in reverse dependency order.
-2. Backup records are inserted in dependency order while preserving IDs.
+1. Existing transfers and transactions are removed before their parent
+   records in reverse dependency order.
+2. Parent records, transactions, and transfers are inserted in dependency
+   order while preserving IDs.
 3. SQLite ID sequences are restored consistently with the imported records.
 4. Foreign-key integrity is checked before the transaction commits.
 5. Any failure rolls back the complete replacement.
@@ -196,4 +216,5 @@ Android uses the system document picker for backup export and import without
 requesting broad storage permission.
 Restore in `v0.7.0` does not merge records.
 Restore in `v1.0.0` does not merge records either; this replacement-only behavior remains unchanged.
+Restore in `v1.1.0` remains replacement-only and is transfer-aware.
 Backup merging is deferred until after statistics.

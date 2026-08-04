@@ -5,6 +5,7 @@ from kivy.core.window import Window
 
 from screens.dashboard import DashboardScreen
 from screens.add_transaction import AddTransactionScreen
+from screens.transfer import TransferScreen
 from screens.settings import SettingsScreen
 from screens.accounts import AccountsScreen
 from screens.categories import CategoriesScreen
@@ -38,7 +39,7 @@ _ = (
     EnkryonSelectionPanel,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 class EnkryonApp(MDApp):
 
@@ -63,6 +64,7 @@ class EnkryonApp(MDApp):
             "accounts": "go_back",
             "categories": "go_back",
             "add_transaction": "go_to_dashboard",
+            "transfer": "go_to_dashboard",
             "transactions": "go_to_dashboard",
             "settings": "go_to_dashboard",
         }.get(self.root.current)
@@ -86,6 +88,7 @@ class EnkryonApp(MDApp):
         Builder.load_file('kv/widgets.kv')
         Builder.load_file('kv/dashboard.kv')
         Builder.load_file('kv/add_transaction.kv')
+        Builder.load_file('kv/transfer.kv')
         Builder.load_file('kv/settings.kv')
         Builder.load_file('kv/accounts.kv')
         Builder.load_file('kv/categories.kv')
@@ -99,6 +102,7 @@ class EnkryonApp(MDApp):
 
         screen_manager.add_widget(DashboardScreen(name='dashboard'))
         screen_manager.add_widget(AddTransactionScreen(name='add_transaction'))
+        screen_manager.add_widget(TransferScreen(name='transfer'))
         screen_manager.add_widget(SettingsScreen(name='settings'))
         screen_manager.add_widget(AccountsScreen(name='accounts'))
         screen_manager.add_widget(CategoriesScreen(name='categories'))

@@ -9,6 +9,39 @@ version reference.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-04
+
+### Added
+
+- First-class account transfers with distinct source and destination
+  accounts, exact integer-centavo amounts, date/time, and optional notes.
+- Transfer creation, editing, deletion, undo restoration, and account-safety
+  rules that protect referenced accounts.
+- Unified Dashboard and Activity History entries for income, expenses, and
+  transfers, including transfer search and account/date/type filters.
+- Database migration 5 with transfer constraints and indexed newest-first,
+  outgoing, and incoming activity access paths.
+- Backup format 2 with transfer export, validation, replacement restore,
+  record-count, sequence, integrity, and rollback support.
+
+### Changed
+
+- Per-account balances now subtract outgoing transfers and add incoming
+  transfers; the combined balance, Income, and Expenses remain unchanged.
+- Dashboard actions use a responsive two-by-two arrangement for Add
+  Transaction, Transfer Funds, Manage Accounts, and Manage Categories.
+- Compatible v1.0 backup documents remain restorable and are interpreted as
+  containing no transfers.
+- Application, Android artifact, release documentation, and roadmap identity
+  now use version `1.1.0`.
+
+### Fixed
+
+- Transfer direction labels use rendering-safe text instead of an unsupported
+  arrow glyph.
+- Transfer-aware clear and restore failures roll back without leaving partial
+  records.
+
 ## [1.0.0] - 2026-07-28
 
 ### Added

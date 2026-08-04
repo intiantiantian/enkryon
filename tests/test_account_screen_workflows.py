@@ -235,7 +235,7 @@ def test_delete_account_renders_service_result(
 
 @pytest.mark.parametrize(
     "return_screen",
-    ["dashboard", "add_transaction"],
+    ["dashboard", "add_transaction", "transfer"],
 )
 def test_account_back_returns_to_origin_once(return_screen):
     manager = SimpleNamespace(current="accounts")

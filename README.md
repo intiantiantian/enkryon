@@ -2,7 +2,10 @@
 
 A modern **offline-first personal finance tracker** built with **Python**, **Kivy**, **KivyMD**, and **SQLite**.
 
-Enkryon is an offline-first personal finance tracker that helps users record income and expenses, organize accounts and categories, and monitor their financial activity through a clean and intuitive interface.
+Enkryon is an offline-first personal finance tracker that helps users record
+income and expenses, move funds between accounts, organize accounts and
+categories, and monitor financial activity through a clean and intuitive
+interface.
 
 The application focuses on simplicity, local data privacy, and responsive mobile design.
 
@@ -59,6 +62,14 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 - Add notes
 - Date and time selection
 
+### Account Transfers
+
+- Transfer an exact amount between two accounts
+- Edit, delete, and undo deleted transfers
+- Keep combined-account income and expenses unchanged
+- Show outgoing and incoming effects in per-account balances
+- Search and filter transfer activity by account, date, notes, and type
+
 ### Accounts
 
 - Create accounts
@@ -80,9 +91,10 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Transaction History
 
-- View all transactions newest-first
-- Search notes, accounts, category groups, and categories
+- View transactions and account transfers newest-first
+- Search notes, accounts, category groups, categories, and transfer accounts
 - Filter by transaction type, account, category group, and category
+- Filter transfer activity separately from income and expenses
 - Filter by an inclusive date range
 - Combine search and filters
 - Review active filters and reset them together
@@ -91,8 +103,9 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Settings
 
-- Export a versioned JSON backup
+- Export a versioned JSON backup including account transfers
 - Preview and restore a validated backup
+- Restore compatible v1.0 backups with an empty transfer collection
 - Clear all application data
 - Export a backup before clearing data
 - View application, local-data, and privacy information
@@ -104,10 +117,10 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 Official Android APKs are published on the GitHub Releases page after their
 release checks pass.
 
-The version 1.0 candidate uses this artifact name:
+The current version 1.1 release uses this artifact name:
 
 ```
-Enkryon-v1.0.0.apk
+Enkryon-v1.1.0.apk
 ```
 
 ---
@@ -157,10 +170,11 @@ Stored data includes:
 - Category Groups
 - Categories
 - Transactions
+- Account transfers
 
-Transaction amounts are stored as exact integer centavos. Ordered database
+Transaction and transfer amounts are stored as exact integer centavos. Ordered database
 migrations safely upgrade older installations while preserving records,
-relationships, transaction IDs, and totals.
+relationships, transaction and transfer IDs, and totals.
 
 Repository modules separate database operations from the user interface to
 improve maintainability and testing. See the
@@ -168,13 +182,14 @@ improve maintainability and testing. See the
 
 Named records carry database results across layer boundaries. Managed
 connections protect commits, rollbacks, and cleanup, while account,
-category, and transaction services own workflow rules and return explicit,
-testable results to the interface.
+category, transaction, transfer, and unified-activity services own workflow
+rules and return explicit, testable results to the interface.
 
-User-created backups are stored as versioned JSON documents. Enkryon
-validates the complete backup, shows its metadata and record counts, and
-requires explicit confirmation before replacing current data inside a
-database transaction.
+User-created backups are stored as versioned JSON documents. Backup format 2
+includes account transfers, while compatible format-1 documents from v1.0
+remain restorable. Enkryon validates the complete backup, shows its metadata
+and record counts, and requires explicit confirmation before replacing
+current data inside a database transaction.
 
 On Android, the system document picker lets users choose where to save or
 open a backup without granting broad storage permission. Android automatic
@@ -236,10 +251,12 @@ Development follows a reliability-first sequence:
   recovery.
 - Phase 8 added transaction search, combined advanced filters, active-filter
   summaries, clear no-results recovery, and indexed large-history queries.
-- Phase 9 verifies clean installation, legacy upgrades, backup and recovery,
+- Phase 9 verified clean installation, legacy upgrades, backup and recovery,
   10,000-record histories, responsive layouts, enlarged fonts, accessibility,
-  and the signed version 1.0 release candidate.
-- Later phases cover major feature expansion after the version 1.0 gate.
+  and the signed version 1.0 release.
+- Update 1 adds first-class account transfers for version 1.1.0.
+- Update 2 will add statistical visualizations after the transfer release is
+  stable.
 
 See the [complete development roadmap](ROADMAP.md) for objectives,
 deliverables, priorities, and completion gates.
@@ -262,6 +279,8 @@ deliverables, priorities, and completion gates.
 - Versioned, validated user-controlled backups
 - Transactional replacement restore with rollback protection
 - Combined transaction search and advanced filters
+- Atomic account transfers with exact per-account balance effects
+- Unified transaction and transfer activity history
 - Indexed newest-first transaction history
 - Virtualized large-history rendering
 

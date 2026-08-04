@@ -7,11 +7,11 @@ from database import migrations
 from services.backup_format import (
     BACKUP_FORMAT,
     BACKUP_FORMAT_VERSION,
-    BACKUP_RECORD_COLUMNS,
+    BACKUP_RECORD_COLUMNS_BY_VERSION,
     BACKUP_TABLES,
 )
 
-SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4})
+SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4, 5})
 
 
 class BackupValidationError(ValueError):
@@ -92,6 +92,17 @@ RECORD_VALUE_RULES = {
         ),
         "notes": _is_nullable_text,
     },
+    "account_transfers": {
+        "id": _is_positive_integer,
+        "source_account_id": _is_positive_integer,
+        "destination_account_id": _is_positive_integer,
+        "amount_centavos": _is_positive_integer,
+        "date_time": lambda value: _matches_datetime(
+            value,
+            "%Y-%m-%d %H:%M:%S",
+        ),
+        "notes": _is_nullable_text,
+    },
 }
 
 
@@ -124,9 +135,11 @@ def validate_backup_document(document):
             "The selected file is not an Enkryon backup."
         )
 
+    format_version = document["format_version"]
+
     if (
-        type(document["format_version"]) is not int
-        or document["format_version"] != BACKUP_FORMAT_VERSION
+        type(format_version) is not int
+        or format_version not in BACKUP_RECORD_COLUMNS_BY_VERSION
     ):
         raise BackupValidationError(
             "This backup format version is not supported."
@@ -134,19 +147,27 @@ def validate_backup_document(document):
 
     metadata = document["metadata"]
     records = document["records"]
+    record_columns = BACKUP_RECORD_COLUMNS_BY_VERSION[format_version]
+    tables = tuple(record_columns)
 
-    _validate_metadata(metadata)
-    _validate_record_shapes(records)
-    _validate_record_counts(metadata["record_counts"], records)
-    _validate_relational_records(records)
+    _validate_metadata(metadata, tables)
+    _validate_record_shapes(records, record_columns)
+    _validate_record_counts(
+        metadata["record_counts"],
+        records,
+        tables,
+    )
+    _validate_relational_records(records, record_columns)
 
-    record_counts = dict(metadata["record_counts"])
+    normalized_document = _normalize_backup_document(document)
+    normalized_metadata = normalized_document["metadata"]
+    record_counts = dict(normalized_metadata["record_counts"])
     return ValidatedBackup(
-        document=document,
+        document=normalized_document,
         preview=RestorePreview(
-            app_version=metadata["app_version"],
-            database_version=metadata["database_version"],
-            exported_at=metadata["exported_at"],
+            app_version=normalized_metadata["app_version"],
+            database_version=normalized_metadata["database_version"],
+            exported_at=normalized_metadata["exported_at"],
             record_counts=record_counts,
             total_records=sum(record_counts.values()),
         ),
@@ -185,7 +206,7 @@ def _require_exact_keys(value, expected_keys, label):
         )
 
 
-def _validate_metadata(metadata):
+def _validate_metadata(metadata, tables):
     _require_exact_keys(
         metadata,
         (
@@ -224,28 +245,28 @@ def _validate_metadata(metadata):
     record_counts = metadata["record_counts"]
     _require_exact_keys(
         record_counts,
-        BACKUP_TABLES,
+        tables,
         "backup record counts",
     )
 
     if any(
         type(record_counts[table_name]) is not int
         or record_counts[table_name] < 0
-        for table_name in BACKUP_TABLES
+        for table_name in tables
     ):
         raise BackupValidationError(
             "Backup record counts are invalid."
         )
 
 
-def _validate_record_shapes(records):
+def _validate_record_shapes(records, record_columns):
     _require_exact_keys(
         records,
-        BACKUP_TABLES,
+        tuple(record_columns),
         "backup records",
     )
 
-    for table_name, columns in BACKUP_RECORD_COLUMNS.items():
+    for table_name, columns in record_columns.items():
         table_records = records[table_name]
 
         if type(table_records) is not list:
@@ -273,17 +294,17 @@ def _validate_record_shapes(records):
                     )
 
 
-def _validate_record_counts(record_counts, records):
+def _validate_record_counts(record_counts, records, tables):
     if any(
         record_counts[table_name] != len(records[table_name])
-        for table_name in BACKUP_TABLES
+        for table_name in tables
     ):
         raise BackupValidationError(
             "Backup record counts do not match its records."
         )
 
 
-def _validate_relational_records(records):
+def _validate_relational_records(records, record_columns):
     connection = sqlite3.connect(":memory:")
     connection.execute("PRAGMA foreign_keys = ON")
 
@@ -291,7 +312,7 @@ def _validate_relational_records(records):
         for _version, _name, migration in migrations.MIGRATIONS:
             migration(connection)
 
-        for table_name, columns in BACKUP_RECORD_COLUMNS.items():
+        for table_name, columns in record_columns.items():
             column_list = ", ".join(columns)
             placeholders = ", ".join("?" for _column in columns)
             connection.executemany(
@@ -317,3 +338,28 @@ def _validate_relational_records(records):
         ) from error
     finally:
         connection.close()
+
+
+def _normalize_backup_document(document):
+    if document["format_version"] == BACKUP_FORMAT_VERSION:
+        return document
+
+    normalized_records = {
+        table_name: [
+            dict(record)
+            for record in document["records"].get(table_name, ())
+        ]
+        for table_name in BACKUP_TABLES
+    }
+    normalized_metadata = dict(document["metadata"])
+    normalized_metadata["record_counts"] = {
+        table_name: len(normalized_records[table_name])
+        for table_name in BACKUP_TABLES
+    }
+
+    return {
+        "format": document["format"],
+        "format_version": BACKUP_FORMAT_VERSION,
+        "metadata": normalized_metadata,
+        "records": normalized_records,
+    }

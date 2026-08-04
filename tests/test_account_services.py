@@ -210,7 +210,8 @@ def test_rename_account_returns_repository_outcome(
         (
             (False, "referenced"),
             False,
-            "Cannot delete account because it has existing transactions.",
+            "Cannot delete account because it has existing "
+            "transactions or transfers.",
         ),
         ((False, "error"), False, "Account could not be deleted."),
     ],

@@ -152,6 +152,7 @@ def test_virtualized_history_tracks_all_recycled_card_state():
 
     expected_keys = {
         "transaction_id",
+        "record_type",
         "screen",
         "account_name",
         "group_name",
@@ -165,6 +166,7 @@ def test_virtualized_history_tracks_all_recycled_card_state():
     assert set(income_data) == expected_keys
     assert set(expense_data) == expected_keys
     assert income_data["transaction_type_label"] == "INCOME"
+    assert income_data["record_type"] == "transaction"
     assert income_data["transaction_type_icon"] == "arrow-up"
     assert income_data["amount_text"] == "+ ₱ 25.00"
     assert expense_data["transaction_type_label"] == "EXPENSE"
@@ -189,6 +191,90 @@ def test_recycled_card_actions_use_refreshed_transaction_id():
 
     screen.edit_transaction.assert_called_once_with(17)
     screen.confirm_delete_transaction.assert_called_once_with(18)
+
+
+def test_transfer_card_shows_accounts_direction_and_neutral_amount():
+    card_module = import_module("widgets.transaction_card")
+    transfer = SimpleNamespace(
+        record_id=7,
+        record_type="transfer",
+        transaction_id=7,
+        activity_type="transfer",
+        transaction_type="transfer",
+        account_name="Cash",
+        group_name="Account Transfer",
+        category_name="Savings",
+        source_account_name="Cash",
+        destination_account_name="Savings",
+        amount_centavos=10_025,
+        direction="neutral",
+        date_time="2026-08-04 19:30:00",
+    )
+
+    data = card_module.create_transaction_card_data(
+        transfer,
+        object(),
+    )
+
+    assert data["record_type"] == "transfer"
+    assert data["transaction_id"] == 7
+    assert data["account_name"] == "Cash to Savings"
+    assert data["group_name"] == "Account Transfer"
+    assert data["category_name"] == "Between accounts"
+    assert data["amount_text"] == "₱ 100.25"
+    assert data["transaction_type_label"] == "TRANSFER"
+    assert data["transaction_type_icon"] == "swap-horizontal"
+
+
+def test_transfer_card_uses_direction_aware_amount_and_actions():
+    card_module = import_module("widgets.transaction_card")
+    screen = SimpleNamespace(
+        edit_transfer=Mock(),
+        confirm_delete_transfer=Mock(),
+    )
+    card = SimpleNamespace(
+        screen=screen,
+        transaction_id=7,
+        record_type="transfer",
+    )
+
+    card_module.TransactionCard.edit_transaction(card)
+    card_module.TransactionCard.delete_transaction(card)
+
+    screen.edit_transfer.assert_called_once_with(7)
+    screen.confirm_delete_transfer.assert_called_once_with(7)
+
+
+def test_transfer_card_formats_selected_account_direction():
+    card_module = import_module("widgets.transaction_card")
+    base = {
+        "record_id": 7,
+        "record_type": "transfer",
+        "transaction_id": 7,
+        "activity_type": "transfer",
+        "transaction_type": "transfer",
+        "account_name": "Cash",
+        "group_name": "Account Transfer",
+        "category_name": "Savings",
+        "source_account_name": "Cash",
+        "destination_account_name": "Savings",
+        "amount_centavos": 10_025,
+        "date_time": "2026-08-04 19:30:00",
+    }
+
+    incoming = card_module.create_transaction_card_data(
+        SimpleNamespace(**base, direction="incoming"),
+        object(),
+    )
+    outgoing = card_module.create_transaction_card_data(
+        SimpleNamespace(**base, direction="outgoing"),
+        object(),
+    )
+
+    assert incoming["amount_text"] == "+ ₱ 100.25"
+    assert incoming["category_name"] == "Incoming transfer"
+    assert outgoing["amount_text"] == "- ₱ 100.25"
+    assert outgoing["category_name"] == "Outgoing transfer"
 
 
 def test_empty_virtualized_history_renders_recovery_action(

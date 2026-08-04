@@ -158,7 +158,7 @@ def test_filter_state_builds_complete_query_arguments():
     assert state.to_query_arguments() == {
         "search_text": "lunch",
         "account_id": 7,
-        "transaction_type": "expense",
+        "activity_type": "expense",
         "group_id": 8,
         "category_id": 9,
         "start_date": date(2026, 7, 1),
@@ -187,7 +187,7 @@ def test_reset_restores_full_unfiltered_state():
     assert state.to_query_arguments() == {
         "search_text": None,
         "account_id": None,
-        "transaction_type": None,
+        "activity_type": None,
         "group_id": None,
         "category_id": None,
         "start_date": None,
