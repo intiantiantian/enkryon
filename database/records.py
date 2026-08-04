@@ -43,3 +43,14 @@ class TransactionDetailRecord(NamedTuple):
     group_id: int
     group_name: str
     transaction_type: str
+
+
+class TransferRecord(NamedTuple):
+    transfer_id: int
+    source_account_id: int
+    destination_account_id: int
+    amount_centavos: int
+    date_time: str
+    notes: str | None
+    source_account_name: str
+    destination_account_name: str

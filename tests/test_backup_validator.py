@@ -98,13 +98,14 @@ def test_valid_backup_returns_restore_preview():
     )
 
 
-def test_accepts_index_only_database_migration():
+@pytest.mark.parametrize("database_version", (4, 5))
+def test_accepts_compatible_database_migrations(database_version):
     document = make_valid_document()
-    document["metadata"]["database_version"] = 4
+    document["metadata"]["database_version"] = database_version
 
     validated_backup = validate_document(document)
 
-    assert validated_backup.preview.database_version == 4
+    assert validated_backup.preview.database_version == database_version
 
 
 def test_rejects_invalid_or_ambiguous_json():
@@ -127,7 +128,7 @@ def test_rejects_invalid_identity_and_metadata():
     for path, value in (
         (("format",), "other-backup"),
         (("format_version",), 2),
-        (("metadata", "database_version"), 5),
+        (("metadata", "database_version"), 6),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):

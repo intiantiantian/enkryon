@@ -195,6 +195,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
                 "category_groups",
                 "categories",
                 "transactions",
+                "account_transfers",
             )
         }
 
@@ -241,6 +242,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
+        (5, "account_transfers"),
     ]
     assert "amount" not in transaction_columns
     assert transaction_columns["amount_centavos"] == "INTEGER"
@@ -249,6 +251,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
         "category_groups": 2,
         "categories": 2,
         "transactions": 3,
+        "account_transfers": 0,
     }
     assert transactions == [
         (
@@ -336,6 +339,7 @@ def test_run_migrations_is_idempotent():
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
+        (5, "account_transfers"),
     ]
 
 
@@ -350,7 +354,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
         migrations,
         "MIGRATIONS",
         migrations.MIGRATIONS
-        + ((5, "failing_migration", failing_migration),),
+        + ((6, "failing_migration", failing_migration),),
     )
 
     with pytest.raises(RuntimeError, match="migration failed"):
@@ -363,7 +367,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
             '''
             SELECT version
             FROM schema_migrations
-            WHERE version = 5
+            WHERE version = 6
             '''
         ).fetchone()
         rolled_back_table = connection.execute(
@@ -420,6 +424,168 @@ def test_adds_transaction_history_indexes():
             ("id", 1),
         ],
     }
+
+
+def test_adds_account_transfer_table_constraints_and_indexes():
+    connection = create_centavo_transaction_database()
+
+    try:
+        connection.execute(
+            "INSERT INTO accounts (name) VALUES ('Savings')"
+        )
+        migrations.create_account_transfers_table(connection)
+        migrations.create_account_transfers_table(connection)
+        connection.commit()
+
+        columns = {
+            row[1]: row[2]
+            for row in connection.execute(
+                "PRAGMA table_info(account_transfers)"
+            ).fetchall()
+        }
+        foreign_keys = {
+            (row[3], row[2])
+            for row in connection.execute(
+                "PRAGMA foreign_key_list(account_transfers)"
+            ).fetchall()
+        }
+        index_columns = {
+            index_name: [
+                (row[2], row[3])
+                for row in connection.execute(
+                    f"PRAGMA index_xinfo('{index_name}')"
+                ).fetchall()
+                if row[5]
+            ]
+            for index_name in (
+                "account_transfers_history_order_index",
+                "account_transfers_source_history_index",
+                "account_transfers_destination_history_index",
+            )
+        }
+
+        connection.execute(
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time,
+                notes
+            )
+            VALUES (
+                1,
+                2,
+                10025,
+                '2026-08-04 14:30:00',
+                'Valid transfer'
+            )
+            '''
+        )
+        connection.commit()
+
+        invalid_inserts = (
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time
+            )
+            VALUES (1, 1, 100, '2026-08-04 14:30:00')
+            ''',
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time
+            )
+            VALUES (1, 2, 0, '2026-08-04 14:30:00')
+            ''',
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time
+            )
+            VALUES (1, 2, 12.5, '2026-08-04 14:30:00')
+            ''',
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time
+            )
+            VALUES (1, 2, 100, '2026-08-04')
+            ''',
+            '''
+            INSERT INTO account_transfers (
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time
+            )
+            VALUES (999, 2, 100, '2026-08-04 14:30:00')
+            ''',
+        )
+
+        for statement in invalid_inserts:
+            with pytest.raises(sqlite3.IntegrityError):
+                connection.execute(statement)
+            connection.rollback()
+
+        stored_transfer = connection.execute(
+            '''
+            SELECT
+                source_account_id,
+                destination_account_id,
+                amount_centavos,
+                date_time,
+                notes
+            FROM account_transfers
+            '''
+        ).fetchone()
+    finally:
+        connection.close()
+
+    assert columns == {
+        "id": "INTEGER",
+        "source_account_id": "INTEGER",
+        "destination_account_id": "INTEGER",
+        "amount_centavos": "INTEGER",
+        "date_time": "TEXT",
+        "notes": "TEXT",
+    }
+    assert foreign_keys == {
+        ("source_account_id", "accounts"),
+        ("destination_account_id", "accounts"),
+    }
+    assert index_columns == {
+        "account_transfers_history_order_index": [
+            ("date_time", 1),
+            ("id", 1),
+        ],
+        "account_transfers_source_history_index": [
+            ("source_account_id", 0),
+            ("date_time", 1),
+            ("id", 1),
+        ],
+        "account_transfers_destination_history_index": [
+            ("destination_account_id", 0),
+            ("date_time", 1),
+            ("id", 1),
+        ],
+    }
+    assert stored_transfer == (
+        1,
+        2,
+        10025,
+        "2026-08-04 14:30:00",
+        "Valid transfer",
+    )
 
 
 def test_adds_transaction_amount_and_datetime_constraints():

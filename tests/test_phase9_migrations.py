@@ -181,6 +181,9 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
                 "transactions_category_history_index",
             )
         }
+        transfer_count = connection.execute(
+            "SELECT COUNT(*) FROM account_transfers"
+        ).fetchone()[0]
     finally:
         connection.close()
 
@@ -195,8 +198,10 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
         (2, "transactions_amount_centavos"),
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
+        (5, "account_transfers"),
     ]
     assert migrated_state == original_state
+    assert transfer_count == 0
     assert migrated_state["totals"]["income"] == 123456
     assert migrated_state["totals"]["expense"] == 1021
     assert (

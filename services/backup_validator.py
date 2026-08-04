@@ -11,7 +11,7 @@ from services.backup_format import (
     BACKUP_TABLES,
 )
 
-SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4})
+SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4, 5})
 
 
 class BackupValidationError(ValueError):

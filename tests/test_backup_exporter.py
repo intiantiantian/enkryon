@@ -90,7 +90,7 @@ def test_export_backup_document_reads_exact_relational_rows():
 
     assert document["metadata"] == {
         "app_version": "0.6.0",
-        "database_version": 4,
+        "database_version": 5,
         "exported_at": "2026-07-24T12:30:00Z",
         "record_counts": {
             "accounts": 2,
@@ -155,7 +155,7 @@ def test_export_backup_document_includes_empty_tables():
         exported_at=EXPORTED_AT,
     )
 
-    assert document["metadata"]["database_version"] == 4
+    assert document["metadata"]["database_version"] == 5
     assert document["metadata"]["record_counts"] == {
         table_name: 0
         for table_name in BACKUP_TABLES

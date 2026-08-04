@@ -67,6 +67,7 @@ MIGRATION_ROWS = [
     (2, "transactions_amount_centavos"),
     (3, "validation_constraints"),
     (4, "transaction_history_indexes"),
+    (5, "account_transfers"),
 ]
 
 

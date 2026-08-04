@@ -2,6 +2,7 @@ from database.records import (
     AccountRecord,
     CategoryGroupRecord,
     CategoryRecord,
+    TransferRecord,
     TransactionDetailRecord,
     TransactionListRecord,
 )
@@ -90,3 +91,25 @@ def test_transaction_detail_record_exposes_named_fields():
     assert transaction.group_id == 5
     assert transaction.group_name == "Food"
     assert transaction.transaction_type == "expense"
+
+
+def test_transfer_record_exposes_named_fields():
+    transfer = TransferRecord(
+        transfer_id=23,
+        source_account_id=2,
+        destination_account_id=7,
+        amount_centavos=10025,
+        date_time="2026-08-04 14:30:00",
+        notes="Emergency fund",
+        source_account_name="Cash",
+        destination_account_name="Savings",
+    )
+
+    assert transfer.transfer_id == 23
+    assert transfer.source_account_id == 2
+    assert transfer.destination_account_id == 7
+    assert transfer.amount_centavos == 10025
+    assert transfer.date_time == "2026-08-04 14:30:00"
+    assert transfer.notes == "Emergency fund"
+    assert transfer.source_account_name == "Cash"
+    assert transfer.destination_account_name == "Savings"
