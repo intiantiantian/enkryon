@@ -193,8 +193,10 @@ Phase 7 introduced versioned JSON backup documents containing application and
 database versions, export metadata, record counts, and the account, category
 group, category, and transaction records needed for recovery. Version 1.1 uses
 backup format 2, which adds `account_transfers` as a fifth record collection.
-Compatible format-1 documents from version 1.0 are normalized to an empty
-transfer collection before validation and restore.
+Update 2 uses backup format 3, which adds `posting_status` to each transaction.
+Compatible format-1 documents from version 1.0 normalize to an empty transfer
+collection, and transactions from both format 1 and format 2 normalize to
+`posted` before validation and replacement restore.
 
 Before restore begins, the complete document is validated for supported
 versions, structure, field values, record counts, IDs, uniqueness, and
@@ -217,4 +219,6 @@ requesting broad storage permission.
 Restore in `v0.7.0` does not merge records.
 Restore in `v1.0.0` does not merge records either; this replacement-only behavior remains unchanged.
 Restore in `v1.1.0` remains replacement-only and is transfer-aware.
+Restore in `v1.2.0` remains replacement-only and preserves posted and Pending
+status through format-3 round trips.
 Backup merging is deferred until after statistics.

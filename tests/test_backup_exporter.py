@@ -54,7 +54,8 @@ def seed_export_data():
                 amount_centavos,
                 category_id,
                 date_time,
-                notes
+                notes,
+                posting_status
             )
             VALUES
                 (
@@ -63,7 +64,8 @@ def seed_export_data():
                     1,
                     6,
                     '2026-07-02 12:00:00',
-                    ''
+                    '',
+                    'temporary'
                 ),
                 (
                     15,
@@ -71,7 +73,8 @@ def seed_export_data():
                     123456,
                     12,
                     '2026-07-01 08:30:00',
-                    NULL
+                    NULL,
+                    'posted'
                 );
 
             INSERT INTO account_transfers (
@@ -154,6 +157,7 @@ def test_export_backup_document_reads_exact_relational_rows():
                 "category_id": 12,
                 "date_time": "2026-07-01 08:30:00",
                 "notes": None,
+                "posting_status": "posted",
             },
             {
                 "id": 21,
@@ -162,6 +166,7 @@ def test_export_backup_document_reads_exact_relational_rows():
                 "category_id": 6,
                 "date_time": "2026-07-02 12:00:00",
                 "notes": "",
+                "posting_status": "temporary",
             },
         ],
         "account_transfers": [
@@ -206,6 +211,12 @@ def test_export_backup_json_serializes_database_records():
     assert serialized_backup.endswith("\n")
     assert document["records"]["transactions"][0]["notes"] is None
     assert document["records"]["transactions"][1]["notes"] == ""
+    assert document["records"]["transactions"][0][
+        "posting_status"
+    ] == "posted"
+    assert document["records"]["transactions"][1][
+        "posting_status"
+    ] == "temporary"
     assert document["records"]["account_transfers"] == [
         {
             "id": 30,

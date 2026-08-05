@@ -2,10 +2,9 @@
 
 Updated: August 5, 2026
 Current release: `v1.1.0`
-Current position: Update 2 Pending Transactions completed Task 5 activity
-integration at 79% verified progress; backup format 3 and recovery are next,
-and the official v1.0.0 in-place Android upgrade remains unverified by
-release-owner waiver
+Current position: Update 2 Pending Transactions completed Task 6 backup and
+recovery at 90% verified progress; release closeout is next, and the official
+v1.0.0 in-place Android upgrade remains unverified by release-owner waiver
 
 ## Purpose
 
@@ -32,11 +31,11 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
 | Database upgrades | A `schema_migrations` table and six ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and its newest-first status-history index. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the Task 5 integration checkpoint is expected to contain `725` passing tests at approximately the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
+| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the Task 6 recovery checkpoint contains `737` passing tests at approximately the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
 | Android release | `v1.1.0` is released; its signed artifact checks and clean install passed, while the official physical-device v1.0.0 upgrade was waived by the release owner. | Carry the exception explicitly, require a pre-upgrade backup, and verify the official v1.1.0-to-v1.2.0 upgrade before releasing Update 2. |
 | Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
 | User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
-| Backup and recovery | Backup format 2 remains current while the live database schema is version 6; compatible format-1 backups still restore with zero transfers. | Update 2 will add backup format 3 while restoring format-1 and format-2 transactions as posted. |
+| Backup and recovery | Backup format 3 preserves transaction posting status and transfers; format-1 and format-2 documents normalize their transactions to posted before replacement restore. | Preserve this compatibility through release regression and the official v1.1.0-to-v1.2.0 upgrade. |
 | Search and advanced filters | Unified activity search and filters cover posted Income, posted Expenses, Transfers, Pending records, accounts, notes, groups, categories, and inclusive dates with stable newest-first ordering. | Preserve exact status and filter behavior through backup format 3 and release regression. |
 
 ## Phase Overview
@@ -593,8 +592,9 @@ totals, net cash flow, or statistical financial aggregates.
 Migration 6 extends the existing `transactions` table with constrained
 posting status and a query-plan-verified status-history index. Dashboard and
 Activity History now expose an explicit Pending filter, while Income and
-Expense filters return posted records only. Backup format 3 will preserve
-status while format-1 and format-2 transactions restore as posted. The seven
+Expense filters return posted records only. Backup format 3 preserves exact
+posting status, while format-1 and format-2 transactions normalize to posted
+before restore. The seven
 weighted tasks are contract and baseline (7%), persistence
 (18%), workflows (18%), interface (20%), totals and activity integration (16%),
 backup and recovery (11%), and release closeout (10%). The locked rules are in
@@ -642,8 +642,10 @@ The next work should be completed in this order:
    Pending filter, refresh invariants, mixed-history combinations, and
    10,000-record integration while excluding pending records from every
    posted financial calculation.
-6. Next: add backup format 3 and complete format-1/2/3 recovery evidence.
-7. Complete regression, CI, signed Android artifact, clean installation,
+6. Completed: add backup format 3, exact status round trips, format-1/2
+   normalization, malformed-status rejection, sequences, integrity, Clear All
+   Data, relaunch, and rollback evidence.
+7. Next: complete regression, CI, signed Android artifact, clean installation,
    official v1.1.0 upgrade, and release evidence.
 
 Do not begin Pass-through Transfers, Daily Bank Interest, or Statistical

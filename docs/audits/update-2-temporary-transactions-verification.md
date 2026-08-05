@@ -6,10 +6,10 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `79%`.
-- Current task: Task 5 complete — explicit Pending filtering, posted-only
-  Income and Expense views, financial invariants, and mixed-history performance
-  are verified; Task 6 backup format 3 and recovery are next.
+- Verified weighted progress: `90%`.
+- Current task: Task 6 complete — backup format 3, exact posting-status round
+  trips, format-1/2 normalization, and replacement-recovery invariants are
+  verified; Task 7 release closeout is next.
 
 ## Weighted Plan
 
@@ -20,7 +20,7 @@ Updated: August 5, 2026
 | 3. Add form state and service workflows | 18% | Verified |
 | 4. Build pending transaction interface | 20% | Verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Verified |
-| 6. Extend backup and recovery | 11% | Not started |
+| 6. Extend backup and recovery | 11% | Verified |
 | 7. Close and release Update 2 | 10% | Not started |
 
 ## Verified v1.1.0 Baseline
@@ -214,8 +214,37 @@ uses `transactions_posting_status_history_index`, and does not create a
 temporary ordering B-tree. The focused Task 5 gate covers repository semantics,
 service forwarding, filter state, Dashboard and history controls, responsive
 layout, accessibility text, exact financial invariants, posting refresh, and
-query plans. The complete checkpoint is expected to report `725 passed` with
-approximately `83%` total branch coverage.
+query plans. The complete checkpoint reported `725 passed` with approximately `83%` total
+branch coverage. Real-application filter checks passed before commit `6775eac`.
+
+## Task 6 Backup and Recovery Evidence
+
+Task 6 advances the user-controlled document format from version 2 to version
+3. Format-3 transaction records include `posting_status`, so posted and Pending
+records survive export, Clear All Data, replacement restore, and a fresh
+connection without changing identity, relationships, or financial semantics.
+Account transfers remain first-class backup records.
+
+Validation remains version-specific. Format 1 accepts its original four record
+collections, format 2 accepts transfers without posting status, and format 3
+requires an exact `posted` or `temporary` value on every transaction. Format-1
+and format-2 documents normalize to the current format before restore: missing
+transfers become an empty collection and every older transaction becomes
+`posted`. Missing, blank, differently-cased, or unknown format-3 statuses are
+rejected before the current database is modified.
+
+The recovery regression covers exact record counts, transaction and transfer
+IDs, SQLite sequences, foreign-key checks, integrity checks, replacement
+rollback, and posted-only financial totals. A controlled mixed document proves
+that a Pending expense remains excluded from Expenses and account balances
+after a format-3 round trip. The same records converted to format 1 or format 2
+restore as posted, matching the locked compatibility contract.
+
+The focused Task 6 recovery gate contains `82` tests. The complete checkpoint
+reported `737 passed` with approximately `83%` total branch coverage. Python
+compilation and Git whitespace checks passed. The remaining real-application
+gate is an export, preview, replacement restore, and relaunch check using one
+posted and one Pending record.
 
 ## Terminology Correction Evidence
 
@@ -231,7 +260,8 @@ outside Income and Expenses.
 
 ## Next Gate
 
-Task 6 will introduce backup format 3, preserve posting status in format-3
-round trips, restore format-1 and format-2 transactions as posted, reject
-malformed statuses before replacement, and verify Clear All Data, sequences,
-integrity, rollback, and relaunch behavior.
+Task 7 will run the complete release closeout: regression and coverage,
+compilation, whitespace checks, green GitHub Actions, version and release
+documentation, signed Android artifact verification, clean installation,
+official `v1.1.0`-to-`v1.2.0` in-place upgrade, backup/clear/restore/relaunch,
+and controlled posted/Pending financial checks.

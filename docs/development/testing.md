@@ -158,6 +158,41 @@ also perform these real-application checks before committing:
    posted type, and changes the exact balance and total once.
 7. Check both filter rows on a narrow window and enlarged system text.
 
+### Update 2 Task 6 backup and recovery gate
+
+Task 6 advances exports to backup format 3 while preserving strict validation
+and replacement-only restore. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_backup_format.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_validator.py ^
+tests/test_backup_restorer.py ^
+tests/test_pending_backup_recovery.py ^
+tests/test_recovery_contract.py ^
+tests/test_document_transfer.py ^
+tests/test_settings_screen_workflows.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies exact format-3 status export, posted/Pending round trips,
+format-1 empty-transfer normalization, format-2 transfer preservation, default
+posted status for both older formats, malformed-status rejection before
+replacement, record counts, IDs, sequences, foreign keys, integrity, Clear All
+Data, rollback, restore preview, document transfer, and Settings workflows.
+
+The complete Task 6 gate is expected to report `737 passed` with approximately
+`83%` total branch coverage. Also perform one real-application recovery check:
+
+1. Create one posted transaction, one Pending transaction, and one transfer.
+2. Record exact account balances, Income, and Expenses.
+3. Export a backup and confirm the preview counts.
+4. Clear All Data through the existing backup-first confirmation flow.
+5. Restore the exported document and relaunch the app.
+6. Confirm both transaction statuses, the transfer, record counts, and exact
+   financial totals match the pre-export state.
+
 ## Phase 7 Recovery Regression
 
 Phase 7 began with `395` tests. Its implementation closeout baseline contains

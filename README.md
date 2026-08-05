@@ -185,11 +185,13 @@ connections protect commits, rollbacks, and cleanup, while account,
 category, transaction, transfer, and unified-activity services own workflow
 rules and return explicit, testable results to the interface.
 
-User-created backups are stored as versioned JSON documents. Backup format 2
-includes account transfers, while compatible format-1 documents from v1.0
-remain restorable. Enkryon validates the complete backup, shows its metadata
-and record counts, and requires explicit confirmation before replacing
-current data inside a database transaction.
+User-created backups are stored as versioned JSON documents. Backup format 3
+preserves each transaction's posted or Pending status and includes account
+transfers. Compatible format-1 and format-2 documents remain restorable; their
+transactions normalize to posted because those formats predate posting status.
+Enkryon validates the complete backup, shows its metadata and record counts,
+and requires explicit confirmation before replacing current data inside a
+database transaction.
 
 On Android, the system document picker lets users choose where to save or
 open a backup without granting broad storage permission. Android automatic

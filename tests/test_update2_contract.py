@@ -61,7 +61,7 @@ def test_update_2_contract_locks_migration_and_backup_compatibility():
     assert "Migration 6 extends the existing `transactions` table" in contract
     assert "migrations 1 through 5 are released history" in contract
     assert "Backup format 3 preserves each transaction's posting status" in contract
-    assert "Format-1 and format-2 transactions restore as `posted`" in contract
+    assert "Format-1 and format-2 transactions normalize to `posted`" in contract
     assert "Pending Transactions (`v1.2.0`)" in roadmap
     assert "Pass-through Transfers (`v1.3.0`)" in roadmap
     assert "Daily Bank Interest (`v1.4.0`)" in roadmap
@@ -233,7 +233,7 @@ def test_update_2_task_5_records_pending_filter_and_financial_integration():
     dashboard_layout = read_project_file("kv/dashboard.kv")
     history_layout = read_project_file("kv/transactions.kv")
 
-    assert "Verified weighted progress: `79%`." in verification
+    assert "Task 5 Activity and Financial Integration Evidence" in verification
     assert (
         "| 5. Integrate balances, totals, and activity filters | 16% | Verified |"
         in verification
@@ -249,10 +249,43 @@ def test_update_2_task_5_records_pending_filter_and_financial_integration():
         "also uses this index"
         in normalized_contract
     )
-    assert "completed Task 5 activity" in roadmap
+    assert "Completed: add posted-only Income and Expense filters" in roadmap
     assert "posting_status" in activity_repository
     assert "transactions.posting_status = 'posted'" in activity_repository
     for layout in (dashboard_layout, history_layout):
         assert "id: pending_filter" in layout
         assert "text: 'PENDING'" in layout
         assert "root.set_transaction_filter('pending')" in layout
+
+def test_update_2_task_6_records_backup_format_3_recovery_evidence():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    backup_format = read_project_file("services/backup_format.py")
+    backup_validator = read_project_file(
+        "services/backup_validator.py"
+    )
+
+    assert "Verified weighted progress: `90%`." in verification
+    assert (
+        "| 6. Extend backup and recovery | 11% | Verified |"
+        in verification
+    )
+    assert "Task 6 Backup and Recovery Evidence" in verification
+    assert "`737 passed`" in verification
+    assert "Task 6 backup and recovery gate" in testing
+    assert "Format-1 and format-2 transactions normalize to `posted`" in (
+        contract
+    )
+    assert "completed Task 6 backup and" in roadmap
+    assert "TRANSFER_BACKUP_FORMAT_VERSION = 2" in backup_format
+    assert "BACKUP_FORMAT_VERSION = 3" in backup_format
+    assert '"posting_status"' in backup_format
+    assert 'transaction["posting_status"] = "posted"' in (
+        backup_validator
+    )

@@ -54,6 +54,10 @@ def _is_nullable_text(value):
     return value is None or type(value) is str
 
 
+def _is_posting_status(value):
+    return type(value) is str and value in {"posted", "temporary"}
+
+
 def _matches_datetime(value, date_format):
     if type(value) is not str:
         return False
@@ -91,6 +95,7 @@ RECORD_VALUE_RULES = {
             "%Y-%m-%d %H:%M:%S",
         ),
         "notes": _is_nullable_text,
+        "posting_status": _is_posting_status,
     },
     "account_transfers": {
         "id": _is_positive_integer,
@@ -284,9 +289,9 @@ def _validate_record_shapes(records, record_columns):
                 f"{table_name} record {row_number}",
             )
 
-            for field_name, rule in (
-                RECORD_VALUE_RULES[table_name].items()
-            ):
+            for field_name in columns:
+                rule = RECORD_VALUE_RULES[table_name][field_name]
+
                 if not rule(record[field_name]):
                     raise BackupValidationError(
                         f"{table_name} record {row_number} "
@@ -351,6 +356,10 @@ def _normalize_backup_document(document):
         ]
         for table_name in BACKUP_TABLES
     }
+
+    for transaction in normalized_records["transactions"]:
+        transaction["posting_status"] = "posted"
+
     normalized_metadata = dict(document["metadata"])
     normalized_metadata["record_counts"] = {
         table_name: len(normalized_records[table_name])

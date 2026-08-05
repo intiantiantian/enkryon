@@ -165,8 +165,10 @@ require automated coverage.
 
 ## Backup and Recovery
 
-- Backup format 3 preserves each transaction's posting status.
-- Format-1 and format-2 transactions restore as `posted`.
+- Backup format 3 preserves each transaction's posting status as an exact
+  transaction field.
+- Format-1 and format-2 transactions normalize to `posted` before replacement
+  restore because those formats predate posting status.
 - Replacement restore validates posting status before changing current data.
 - Malformed posting status, relationship, count, or integrity failures roll
   back the complete restore.
