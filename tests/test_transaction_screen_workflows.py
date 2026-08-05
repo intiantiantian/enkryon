@@ -1558,3 +1558,31 @@ def test_transaction_history_category_selection_refreshes():
     assert state.category_name == "Dining"
     panel.dismiss.assert_called_once_with()
     screen.refresh_transaction_list.assert_called_once_with()
+
+
+def test_transaction_history_renders_pending_filter_state():
+    all_filter = SimpleNamespace(set_selected=Mock())
+    income_filter = SimpleNamespace(set_selected=Mock())
+    expense_filter = SimpleNamespace(set_selected=Mock())
+    transfer_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            posting_status="temporary",
+        ),
+        ids=SimpleNamespace(
+            all_filter=all_filter,
+            income_filter=income_filter,
+            expense_filter=expense_filter,
+            transfer_filter=transfer_filter,
+            pending_filter=pending_filter,
+        ),
+    )
+
+    TransactionsScreen.render_filter_state(screen)
+
+    all_filter.set_selected.assert_called_once_with(False)
+    income_filter.set_selected.assert_called_once_with(False)
+    expense_filter.set_selected.assert_called_once_with(False)
+    transfer_filter.set_selected.assert_called_once_with(False)
+    pending_filter.set_selected.assert_called_once_with(True)

@@ -1,11 +1,17 @@
 from dataclasses import dataclass
 from datetime import date
 
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
+)
+
 
 @dataclass
 class TransactionFilterState:
     search_text: str = ""
     transaction_type: str | None = None
+    posting_status: str | None = None
     account_id: int | None = None
     account_name: str = "All Accounts"
     group_id: int | None = None
@@ -18,6 +24,11 @@ class TransactionFilterState:
 
     def __post_init__(self):
         self.set_search_text(self.search_text)
+        if (
+            self.posting_status is None
+            and self.transaction_type in {"income", "expense"}
+        ):
+            self.posting_status = POSTED_STATUS
         self.set_date_range(self.start_date, self.end_date)
 
 
@@ -27,6 +38,7 @@ class TransactionFilterState:
             (
                 self.search_text,
                 self.transaction_type,
+                self.posting_status,
                 self.account_id is not None,
                 self.group_id is not None,
                 self.category_id is not None,
@@ -42,6 +54,9 @@ class TransactionFilterState:
 
         if self.search_text:
             labels.append(f'Search: "{self.search_text}"')
+
+        if self.posting_status == TEMPORARY_STATUS:
+            labels.append("Pending")
 
         if self.transaction_type is not None:
             labels.append(self.transaction_type.title())
@@ -83,6 +98,7 @@ class TransactionFilterState:
             "search_text": self.search_text or None,
             "account_id": self.account_id,
             "activity_type": self.transaction_type,
+            "posting_status": self.posting_status,
             "group_id": self.group_id,
             "category_id": self.category_id,
             "start_date": self.start_date,
@@ -104,11 +120,30 @@ class TransactionFilterState:
         self.account_name = "All Accounts"
 
 
-    def select_transaction_type(self, transaction_type):
-        if transaction_type != self.transaction_type:
+    def select_activity_filter(self, activity_filter):
+        if activity_filter == "pending":
+            transaction_type = None
+            posting_status = TEMPORARY_STATUS
+        else:
+            transaction_type = activity_filter
+            posting_status = (
+                POSTED_STATUS
+                if activity_filter in {"income", "expense"}
+                else None
+            )
+
+        if (
+            transaction_type != self.transaction_type
+            or posting_status != self.posting_status
+        ):
             self.clear_group_selection()
 
         self.transaction_type = transaction_type
+        self.posting_status = posting_status
+
+
+    def select_transaction_type(self, transaction_type):
+        self.select_activity_filter(transaction_type)
 
 
     def select_group(
@@ -169,6 +204,7 @@ class TransactionFilterState:
     def reset(self):
         self.search_text = ""
         self.transaction_type = None
+        self.posting_status = None
         self.clear_account_selection()
         self.clear_group_selection()
         self.start_date = None

@@ -46,7 +46,7 @@ def test_update_2_contract_locks_activity_and_relationship_behavior():
     )
 
     assert "visible `Pending` text label" in contract
-    assert "The `Pending` activity filter returns pending income and expense" in contract
+    assert "The `Pending` activity filter returns only pending income and expense" in contract
     assert "`Income` and `Expense` activity filters return posted records only" in contract
     assert "An account referenced by a posted or pending transaction cannot be deleted" in contract
     assert "category group referenced by a posted or pending transaction" in contract
@@ -199,7 +199,7 @@ def test_update_2_task_4b_records_activity_status_and_direct_posting():
     )
     normalized_roadmap = " ".join(roadmap.split())
 
-    assert "Verified weighted progress: `63%`." in verification
+    assert "Task 4B raised verified progress to `63%`." in verification
     assert (
         "| 4. Build pending transaction interface | 20% | Verified |"
         in verification
@@ -209,10 +209,50 @@ def test_update_2_task_4b_records_activity_status_and_direct_posting():
     assert "activity-card interface gate" in testing
     assert "Unified Activity records carry posting status" in contract
     assert "guarded post action" in contract
-    assert "completed the Task 4 interface" in normalized_roadmap
+    assert "Completed: add explicit pending form actions" in roadmap
     assert "id: posting_status_badge" in card_layout
     assert "id: post_transaction_action" in card_layout
     assert "posting_status_label" in card_source
     assert "confirm_post_transaction" in card_source
     assert "Post Pending Transaction?" in actions_source
     assert "refresh_after_transaction_post" in actions_source
+
+
+def test_update_2_task_5_records_pending_filter_and_financial_integration():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    activity_repository = read_project_file(
+        "database/activity_repository.py"
+    )
+    dashboard_layout = read_project_file("kv/dashboard.kv")
+    history_layout = read_project_file("kv/transactions.kv")
+
+    assert "Verified weighted progress: `79%`." in verification
+    assert (
+        "| 5. Integrate balances, totals, and activity filters | 16% | Verified |"
+        in verification
+    )
+    assert "Task 5 Activity and Financial Integration Evidence" in verification
+    assert "`725 passed`" in verification
+    assert "Task 5 activity and financial integration gate" in testing
+    assert "The `All` activity filter combines" in contract
+    assert "Existing `Income` and `Expense` activity filters return posted records only" in contract
+    normalized_contract = " ".join(contract.split())
+    assert (
+        "Pending activity regression confirms that the shared Activity query "
+        "also uses this index"
+        in normalized_contract
+    )
+    assert "completed Task 5 activity" in roadmap
+    assert "posting_status" in activity_repository
+    assert "transactions.posting_status = 'posted'" in activity_repository
+    for layout in (dashboard_layout, history_layout):
+        assert "id: pending_filter" in layout
+        assert "text: 'PENDING'" in layout
+        assert "root.set_transaction_filter('pending')" in layout

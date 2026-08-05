@@ -6,10 +6,10 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `63%`.
-- Current task: Task 4 complete — explicit form actions, Pending activity
-  treatment, and guarded direct posting are implemented; Task 5 activity
-  filters and financial integration are next.
+- Verified weighted progress: `79%`.
+- Current task: Task 5 complete — explicit Pending filtering, posted-only
+  Income and Expense views, financial invariants, and mixed-history performance
+  are verified; Task 6 backup format 3 and recovery are next.
 
 ## Weighted Plan
 
@@ -19,7 +19,7 @@ Updated: August 5, 2026
 | 2. Add migration and status-aware persistence | 18% | Verified |
 | 3. Add form state and service workflows | 18% | Verified |
 | 4. Build pending transaction interface | 20% | Verified |
-| 5. Integrate balances, totals, and activity filters | 16% | Not started |
+| 5. Integrate balances, totals, and activity filters | 16% | Verified |
 | 6. Extend backup and recovery | 11% | Not started |
 | 7. Close and release Update 2 | 10% | Not started |
 
@@ -181,10 +181,41 @@ results remain stable and do not trigger a success refresh.
 
 The focused Task 4B gate covers status-aware Activity records, recycled-card
 state, direct posting, confirmation and deletion copy, responsive card height,
-non-color-only semantics, and Dashboard refresh behavior. The complete Task 4
-gate is expected to report `707 passed` with approximately `83%` total branch
-coverage. Real-application Dashboard and Activity History checks are required
-before committing Task 4B.
+non-color-only semantics, and Dashboard refresh behavior. The complete Task 4 gate reported `707 passed` with approximately `83%` total
+branch coverage. Real-application Dashboard and Activity History checks passed
+before commit `7513072`. Task 4B raised verified progress to `63%`.
+
+## Task 5 Activity and Financial Integration Evidence
+
+Task 5 adds a separate posting-status dimension to shared activity filter state.
+The Dashboard and Activity History now expose an explicit `PENDING` filter.
+Selecting `Income` or `Expense` sets `posting_status = 'posted'`, while selecting
+`Pending` sets `posting_status = 'temporary'` without fabricating a transaction
+type. `All` continues to include posted transactions, pending transactions, and
+transfers in one stable newest-first history.
+
+The activity repository applies posting status before the unified result is
+ordered. Income and Expense repository queries default to posted-only behavior,
+Pending excludes transfers, and Pending can still combine with account, group,
+category, search, and inclusive date filters. Empty states distinguish Pending
+from Income, Expense, Transfer, and general no-match results.
+
+A controlled mixed-data integration proves that pending income and expense
+records remain absent from account balances, Income, Expenses, and all-account
+net totals until posting. Posting moves the existing record from the Pending
+view to the correct posted Income or Expense view exactly once; a repeated post
+is rejected without a second financial effect. Dashboard posting refreshes both
+the financial summary and recent activity, while Activity History refreshes its
+virtualized list.
+
+The large-history regression seeds `10,000` mixed posted and pending
+transactions. The Pending activity query returns the correct newest records,
+uses `transactions_posting_status_history_index`, and does not create a
+temporary ordering B-tree. The focused Task 5 gate covers repository semantics,
+service forwarding, filter state, Dashboard and history controls, responsive
+layout, accessibility text, exact financial invariants, posting refresh, and
+query plans. The complete checkpoint is expected to report `725 passed` with
+approximately `83%` total branch coverage.
 
 ## Terminology Correction Evidence
 
@@ -200,7 +231,7 @@ outside Income and Expenses.
 
 ## Next Gate
 
-Task 5 will add the explicit `Pending` filter, make Income and Expense
-filters posted-only, verify search/account/category/date combinations, prove
-conversion refreshes every relevant total and list, and repeat the 10,000-row
-performance gate with mixed posted and pending activity.
+Task 6 will introduce backup format 3, preserve posting status in format-3
+round trips, restore format-1 and format-2 transactions as posted, reject
+malformed statuses before replacement, and verify Clear All Data, sequences,
+integrity, rollback, and relaunch behavior.

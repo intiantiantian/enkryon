@@ -163,3 +163,14 @@ def test_temporary_activity_card_uses_text_icon_and_confirmation_copy():
     assert "financially effective immediately" in normalized_actions
     assert "account balance" in normalized_actions
     assert "totals will update" in normalized_actions
+
+
+def test_pending_activity_filter_uses_explicit_text_on_both_views():
+    project_root = Path(__file__).resolve().parents[1]
+
+    for relative_path in ("kv/dashboard.kv", "kv/transactions.kv"):
+        layout = (project_root / relative_path).read_text(encoding="utf-8")
+
+        assert "id: pending_filter" in layout
+        assert "text: 'PENDING'" in layout
+        assert "root.set_transaction_filter('pending')" in layout

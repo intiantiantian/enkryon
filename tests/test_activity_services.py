@@ -18,6 +18,7 @@ def test_activity_view_forwards_every_repository_filter(monkeypatch):
     result = activity_services.get_activity_for_view(
         account_id=2,
         activity_type="transfer",
+        posting_status=None,
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -30,6 +31,7 @@ def test_activity_view_forwards_every_repository_filter(monkeypatch):
     get_activity.assert_called_once_with(
         account_id=2,
         activity_type="transfer",
+        posting_status=None,
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -68,6 +70,7 @@ def test_activity_list_data_combines_records_and_empty_state(monkeypatch):
     get_activity_for_view.assert_called_once_with(
         account_id=2,
         activity_type="transfer",
+        posting_status=None,
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -77,6 +80,7 @@ def test_activity_list_data_combines_records_and_empty_state(monkeypatch):
     )
     get_empty_activity_state.assert_called_once_with(
         "transfer",
+        None,
         True,
         account_filtered=True,
         advanced_filters_active=True,
@@ -97,3 +101,38 @@ def test_advanced_filters_take_priority_in_empty_state():
         "transfer",
         advanced_filters_active=True,
     )["title"] == "No matching activity"
+
+
+def test_pending_empty_state_is_specific_and_recoverable():
+    assert activity_services.get_empty_activity_state(
+        posting_status="temporary"
+    ) == {
+        "title": "No pending transactions",
+        "message": "No pending transactions match the current view.",
+    }
+
+
+def test_pending_status_is_forwarded_to_repository(monkeypatch):
+    get_activity = Mock(return_value=[])
+    monkeypatch.setattr(
+        activity_services,
+        "get_activity",
+        get_activity,
+    )
+
+    activity_services.get_activity_for_view(
+        posting_status="temporary",
+        activity_type="expense",
+    )
+
+    get_activity.assert_called_once_with(
+        account_id=None,
+        activity_type="expense",
+        posting_status="temporary",
+        search_text=None,
+        group_id=None,
+        category_id=None,
+        start_date=None,
+        end_date=None,
+        limit=None,
+    )

@@ -118,6 +118,46 @@ repeated afterward; that explicit evidence limit is recorded in
 Future interface changes must run their focused tests, the complete suite,
 and the device or desktop checks relevant to the changed behavior.
 
+### Update 2 Task 5 activity and financial integration gate
+
+Task 5 adds posting status to the shared Dashboard and Activity History filter
+contract. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_activity_services.py ^
+tests/test_transaction_filter_state.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_pending_activity_integration.py ^
+tests/test_transaction_history_performance.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies explicit Pending controls on Dashboard and Activity History,
+posted-only Income and Expense views, Pending-only transaction results, shared
+filter-state forwarding, account/group/category/search/date combinations,
+status-specific empty states, exact balance and total exclusion, one-time
+posting movement between views, responsive five-control layouts, non-color-only
+labels, and status-index use for 10,000 mixed records.
+
+The complete Task 5 gate is expected to report `725 passed` with approximately
+`83%` total branch coverage. Because the checkpoint changes visible filters,
+also perform these real-application checks before committing:
+
+1. Create one posted income, one posted expense, one pending income, one pending
+   expense, and one transfer with recognizable notes.
+2. Confirm `All` shows all five newest-first.
+3. Confirm `INCOME` and `EXPENSE` show only their posted records.
+4. Confirm `PENDING` shows both pending records and no transfer.
+5. Combine Pending with account, search, category, and date filters.
+6. Post one pending record and confirm it leaves Pending, enters the matching
+   posted type, and changes the exact balance and total once.
+7. Check both filter rows on a narrow window and enlarged system text.
+
 ## Phase 7 Recovery Regression
 
 Phase 7 began with `395` tests. Its implementation closeout baseline contains
@@ -378,7 +418,7 @@ checks before committing:
 1. Open a new transaction and confirm both text actions are visible.
 2. Save an expense as pending and confirm Dashboard balance, Income, and
    Expenses do not change.
-3. Reopen that record and confirm the title and visible status say temporary.
+3. Reopen that record and confirm the title and visible status say Pending.
 4. Edit its amount or notes, post it, and confirm the exact financial effect is
    applied once.
 5. Reopen a posted record and confirm the secondary action reads `Already

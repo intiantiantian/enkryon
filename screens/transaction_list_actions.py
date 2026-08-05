@@ -18,19 +18,23 @@ from .action_results import render_action_result
 
 class TransactionListActionsMixin:
 
-    def set_transaction_filter(self, transaction_type):
-        self.filter_state.select_transaction_type(
-            transaction_type
+    def set_transaction_filter(self, activity_filter):
+        self.filter_state.select_activity_filter(
+            activity_filter
+        )
+        transaction_type = self.filter_state.transaction_type
+        is_pending = (
+            self.filter_state.posting_status == TEMPORARY_STATUS
         )
 
         self.ids.all_filter.set_selected(
-            transaction_type is None
+            transaction_type is None and not is_pending
         )
         self.ids.income_filter.set_selected(
-            transaction_type == "income"
+            transaction_type == "income" and not is_pending
         )
         self.ids.expense_filter.set_selected(
-            transaction_type == "expense"
+            transaction_type == "expense" and not is_pending
         )
         transfer_filter = getattr(
             self.ids,
@@ -41,6 +45,13 @@ class TransactionListActionsMixin:
             transfer_filter.set_selected(
                 transaction_type == "transfer"
             )
+        pending_filter = getattr(
+            self.ids,
+            "pending_filter",
+            None,
+        )
+        if pending_filter is not None:
+            pending_filter.set_selected(is_pending)
 
         self.refresh_transaction_list()
 

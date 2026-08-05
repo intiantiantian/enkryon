@@ -85,7 +85,7 @@
                     root.clear_search()
 
         GridLayout:
-            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 4
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 5
             size_hint_y: None
             height: self.minimum_height
             padding: '10dp'
@@ -121,6 +121,13 @@
                 size_hint_x: 1
                 on_release:
                     root.set_transaction_filter('transfer')
+
+            EnkryonFilterButton:
+                id: pending_filter
+                text: 'PENDING'
+                size_hint_x: 1
+                on_release:
+                    root.set_transaction_filter('pending')
 
         ScrollView:
             id: advanced_filter_scroll

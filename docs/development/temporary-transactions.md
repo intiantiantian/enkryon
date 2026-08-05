@@ -123,12 +123,16 @@ totals. All stored and calculated money remains integer centavos.
   together, while Activity History refreshes its virtualized list.
 - Search includes pending-record notes, account names, category-group names, and
   category names.
-- The `Pending` activity filter returns pending income and expense records.
+- The `All` activity filter combines posted transactions, pending
+  transactions, and transfers.
+- The `Pending` activity filter returns only pending income and expense records
+  and never includes transfers.
 - Existing `Income` and `Expense` activity filters return posted records only.
-- Account, category-group, category, date, and search filters apply to both
-  posted and pending records when their activity type is eligible.
+- Posting status is a separate filter dimension, so Pending can combine with
+  account, category-group, category, date, and search filters.
 - Newest-first ordering continues to use the record ID as a stable secondary
-  key.
+  key, and posting moves the existing record between filter views without
+  creating a duplicate.
 
 ## Relationship Safety
 
@@ -142,15 +146,18 @@ totals. All stored and calculated money remains integer centavos.
 
 Migration 6 extends the existing `transactions` table with a constrained
 `posting_status` column whose default is `posted`. Repository balance and total
-queries must explicitly include posted transactions only, while activity
-queries continue to include both statuses.
+queries explicitly include posted transactions only. Unified activity queries
+include both statuses for `All`, apply `posted` for Income and Expense, and
+apply `temporary` for Pending.
 
 The 10,000-record query-plan regression justifies one composite index named
 `transactions_posting_status_history_index` on `posting_status`, newest-first
 `date_time`, and newest-first `id`. It supports status-filtered Activity History
 without a full transaction scan or a temporary ordering table. Account- or
 category-specific status indexes remain deferred until a focused filter
-combination proves they are necessary.
+combination proves they are necessary. The 10,000-record Pending activity
+regression confirms that the shared Activity query also uses this index without
+a temporary ordering B-tree.
 
 Migration repeat runs, rollback behavior, legacy upgrades, invalid-status
 rejection, stable ordering, exact index shape, and unchanged legacy totals all

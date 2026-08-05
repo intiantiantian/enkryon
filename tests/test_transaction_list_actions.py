@@ -25,30 +25,50 @@ action_results_module = import_module("screens.action_results")
 
 @pytest.mark.parametrize(
     (
-        "transaction_type",
+        "activity_filter",
+        "expected_type",
+        "expected_status",
         "all_selected",
         "income_selected",
         "expense_selected",
         "transfer_selected",
+        "pending_selected",
     ),
     [
-        (None, True, False, False, False),
-        ("income", False, True, False, False),
-        ("expense", False, False, True, False),
-        ("transfer", False, False, False, True),
+        (None, None, None, True, False, False, False, False),
+        (
+            "income", "income", "posted",
+            False, True, False, False, False,
+        ),
+        (
+            "expense", "expense", "posted",
+            False, False, True, False, False,
+        ),
+        (
+            "transfer", "transfer", None,
+            False, False, False, True, False,
+        ),
+        (
+            "pending", None, "temporary",
+            False, False, False, False, True,
+        ),
     ],
 )
 def test_set_transaction_filter_updates_buttons_and_refreshes(
-    transaction_type,
+    activity_filter,
+    expected_type,
+    expected_status,
     all_selected,
     income_selected,
     expense_selected,
     transfer_selected,
+    pending_selected,
 ):
     all_filter = SimpleNamespace(set_selected=Mock())
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
     transfer_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
     state = TransactionFilterState(
         transaction_type="old-value",
     )
@@ -59,20 +79,23 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
             income_filter=income_filter,
             expense_filter=expense_filter,
             transfer_filter=transfer_filter,
+            pending_filter=pending_filter,
         ),
         refresh_transaction_list=Mock(),
     )
 
     TransactionListActionsMixin.set_transaction_filter(
         screen,
-        transaction_type,
+        activity_filter,
     )
 
-    assert state.transaction_type == transaction_type
+    assert state.transaction_type == expected_type
+    assert state.posting_status == expected_status
     all_filter.set_selected.assert_called_once_with(all_selected)
     income_filter.set_selected.assert_called_once_with(income_selected)
     expense_filter.set_selected.assert_called_once_with(expense_selected)
     transfer_filter.set_selected.assert_called_once_with(transfer_selected)
+    pending_filter.set_selected.assert_called_once_with(pending_selected)
     screen.refresh_transaction_list.assert_called_once_with()
 
 
@@ -91,6 +114,7 @@ def test_set_transaction_filter_updates_shared_filter_state():
             income_filter=SimpleNamespace(set_selected=Mock()),
             expense_filter=SimpleNamespace(set_selected=Mock()),
             transfer_filter=SimpleNamespace(set_selected=Mock()),
+            pending_filter=SimpleNamespace(set_selected=Mock()),
         ),
         refresh_transaction_list=Mock(),
     )
@@ -101,6 +125,7 @@ def test_set_transaction_filter_updates_shared_filter_state():
     )
 
     assert state.transaction_type == "expense"
+    assert state.posting_status == "posted"
     assert state.group_id is None
     assert state.category_id is None
     screen.refresh_transaction_list.assert_called_once_with()
@@ -411,6 +436,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
     transfer_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
     account_label = SimpleNamespace(text="")
     screen = SimpleNamespace(
         filter_state=state,
@@ -419,6 +445,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
             income_filter=income_filter,
             expense_filter=expense_filter,
             transfer_filter=transfer_filter,
+            pending_filter=pending_filter,
             account_label=account_label,
         ),
     )
@@ -426,12 +453,14 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     DashboardScreen.reset_dashboard(screen)
 
     assert state.transaction_type is None
+    assert state.posting_status is None
     assert state.account_id == 7
     assert state.account_name == "Cash"
     all_filter.set_selected.assert_called_once_with(True)
     income_filter.set_selected.assert_called_once_with(False)
     expense_filter.set_selected.assert_called_once_with(False)
     transfer_filter.set_selected.assert_called_once_with(False)
+    pending_filter.set_selected.assert_called_once_with(False)
     assert account_label.text == "Cash"
 
 
