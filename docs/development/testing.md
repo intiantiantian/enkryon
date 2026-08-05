@@ -270,3 +270,20 @@ all collected tests passing, not on preserving a fixed count.
 3. Perform any real-application check relevant to the change.
 4. Commit the verified checkpoint.
 5. Push the branch and confirm that GitHub Actions passes.
+
+## Update 2 Temporary-Transaction Contract Baseline
+
+Update 2 began from the clean released `v1.1.0` baseline on the
+`update-2-temporary-transactions` branch. Before migration or feature code was
+changed, the complete Windows suite reported `637 passed` with `83%` total
+branch coverage on Python `3.13.14`.
+
+The Task 1 contract regression is maintained in
+`tests/test_update2_contract.py`. It verifies the non-posting calculation
+contract, status and migration direction, activity/filter behavior, backup
+compatibility, weighted checkpoint evidence, and the explicitly carried
+Android upgrade exception.
+
+Task 1 changes documentation and contract tests only. Migration, repository,
+service, UI, and recovery behavior must not be implemented until the contract
+checkpoint passes and is committed.

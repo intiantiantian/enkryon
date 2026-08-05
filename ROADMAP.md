@@ -1,9 +1,10 @@
 # Enkryon Development Roadmap
 
-Updated: August 4, 2026
+Updated: August 5, 2026
 Current release: `v1.1.0`
-Current position: Update 1 account transfers are released; the official
-v1.0.0 in-place Android upgrade remains unverified by release-owner waiver
+Current position: Update 2 temporary transactions are in Task 1 contract
+verification; the official v1.0.0 in-place Android upgrade remains unverified
+by release-owner waiver
 
 ## Purpose
 
@@ -26,15 +27,15 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, categories, income, expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Complete the v1.1.0 release gate before starting statistics. |
+| Core product | Accounts, categories, posted income and expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Add temporary transactions as a non-posting record state before building statistics. |
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
-| Database upgrades | A `schema_migrations` table and five ordered, transactional migrations are present; migration 5 adds constrained and indexed account transfers. | The official v1.0.0-to-v1.1.0 Android upgrade must prove migration 5 on real data. |
+| Database upgrades | A `schema_migrations` table and five ordered, transactional migrations are present; migration 5 adds constrained and indexed account transfers. | Automated migration coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.0 baseline contains `504` implementation tests with `81%` total coverage; every Update 1 checkpoint passed its focused gate. | The complete post-update Windows suite and GitHub Actions remain part of the final release gate. |
-| Android release | The `v1.1.0` source candidate is being prepared from official `v1.0.0`. | Signature, alignment, clean installation, official v1.0.0 upgrade, checksum, and publication evidence must pass before release. |
+| Automated tests | The released v1.1.0 baseline contains `637` passing tests with `83%` total coverage; Task 1 of Update 2 starts from that clean baseline. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
+| Android release | `v1.1.0` is released; its signed artifact checks and clean install passed, while the official physical-device v1.0.0 upgrade was waived by the release owner. | Carry the exception explicitly, require a pre-upgrade backup, and verify the official v1.1.0-to-v1.2.0 upgrade before releasing Update 2. |
 | Architecture | Focused transfer repositories/services/form state feed a unified SQL activity query and the existing virtualized list. | Transfer behavior remains testable without moving SQL or workflow rules into screens and widgets. |
-| User experience | A dedicated transfer screen, responsive two-by-two Dashboard actions, direction-aware balances, and transfer-aware activity filters are implemented. | Final small-phone, enlarged-font, clean-install, and upgrade checks remain. |
-| Backup and recovery | Backup format 2 and database version 5 include transfers; compatible v1.0 format-1 backups restore with zero transfers. | New/old round trips, Clear All Data, and rollback behavior are covered; Android release verification remains. |
+| User experience | A dedicated transfer screen, responsive two-by-two Dashboard actions, direction-aware balances, and transfer-aware activity filters are released. | Temporary records need explicit non-color-only status treatment and responsive save/post actions. |
+| Backup and recovery | Backup format 2 and database version 5 include transfers; compatible format-1 backups restore with zero transfers. | Update 2 will add backup format 3 while restoring format-1 and format-2 transactions as posted. |
 | Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Transfers preserve stable newest-first history without entering category totals. |
 
 ## Phase Overview
@@ -553,7 +554,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 1 release verification
+**Status:** In progress — Update 2 temporary-transaction contract
 
 ### Objective
 
@@ -561,13 +562,11 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 
 ### Candidate order after version 1.0
 
-1. Account transfers (`v1.1.0`) — implemented; final release gate remains.
-2. Statistical visualizations (`v1.2.0`) — planned after v1.1.0 is stable.
-3. Budget tracking.
-4. Recurring transactions.
-5. Broader import/export formats such as CSV.
-6. Dark mode.
-7. Optional cloud synchronization.
+1. Account transfers (`v1.1.0`) — released.
+2. Temporary transactions (`v1.2.0`) — current update.
+3. Daily bank interest (`v1.3.0`) — planned after posting semantics are stable.
+4. Statistical visualizations (`v1.4.0`) — planned after temporary and interest records are defined.
+5. Budget tracking, recurring transactions, CSV import/export, dark mode, and optional synchronization.
 
 ### Update 1 — Account Transfers (`v1.1.0`)
 
@@ -576,35 +575,60 @@ direction-aware per-account balances, all-account net-zero behavior, unified
 activity history, edit/delete/undo, account-deletion protection, migration 5,
 backup format 2, and format-1 restore compatibility.
 
-The final gate requires the complete suite, GitHub Actions, signed Android
-artifact checks, clean installation, and an official v1.0.0-to-v1.1.0
-in-place upgrade with controlled transfer and recovery scenarios.
+The release completed with the complete suite, GitHub Actions, signed Android
+artifact checks, clean installation, and transfer/recovery verification. The
+official physical-device v1.0.0-to-v1.1.0 in-place upgrade was waived by the
+release owner and remains an explicit carried exception.
 
-### Update 2 — Statistical Visualizations (`v1.2.0`)
+### Update 2 — Temporary Transactions (`v1.2.0`)
 
-Statistics will add exact income/expense/net summaries, time-bucket
-comparisons, expense breakdowns, and textual equivalents. Transfers remain
-separate context and must never enter income, expense, net-cash-flow, or
-category-spending metrics.
+Temporary transactions add an explicit `temporary` or `posted` status to the
+existing transaction identity. Temporary records remain visible and searchable
+in Activity History but are fully non-posting until the user converts them
+atomically. They cannot affect account balances, Income, Expenses, category
+totals, net cash flow, or statistical financial aggregates.
 
-Each major feature should have its own objective, user flow, data design, database migration, automated tests, Android regression test, and release notes before implementation begins.
+Migration 6 will extend the existing `transactions` table, and backup format 3
+will preserve status while format-1 and format-2 transactions restore as
+posted. The seven weighted tasks are contract and baseline (7%), persistence
+(18%), workflows (18%), interface (20%), totals and activity integration (16%),
+backup and recovery (11%), and release closeout (10%). The locked rules are in
+`docs/development/temporary-transactions.md`.
+
+### Update 3 — Daily Bank Interest (`v1.3.0`)
+
+Daily bank interest will provide deterministic, float-free estimated accruals
+for configured accounts. Estimates remain non-posting; only explicit
+reconciliation creates a normal posted Income transaction.
+
+### Update 4 — Statistical Visualizations (`v1.4.0`)
+
+Statistics will add exact posted income, expense, and net summaries,
+time-bucket comparisons, expense breakdowns, and textual equivalents.
+Transfers, temporary records, and estimated interest remain separate context
+and must not enter posted financial metrics.
+
+Each major feature requires its own objective, user flow, data design, database
+migration, automated tests, Android regression test, and release notes before
+implementation begins.
 
 ## Immediate Action Order
 
 The next work should be completed in this order:
 
-1. Run the complete v1.1.0 Windows suite, compilation, whitespace checks, and
-   real-application transfer/recovery regression.
-2. Push the release candidate and require green GitHub Actions.
-3. Build the signed `v1.1.0` Android candidate and verify its signature,
-   alignment, package metadata, API levels, ABIs, contents, and checksum.
-4. Verify a clean install and an official in-place upgrade from `v1.0.0`
-   without changing controlled records, relationships, notes, or totals.
-5. Finalize the v1.1.0 release notes and Update 1 evidence, commit the verified
-   release, and create the signed tag.
+1. Lock the fully non-posting temporary-transaction contract and record the
+   clean v1.1.0 baseline.
+2. Add migration 6 and status-aware persistence without changing migrations
+   1 through 5.
+3. Add UI-independent temporary save, edit, post, delete, and restore
+   workflows.
+4. Add the interface and integrate temporary activity while excluding it from
+   every posted financial calculation.
+5. Add backup format 3, complete regression, CI, signed Android artifact,
+   clean-install, official v1.1.0 upgrade, and recovery evidence.
 
-Do not begin statistical visualizations until the v1.1.0 transfer release gate
-passes.
+Do not begin daily interest or statistical visualizations until temporary
+posting semantics are implemented and verified.
 
 ## Rule for Completing Every Phase
 
