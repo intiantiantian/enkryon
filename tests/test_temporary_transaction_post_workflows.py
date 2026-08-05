@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 from unittest.mock import Mock
 
 import pytest
@@ -186,7 +187,9 @@ def test_post_transaction_updates_exact_totals_once():
 def test_failed_database_post_leaves_status_and_totals_unchanged():
     seed_temporary_expense(12345)
 
-    with transaction_repository.connect_database() as connection:
+    with closing(
+        transaction_repository.connect_database()
+    ) as connection:
         connection.execute(
             """
             CREATE TRIGGER prevent_temporary_post
