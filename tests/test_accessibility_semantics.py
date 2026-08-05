@@ -109,3 +109,29 @@ def test_transaction_rows_use_multiple_type_cues(
     assert card.amount_text == expected_amount
     assert card.date_time_text == "2026-07-22 05:30 PM"
     assert card.transaction_type_color == expected_color
+
+
+def test_temporary_transaction_form_uses_explicit_text_status_cues():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        project_root / "screens" / "add_transaction.py"
+    ).read_text(encoding="utf-8")
+    action_source = (
+        project_root / "screens" / "transaction_form_actions.py"
+    ).read_text(encoding="utf-8")
+
+    assert "id: posting_status_label" in layout
+    assert "id: posting_guidance_label" in layout
+    assert "text: 'SAVE AS TEMPORARY'" in layout
+    assert "text: 'POST TRANSACTION'" in layout
+    assert "on_release: root.save_temporary_transaction()" in layout
+    assert "on_release: root.post_transaction()" in layout
+    assert "CHOOSE POSTING STATUS" in action_source
+    assert 'status_label="TEMPORARY"' in action_source
+    assert 'status_label="POSTED"' in action_source
+    assert "balances and totals" in action_source
+    assert "temporary_action.disabled" in screen_source
+    assert "temporary_action.opacity" in screen_source

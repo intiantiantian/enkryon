@@ -349,3 +349,38 @@ induced database-failure rollback, status-preserving delete/restore, and stable
 repository-exception results. The complete Task 3 gate is expected to report
 `682 passed` with approximately `83%` total branch coverage. Because the
 checkpoint introduces no visible control, no real-application check is required.
+
+
+### Update 2 Task 4A transaction-form interface gate
+
+Task 4A exposes the verified temporary save and posting services through the
+transaction form. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_form_actions.py ^
+tests/test_transaction_form_state.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The focused gate contains `82` tests. It verifies explicit temporary and posted
+actions, current-field validation before posting an edited temporary record,
+failed-save and failed-post preservation, posted-record reversal protection,
+dynamic titles and status text, responsive stacking, enlarged-font growth, and
+non-color-only semantics. The complete Task 4A gate is expected to report `696
+passed` with approximately `83%` total branch coverage.
+
+Because Task 4A changes visible behavior, also perform these real-application
+checks before committing:
+
+1. Open a new transaction and confirm both text actions are visible.
+2. Save an expense as temporary and confirm Dashboard balance, Income, and
+   Expenses do not change.
+3. Reopen that record and confirm the title and visible status say temporary.
+4. Edit its amount or notes, post it, and confirm the exact financial effect is
+   applied once.
+5. Reopen a posted record and confirm the secondary action reads `Already
+   Posted` and is disabled.
+6. Check the action group on a narrow window and with enlarged system text.

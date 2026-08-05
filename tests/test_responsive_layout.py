@@ -27,13 +27,13 @@ def test_controls_share_a_row_on_wide_standard_layout():
     assert not should_stack_controls(600, 1.0)
 
 
-def test_transaction_selectors_use_responsive_grids():
+def test_transaction_form_controls_use_responsive_grids():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
         project_root / "kv" / "add_transaction.kv"
     ).read_text(encoding="utf-8")
 
-    assert layout.count("should_stack_controls(") == 2
+    assert layout.count("should_stack_controls(") == 3
     assert layout.count("row_force_default: True") >= 2
 
 
@@ -577,3 +577,53 @@ def test_transaction_advanced_filters_scroll_on_small_widths():
     assert "text: 'RESET ALL'" in active_summary
     assert "width: '104dp'" in active_summary
     assert "height: '48dp'" in active_summary
+
+
+def test_add_transaction_posting_actions_stack_and_grow_with_font_scale():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+
+    action_group = layout.split(
+        "id: transaction_actions",
+        maxsplit=1,
+    )[1]
+
+    assert "should_stack_controls(" in action_group
+    assert "height: self.minimum_height" in action_group
+    assert "row_force_default: True" in action_group
+    assert "dp(48) * max(1, Metrics.fontscale)" in action_group
+    assert "id: temporary_action" in action_group
+    assert "id: post_action" in action_group
+    assert action_group.count("size_hint: 1, None") >= 2
+
+
+def test_add_transaction_header_and_guidance_fit_enlarged_text():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+
+    header = layout.split(
+        "BoxLayout:",
+        maxsplit=2,
+    )[2].split(
+        "Widget:",
+        maxsplit=1,
+    )[0]
+    guidance = layout.split(
+        "id: posting_status_card",
+        maxsplit=1,
+    )[1].split(
+        "OutlinedCard:",
+        maxsplit=1,
+    )[0]
+
+    assert "dp(64) * max(1, Metrics.fontscale)" in header
+    assert "id: screen_title" in header
+    assert "max_lines: 1" in header
+    assert "shorten: True" in header
+    assert "icon: 'content-save'" not in header
+    assert guidance.count("height: self.texture_size[1]") == 2
+    assert guidance.count("text_size: self.width, None") == 2

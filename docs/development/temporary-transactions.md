@@ -81,6 +81,27 @@ totals. All stored and calculated money remains integer centavos.
 - The first release does not auto-post, auto-expire, or silently remove
   temporary transactions.
 
+## Transaction Form Interface
+
+- The transaction form uses explicit text actions rather than an icon-only save
+  control: `Save as Temporary` and `Post Transaction`.
+- New-record guidance explains that posting changes balances and totals while a
+  temporary save remains non-posting.
+- Editing a temporary record shows a visible `TEMPORARY` status label, keeps a
+  `Save Temporary` action, and offers `Post Transaction`.
+- Before posting an edited temporary record, the current validated fields are
+  saved while the record is still temporary. The dedicated compare-and-set
+  posting operation runs only after that save succeeds.
+- If the posting operation then fails, the edited record remains temporary and
+  every posted balance and total remains unchanged.
+- Editing a posted record shows a visible `POSTED` status label, changes the
+  primary action to `Save Changes`, and disables the secondary action with the
+  explicit text `Already Posted`. A posted transaction cannot return to
+  temporary.
+- The action group stacks on constrained widths, grows with system font scale,
+  and keeps both status and meaning available through text rather than color
+  alone.
+
 ## Activity History and Filters
 
 - Temporary transactions appear in Dashboard recent activity and unified

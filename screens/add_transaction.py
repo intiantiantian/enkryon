@@ -7,14 +7,23 @@ from database.category_group_repository import get_category_groups_by_type
 from database.category_repository import get_categories_by_group
 
 from services.transaction_services import (
+    TransactionSaveResult,
     get_transaction_for_edit,
+    post_transaction_by_id as post_transaction_workflow,
     save_transaction as save_transaction_workflow,
 )
 
+from .transaction_form_actions import (
+    get_transaction_form_action_state,
+)
 from .transaction_form_state import TransactionFormState
 from .action_results import render_action_result
 
 from utils.amount_input import apply_amount_key
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
+)
 from utils.transaction_datetime import (
     format_date_label,
     format_time_label,
@@ -184,6 +193,26 @@ class AddTransactionScreen(Screen):
 
         self.update_amount_label()
         self.set_notes(state.notes)
+
+        action_state = get_transaction_form_action_state(
+            transaction_id=state.transaction_id,
+            posting_status=state.posting_status,
+        )
+        self.ids.screen_title.text = action_state.screen_title
+        self.ids.posting_status_label.text = action_state.status_label
+        self.ids.posting_guidance_label.text = (
+            action_state.guidance_text
+        )
+        self.ids.temporary_action.text = (
+            action_state.temporary_action_text
+        )
+        self.ids.temporary_action.disabled = (
+            action_state.temporary_action_disabled
+        )
+        self.ids.temporary_action.opacity = (
+            .38 if action_state.temporary_action_disabled else 1
+        )
+        self.ids.post_action.text = action_state.primary_action_text
 
 
     def open_account_menu(self):
@@ -462,21 +491,85 @@ class AddTransactionScreen(Screen):
         self.ids.time_label.text = self.form_state.time_label
 
 
-    def save_transaction(self):
-        result = save_transaction_workflow(
-            **self.form_state.to_save_arguments()
-        )
+    def _save_form_with_status(self, posting_status):
+        save_arguments = self.form_state.to_save_arguments()
+        save_arguments["posting_status"] = posting_status
+        return save_transaction_workflow(**save_arguments)
 
-        render_action_result(result)
 
-        if not result.success:
-            return
-
+    def _complete_transaction_action(self):
         self.form_state.transaction_id = None
+        self.form_state.posting_status = POSTED_STATUS
 
         dashboard = self.manager.get_screen('dashboard')
         dashboard.load_dashboard()
         self.manager.current = 'dashboard'
+
+
+    def save_transaction(self):
+        return AddTransactionScreen.post_transaction(self)
+
+
+    def save_temporary_transaction(self):
+        action_state = get_transaction_form_action_state(
+            transaction_id=self.form_state.transaction_id,
+            posting_status=self.form_state.posting_status,
+        )
+        if action_state.temporary_action_disabled:
+            render_action_result(
+                TransactionSaveResult(
+                    False,
+                    (
+                        "Posted transactions cannot be changed back "
+                        "to temporary."
+                    ),
+                )
+            )
+            return
+
+        result = AddTransactionScreen._save_form_with_status(
+            self,
+            TEMPORARY_STATUS,
+        )
+        render_action_result(result)
+
+        if result.success:
+            AddTransactionScreen._complete_transaction_action(self)
+
+
+    def post_transaction(self):
+        is_existing_temporary = (
+            self.form_state.transaction_id is not None
+            and self.form_state.posting_status == TEMPORARY_STATUS
+        )
+
+        if is_existing_temporary:
+            save_result = AddTransactionScreen._save_form_with_status(
+                self,
+                TEMPORARY_STATUS,
+            )
+            if not save_result.success:
+                render_action_result(save_result)
+                return
+
+            post_result = post_transaction_workflow(
+                self.form_state.transaction_id
+            )
+            render_action_result(post_result)
+            if not post_result.success:
+                return
+
+            AddTransactionScreen._complete_transaction_action(self)
+            return
+
+        result = AddTransactionScreen._save_form_with_status(
+            self,
+            POSTED_STATUS,
+        )
+        render_action_result(result)
+
+        if result.success:
+            AddTransactionScreen._complete_transaction_action(self)
 
 
     def load_transaction(self, transaction_id):

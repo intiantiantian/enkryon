@@ -127,8 +127,8 @@ def test_update_2_task_3_records_complete_service_workflows():
     roadmap = read_project_file("ROADMAP.md")
     normalized_verification = " ".join(verification.split())
 
-    assert "Verified weighted progress: `43%`." in verification
-    assert "Task 3 complete" in verification
+    assert "| 3. Add form state and service workflows | 18% | Verified |" in verification
+    assert "Task 3 gate" in verification
     assert "Task 3A" in verification
     assert "Task 3B" in verification
     assert "`61` tests" in normalized_verification
@@ -145,3 +145,34 @@ def test_update_2_task_3_records_complete_service_workflows():
     assert "UI-independent save, edit, atomic" in roadmap
     assert "compare-and-set status update" in contract
     assert "Delete and undo-restore preserve" in contract
+
+
+
+def test_update_2_task_4a_records_explicit_form_actions():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    layout = read_project_file("kv/add_transaction.kv")
+    screen = read_project_file("screens/add_transaction.py")
+
+    assert "Verified weighted progress: `54%`." in verification
+    assert "Task 4A complete" in verification
+    assert "In progress — 11% verified" in verification
+    assert "`82` tests" in verification
+    assert "`696 passed`" in verification
+    assert "transaction-form interface gate" in testing
+    assert "Save as Temporary" in contract
+    assert "Post Transaction" in contract
+    assert "Already Posted" in contract
+    assert "completed Task 4A form" in roadmap
+    assert "id: posting_status_label" in layout
+    assert "id: temporary_action" in layout
+    assert "id: post_action" in layout
+    assert "icon: 'content-save'" not in layout
+    assert "save_temporary_transaction" in screen
+    assert "post_transaction_workflow" in screen

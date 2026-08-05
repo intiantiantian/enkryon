@@ -17,7 +17,10 @@ from screens.transaction_form_state import TransactionFormState
 from screens.transaction_filter_state import TransactionFilterState
 from screens.transactions import TransactionsScreen
 
-from services.transaction_services import TransactionSaveResult
+from services.transaction_services import (
+    TransactionPostResult,
+    TransactionSaveResult,
+)
 
 
 action_results_module = import_module("screens.action_results")
@@ -289,7 +292,11 @@ def test_transaction_history_load_forwards_filter_state(
     )
 
 
-def make_save_screen(*, transaction_id=None):
+def make_save_screen(
+    *,
+    transaction_id=None,
+    posting_status="posted",
+):
     dashboard = SimpleNamespace(load_dashboard=Mock())
     manager = SimpleNamespace(
         current="add_transaction",
@@ -309,6 +316,7 @@ def make_save_screen(*, transaction_id=None):
             time_label="7:30 PM",
             notes="Dinner",
             transaction_id=transaction_id,
+            posting_status=posting_status,
         ),
         manager=manager,
     )
@@ -337,6 +345,27 @@ def patch_save_workflow(monkeypatch, result):
     )
 
     return save_transaction_workflow, show_snackbar
+
+
+def patch_post_workflow(monkeypatch, result):
+    add_transaction_module = import_module(
+        "screens.add_transaction"
+    )
+    post_transaction_workflow = Mock(return_value=result)
+    show_snackbar = Mock()
+
+    monkeypatch.setattr(
+        add_transaction_module,
+        "post_transaction_workflow",
+        post_transaction_workflow,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+
+    return post_transaction_workflow, show_snackbar
 
 
 def test_save_transaction_stops_when_form_is_invalid(
@@ -498,6 +527,228 @@ def test_save_transaction_keeps_edit_state_when_update_fails(
     dashboard.load_dashboard.assert_not_called()
     screen.manager.get_screen.assert_not_called()
 
+    assert screen.manager.current == "add_transaction"
+
+
+def test_save_as_temporary_uses_explicit_temporary_status(
+    monkeypatch,
+):
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=True,
+                message="Temporary transaction saved.",
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen()
+
+    AddTransactionScreen.save_temporary_transaction(screen)
+
+    save_transaction_workflow.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=None,
+        posting_status="temporary",
+    )
+    show_snackbar.assert_called_once_with(
+        "Temporary transaction saved."
+    )
+    dashboard.load_dashboard.assert_called_once_with()
+    assert screen.manager.current == "dashboard"
+
+
+def test_save_temporary_edit_preserves_edit_state_on_failure(
+    monkeypatch,
+):
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=False,
+                message=(
+                    "Temporary transaction could not be updated."
+                ),
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen(
+        transaction_id=17,
+        posting_status="temporary",
+    )
+
+    AddTransactionScreen.save_temporary_transaction(screen)
+
+    save_transaction_workflow.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=17,
+        posting_status="temporary",
+    )
+    show_snackbar.assert_called_once_with(
+        "Temporary transaction could not be updated."
+    )
+    dashboard.load_dashboard.assert_not_called()
+    assert screen.form_state.transaction_id == 17
+    assert screen.manager.current == "add_transaction"
+
+
+def test_post_temporary_edit_saves_current_values_before_posting(
+    monkeypatch,
+):
+    save_transaction_workflow, _ = patch_save_workflow(
+        monkeypatch,
+        TransactionSaveResult(
+            success=True,
+            message="Temporary transaction updated successfully.",
+        ),
+    )
+    post_transaction_workflow, show_snackbar = (
+        patch_post_workflow(
+            monkeypatch,
+            TransactionPostResult(
+                success=True,
+                message="Temporary transaction posted.",
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen(
+        transaction_id=17,
+        posting_status="temporary",
+    )
+
+    AddTransactionScreen.post_transaction(screen)
+
+    save_transaction_workflow.assert_called_once_with(
+        account_id=2,
+        amount="123.45",
+        transaction_type="expense",
+        category_id=8,
+        date_label="July 19, 2026",
+        time_label="7:30 PM",
+        notes_label="Dinner",
+        transaction_id=17,
+        posting_status="temporary",
+    )
+    post_transaction_workflow.assert_called_once_with(17)
+    show_snackbar.assert_called_once_with(
+        "Temporary transaction posted."
+    )
+    dashboard.load_dashboard.assert_called_once_with()
+    assert screen.form_state.transaction_id is None
+    assert screen.form_state.posting_status == "posted"
+    assert screen.manager.current == "dashboard"
+
+
+def test_post_temporary_edit_stops_when_current_values_do_not_save(
+    monkeypatch,
+):
+    save_transaction_workflow, _ = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=False,
+                message="Please select an account.",
+            ),
+        )
+    )
+    post_transaction_workflow, show_snackbar = patch_post_workflow(
+        monkeypatch,
+        TransactionPostResult(
+            success=True,
+            message="Temporary transaction posted.",
+        ),
+    )
+    screen, dashboard = make_save_screen(
+        transaction_id=17,
+        posting_status="temporary",
+    )
+
+    AddTransactionScreen.post_transaction(screen)
+
+    save_transaction_workflow.assert_called_once()
+    post_transaction_workflow.assert_not_called()
+    show_snackbar.assert_called_once_with(
+        "Please select an account."
+    )
+    dashboard.load_dashboard.assert_not_called()
+    assert screen.form_state.transaction_id == 17
+    assert screen.manager.current == "add_transaction"
+
+
+def test_post_temporary_edit_keeps_temporary_state_when_post_fails(
+    monkeypatch,
+):
+    save_transaction_workflow, _ = patch_save_workflow(
+        monkeypatch,
+        TransactionSaveResult(
+            success=True,
+            message="Temporary transaction updated successfully.",
+        ),
+    )
+    post_transaction_workflow, show_snackbar = (
+        patch_post_workflow(
+            monkeypatch,
+            TransactionPostResult(
+                success=False,
+                message="Temporary transaction could not be posted.",
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen(
+        transaction_id=17,
+        posting_status="temporary",
+    )
+
+    AddTransactionScreen.post_transaction(screen)
+
+    save_transaction_workflow.assert_called_once()
+    post_transaction_workflow.assert_called_once_with(17)
+    show_snackbar.assert_called_once_with(
+        "Temporary transaction could not be posted."
+    )
+    dashboard.load_dashboard.assert_not_called()
+    assert screen.form_state.transaction_id == 17
+    assert screen.form_state.posting_status == "temporary"
+    assert screen.manager.current == "add_transaction"
+
+
+def test_posted_edit_cannot_be_saved_as_temporary(
+    monkeypatch,
+):
+    save_transaction_workflow, show_snackbar = (
+        patch_save_workflow(
+            monkeypatch,
+            TransactionSaveResult(
+                success=True,
+                message="Unexpected save.",
+            ),
+        )
+    )
+    screen, dashboard = make_save_screen(
+        transaction_id=17,
+        posting_status="posted",
+    )
+
+    AddTransactionScreen.save_temporary_transaction(screen)
+
+    save_transaction_workflow.assert_not_called()
+    show_snackbar.assert_called_once_with(
+        "Posted transactions cannot be changed back to temporary."
+    )
+    dashboard.load_dashboard.assert_not_called()
+    assert screen.form_state.transaction_id == 17
     assert screen.manager.current == "add_transaction"
 
 

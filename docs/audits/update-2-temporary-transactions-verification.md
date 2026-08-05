@@ -6,9 +6,9 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `43%`.
-- Current task: Task 3 complete — UI-independent save, edit, post, delete,
-  and restore workflows verified.
+- Verified weighted progress: `54%`.
+- Current task: Task 4A complete — explicit temporary-save and posting form
+  actions implemented; Activity History presentation remains Task 4B.
 
 ## Weighted Plan
 
@@ -17,7 +17,7 @@ Updated: August 5, 2026
 | 1. Lock status semantics and baseline | 7% | Verified |
 | 2. Add migration and status-aware persistence | 18% | Verified |
 | 3. Add form state and service workflows | 18% | Verified |
-| 4. Build temporary transaction interface | 20% | Not started |
+| 4. Build temporary transaction interface | 20% | In progress — 11% verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
 | 6. Extend backup and recovery | 11% | Not started |
 | 7. Close and release Update 2 | 10% | Not started |
@@ -124,16 +124,41 @@ Delete and restore workflows now distinguish temporary records while preserving
 the complete transaction record for the existing undo flow. Repository lookup,
 delete, and restore failures return stable service results, and an integration
 round trip proves that deletion and restoration do not make a temporary record
-financially effective. The focused Task 3B gate contains `89` tests. The
-complete Task 3 gate is expected to report `682 passed` with approximately
-`83%` total branch coverage.
+financially effective. The focused Task 3B gate contains `89` tests. The complete Task 3 gate
+reported `682 passed` with approximately `83%` total branch coverage. A
+warning-only follow-up closed the directly opened SQLite test connection, and
+the complete suite again reported `682 passed` with no warning.
 
-No real-application check is required for Task 3B because it adds no visible
-control. Task 4 will expose temporary save and posting actions and connect them
-to the verified service workflows.
+No real-application check was required for Task 3B because it added no visible
+control. Task 4 connects these verified workflows to the interface.
+
+## Task 4A Form Actions Evidence
+
+Task 4 is split into two weighted checkpoints: Task 4A contributes `11%` for
+the transaction-form interface, and Task 4B contributes `9%` for temporary
+status and posting actions in Dashboard recent activity and Activity History.
+
+Task 4A replaces the icon-only save control with explicit `Save as Temporary`
+and `Post Transaction` buttons. New, temporary-edit, and posted-edit states use
+different titles, status labels, guidance text, and action labels. Posted edits
+show `Already Posted` as a disabled secondary action rather than permitting a
+status reversal.
+
+When an edited temporary transaction is posted, the screen first validates and
+saves the current fields without changing status. It then calls the dedicated
+compare-and-set posting workflow. A validation or save failure prevents the
+post attempt; a posting failure keeps the edited record temporary and leaves
+all posted totals unchanged.
+
+The form action group stacks on constrained screens, expands with system font
+scale, and communicates status through visible text rather than color alone.
+The focused Task 4A gate contains `82` tests. The complete checkpoint gate is
+expected to report `696 passed` with approximately `83%` total branch coverage.
+A real-application form check is required before this checkpoint is committed.
 
 ## Next Gate
 
-Task 4 will build the temporary-transaction interface with explicit save and
-post actions, non-color-only status treatment, preserved edit state, responsive
-layouts, and real-application checks.
+Task 4B will add a visible `Temporary` treatment to transaction cards in
+Dashboard recent activity and Activity History, expose edit/delete/post actions
+without applying Activity filters yet, and complete responsive and
+real-application interface verification.
