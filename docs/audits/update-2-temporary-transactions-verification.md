@@ -6,10 +6,11 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `90%`.
-- Current task: Task 6 complete — backup format 3, exact posting-status round
-  trips, format-1/2 normalization, and replacement-recovery invariants are
-  verified; Task 7 release closeout is next.
+- Verified weighted progress: `94%`.
+- Current task: Task 7A complete — v1.2.0 release-candidate identity,
+  changelog, release notes, architecture, database, checklist, and desktop
+  closeout evidence are verified; Task 7B Android and publication evidence
+  remains.
 
 ## Weighted Plan
 
@@ -21,7 +22,7 @@ Updated: August 5, 2026
 | 4. Build pending transaction interface | 20% | Verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Verified |
 | 6. Extend backup and recovery | 11% | Verified |
-| 7. Close and release Update 2 | 10% | Not started |
+| 7. Close and release Update 2 | 10% | In progress — 4% verified |
 
 ## Verified v1.1.0 Baseline
 
@@ -242,9 +243,10 @@ restore as posted, matching the locked compatibility contract.
 
 The focused Task 6 recovery gate contains `82` tests. The complete checkpoint
 reported `737 passed` with approximately `83%` total branch coverage. Python
-compilation and Git whitespace checks passed. The remaining real-application
-gate is an export, preview, replacement restore, and relaunch check using one
-posted and one Pending record.
+compilation and Git whitespace checks passed. The supplied real-application log records a successful application launch
+before commit `f060d35`. The complete Android backup, Clear All Data,
+format-3 restore, status-preservation, and relaunch cycle remains part of the
+final Task 7B release gate. Task 6 raised verified progress to `90%`.
 
 ## Terminology Correction Evidence
 
@@ -258,10 +260,26 @@ The originally requested pass-through cash-out scenario is documented as a
 separate future feature because it changes account balances while remaining
 outside Income and Expenses.
 
+## Task 7A Release Candidate Evidence
+
+Task 7A advances the canonical application version to `1.2.0` and prepares the
+source-controlled release identity without claiming that the Android release is
+already complete. README, changelog, roadmap, release guide, architecture,
+database guide, Android checklist, release notes, and closeout tests agree on
+Pending Transaction semantics, migration 6, backup format 3, and the standard
+`Enkryon-v1.2.0.apk` artifact name.
+
+The candidate release notes deliberately mark GitHub Actions, signing,
+alignment, installation, official upgrade, smoke testing, artifact size, and
+checksum as pending. Those values must be replaced only with observed evidence.
+The desktop gate repeats the complete test suite with coverage, Python
+compilation, Git whitespace checks, version consistency, and documentation
+contracts. Task 7A contributes `4%` and raises verified progress to `94%`.
+
 ## Next Gate
 
-Task 7 will run the complete release closeout: regression and coverage,
-compilation, whitespace checks, green GitHub Actions, version and release
-documentation, signed Android artifact verification, clean installation,
-official `v1.1.0`-to-`v1.2.0` in-place upgrade, backup/clear/restore/relaunch,
-and controlled posted/Pending financial checks.
+Task 7B requires green GitHub Actions, the signed and aligned Android artifact,
+clean installation, the official `v1.1.0`-to-`v1.2.0` in-place upgrade,
+backup/clear/restore/relaunch, controlled posted/Pending financial checks,
+final artifact size and checksum, final release-note replacement, and release
+approval.

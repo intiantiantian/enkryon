@@ -60,6 +60,7 @@ The current migrations are:
 | 3 | `validation_constraints` | Add transaction, name, type, and date/time rules. |
 | 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
 | 5 | `account_transfers` | Add atomic transfer records plus newest-first, outgoing, and incoming indexes. |
+| 6 | `transaction_posting_status` | Add constrained posted/Pending state and the status-history index. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -93,6 +94,7 @@ The current schema enforces these core rules:
 
 - Transaction amounts must be positive integer centavos.
 - Transaction date/time values must use the supported valid format.
+- Transaction posting status must be exactly `posted` or `temporary`.
 - Accounts, category groups, and categories require trimmed, non-empty
   names.
 - Account names are unique after normalization.
@@ -133,7 +135,9 @@ The upgrade tests verify:
 ## Large-History Access
 
 Migration 4 creates three transaction-history indexes for newest-first and
-filtered access. Repository queries combine search and filters with bound
+filtered access. Migration 6 adds
+`transactions_posting_status_history_index` for status-filtered newest-first
+activity. Repository queries combine search and filters with bound
 parameters, treat wildcard characters literally, include complete selected
 dates, and use transaction ID as the stable secondary ordering key.
 
@@ -178,7 +182,7 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-This policy remains in effect for version 1.1:
+This policy remains in effect for version 1.2:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.

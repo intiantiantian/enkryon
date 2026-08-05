@@ -3,9 +3,9 @@
 A modern **offline-first personal finance tracker** built with **Python**, **Kivy**, **KivyMD**, and **SQLite**.
 
 Enkryon is an offline-first personal finance tracker that helps users record
-income and expenses, move funds between accounts, organize accounts and
-categories, and monitor financial activity through a clean and intuitive
-interface.
+income and expenses, hold planned activity as Pending until it is posted,
+move funds between accounts, organize accounts and categories, and monitor
+financial activity through a clean and intuitive interface.
 
 The application focuses on simplicity, local data privacy, and responsive mobile design.
 
@@ -46,13 +46,16 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 - View current balance
 - View total income
 - View total expenses
-- Filter dashboard by account
+- Filter dashboard by account and activity type, including Pending
+- Review Pending activity without changing posted totals
 - Quick access to common actions
 
 ### Transactions
 
 - Add income transactions
 - Add expense transactions
+- Save income or expense transactions as Pending
+- Post Pending transactions when they become financially effective
 - Edit transactions
 - Delete transactions
 - Custom numeric keypad
@@ -95,6 +98,7 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 - Search notes, accounts, category groups, categories, and transfer accounts
 - Filter by transaction type, account, category group, and category
 - Filter transfer activity separately from income and expenses
+- Filter Pending activity separately from posted income and expenses
 - Filter by an inclusive date range
 - Combine search and filters
 - Review active filters and reset them together
@@ -103,9 +107,9 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Settings
 
-- Export a versioned JSON backup including account transfers
+- Export a versioned JSON backup including account transfers and Pending status
 - Preview and restore a validated backup
-- Restore compatible v1.0 backups with an empty transfer collection
+- Restore compatible format-1 and format-2 backups as fully posted transactions
 - Clear all application data
 - Export a backup before clearing data
 - View application, local-data, and privacy information
@@ -117,10 +121,11 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 Official Android APKs are published on the GitHub Releases page after their
 release checks pass.
 
-The current version 1.1 release uses this artifact name:
+The version 1.2 release candidate uses this artifact name after the final
+Android release gate passes:
 
 ```
-Enkryon-v1.1.0.apk
+Enkryon-v1.2.0.apk
 ```
 
 ---

@@ -504,3 +504,21 @@ behavior, also perform these real-application checks before committing:
    returns and totals remain unchanged.
 7. Check Dashboard and Activity History on a narrow window and enlarged system
    text; card content and all actions must remain readable without clipping.
+
+## Update 2 Task 7A Release-Candidate Gate
+
+Task 7A prepares the v1.2.0 source release identity before the Android artifact
+is built. The gate verifies:
+
+- `main.py`, README, changelog, roadmap candidate identity, release guide, and
+  candidate release notes agree on `1.2.0`;
+- Pending Transactions, migration 6, backup format 3, and older-format
+  normalization are documented consistently;
+- the Android checklist requires the official v1.1.0-to-v1.2.0 upgrade and
+  controlled posted/Pending checks;
+- release-note evidence that depends on CI, signing, installation, upgrade, or
+  the generated APK remains explicitly pending rather than guessed; and
+- the complete suite, coverage, compilation, and whitespace checks pass.
+
+Task 7B replaces every pending release-evidence field only after the signed APK
+and physical-device checks provide the actual values.

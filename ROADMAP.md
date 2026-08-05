@@ -2,9 +2,11 @@
 
 Updated: August 5, 2026
 Current release: `v1.1.0`
-Current position: Update 2 Pending Transactions completed Task 6 backup and
-recovery at 90% verified progress; release closeout is next, and the official
-v1.0.0 in-place Android upgrade remains unverified by release-owner waiver
+Current release candidate: `v1.2.0`
+Current position: Update 2 Pending Transactions completed the desktop release-
+candidate closeout at 94% verified progress; GitHub Actions, the signed Android
+artifact, clean installation, and the official v1.1.0-to-v1.2.0 upgrade remain
+required before release
 
 ## Purpose
 
@@ -554,7 +556,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 2 activity integration
+**Status:** In progress — Update 2 release candidate
 
 ### Objective
 
@@ -563,7 +565,7 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 ### Candidate order after version 1.0
 
 1. Account transfers (`v1.1.0`) — released.
-2. Pending Transactions (`v1.2.0`) — current update.
+2. Pending Transactions (`v1.2.0`) — release candidate.
 3. Pass-through Transfers (`v1.3.0`) — the originally requested cash-out or money-forwarding workflow.
 4. Daily Bank Interest (`v1.4.0`) — planned after transfer semantics are stable.
 5. Statistical Visualizations (`v1.5.0`) — planned after pending, pass-through, and interest records are defined.
@@ -645,8 +647,10 @@ The next work should be completed in this order:
 6. Completed: add backup format 3, exact status round trips, format-1/2
    normalization, malformed-status rejection, sequences, integrity, Clear All
    Data, relaunch, and rollback evidence.
-7. Next: complete regression, CI, signed Android artifact, clean installation,
-   official v1.1.0 upgrade, and release evidence.
+7. In progress: the v1.2.0 source identity, changelog, release notes, architecture,
+   database guide, checklist, and desktop regression evidence are prepared.
+   GitHub Actions, the signed Android artifact, clean installation, official
+   v1.1.0 upgrade, and final artifact evidence remain.
 
 Do not begin Pass-through Transfers, Daily Bank Interest, or Statistical
 Visualizations until Pending Transaction posting semantics are implemented and

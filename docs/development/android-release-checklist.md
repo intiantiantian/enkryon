@@ -61,8 +61,12 @@ the evidence in the release notes or the phase verification report.
 - [ ] The upgrade succeeds without a signature or downgrade error.
 - [ ] Existing record IDs, row counts, relationships, notes, and exact totals
   remain correct after migrations run.
-- [ ] A v1.0.0 installation upgrades through migration 5 exactly once and
-  preserves its existing records before new transfers are created.
+- [ ] A v1.1.0 installation upgrades through migration 6 exactly once and
+  preserves its existing transactions, transfers, IDs, notes, and exact totals.
+- [ ] Every pre-upgrade transaction becomes posted; one new Pending income and
+  one new Pending expense remain excluded from balances and totals.
+- [ ] Posting one Pending record after upgrade applies its exact financial effect
+  once and repeated posting is rejected.
 - [ ] A controlled transfer created after upgrade changes only the two
   participating account balances and remains present after relaunch.
 - [ ] `PRAGMA foreign_key_check` reports no violations.
@@ -79,8 +83,9 @@ the evidence in the release notes or the phase verification report.
   restored with exact outgoing/incoming balance effects.
 - [ ] Transfers leave the all-accounts balance, Income, Expenses, and category
   totals unchanged.
-- [ ] Backup export, Clear All Data, and replacement restore preserve transfer
-  IDs, relationships, amounts, notes, and record counts.
+- [ ] Backup format 3 export, Clear All Data, and replacement restore preserve
+  transfer data plus posted/Pending transaction status, IDs, relationships,
+  amounts, notes, and record counts.
 - [ ] Centavo values display and total exactly.
 - [ ] Empty states, validation messages, and destructive confirmations work.
 - [ ] Clearing all data is tested only on disposable test data.

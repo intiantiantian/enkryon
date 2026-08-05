@@ -9,18 +9,14 @@ def read_project_file(relative_path):
 
 
 def test_update_1_release_candidate_identity_is_consistent():
-    main_source = read_project_file("main.py")
-    readme = read_project_file("README.md")
     changelog = read_project_file("CHANGELOG.md")
     roadmap = read_project_file("ROADMAP.md")
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.1.0-release-notes.md"
     )
 
-    assert '__version__ = "1.1.0"' in main_source
-    assert "Enkryon-v1.1.0.apk" in readme
     assert "## [1.1.0] - 2026-08-04" in changelog
-    assert "Current release: `v1.1.0`" in roadmap
+    assert "### Update 1 — Account Transfers (`v1.1.0`)" in roadmap
     assert "# Enkryon v1.1.0" in release_notes
     assert "Enkryon-v1.1.0.apk" in release_notes
 
@@ -64,10 +60,6 @@ def test_update_1_verification_records_release_exception():
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.1.0-release-notes.md"
     )
-    checklist = read_project_file(
-        "docs/development/android-release-checklist.md"
-    )
-
     assert "Verified weighted progress: `90%`." in verification
     assert "Accepted Release Exception" in verification
     assert "waived by the release owner" in verification
@@ -80,7 +72,4 @@ def test_update_1_verification_records_release_exception():
         in release_notes
     )
     assert "PENDING FINAL RELEASE BUILD" not in release_notes
-    assert (
-        "A v1.0.0 installation upgrades through migration 5"
-        in checklist
-    )
+    assert "official Android `v1.0.0` to `v1.1.0`" in release_notes

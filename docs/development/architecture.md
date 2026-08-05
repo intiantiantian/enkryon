@@ -278,6 +278,24 @@ Update 1 extends the same boundaries for account transfers:
 7. Backup export, validation, and restore preserve transfers as first-class
    records without weakening the version-1 compatibility path.
 
+Update 2 extends the architecture without introducing a separate Pending
+transaction repository:
+
+1. `database/transaction_repository.py` owns status-aware CRUD, posted-only
+   totals, and the compare-and-set transition from `temporary` to `posted`.
+2. `database/activity_repository.py` combines transfers, posted transactions,
+   and Pending transactions while enforcing posted-only Income/Expense views.
+3. `services/transaction_services.py` owns Pending save, edit, post, delete, and
+   restore results without importing Kivy.
+4. `screens/transaction_form_state.py` and
+   `screens/transaction_form_actions.py` own UI-independent status and action
+   presentation state.
+5. Transaction screens coordinate confirmation, navigation, refresh, and user
+   feedback; reusable cards display status and dispatch actions but do not own
+   posting rules.
+6. Backup format, validation, and restore preserve status in format 3 while
+   normalizing older formats before replacement recovery.
+
 ## Rule for Future Commits
 
 Each refactor commit should be small and reversible.

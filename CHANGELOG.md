@@ -9,6 +9,33 @@ version reference.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-05
+
+### Added
+
+- Pending Transactions for planned or provisional income and expense records
+  that remain visible without affecting balances or posted totals.
+- Explicit Save as Pending and Post Transaction actions, Pending status text,
+  direct posting from activity cards, and a dedicated Pending activity filter.
+- Database migration 6 with constrained posting status and an indexed
+  newest-first Pending-history access path.
+- Backup format 3 with exact posted/Pending status preservation.
+
+### Changed
+
+- Income and Expense activity filters now return posted records only, while All
+  includes posted transactions, Pending transactions, and account transfers.
+- Format-1 and format-2 backup transactions normalize to posted before restore.
+- Application, Android artifact, release documentation, and roadmap candidate
+  identity now use version `1.2.0`.
+
+### Fixed
+
+- Failed or repeated posting cannot apply a transaction to balances or totals
+  more than once.
+- Pending delete, undo, export, Clear All Data, restore, and relaunch workflows
+  preserve non-posting financial semantics.
+
 ## [1.1.0] - 2026-08-04
 
 ### Added

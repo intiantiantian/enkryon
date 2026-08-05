@@ -271,7 +271,7 @@ def test_update_2_task_6_records_backup_format_3_recovery_evidence():
         "services/backup_validator.py"
     )
 
-    assert "Verified weighted progress: `90%`." in verification
+    assert "Task 6 raised verified progress to `90%`." in verification
     assert (
         "| 6. Extend backup and recovery | 11% | Verified |"
         in verification
@@ -282,10 +282,34 @@ def test_update_2_task_6_records_backup_format_3_recovery_evidence():
     assert "Format-1 and format-2 transactions normalize to `posted`" in (
         contract
     )
-    assert "completed Task 6 backup and" in roadmap
+    assert "Completed: add backup format 3" in roadmap
     assert "TRANSFER_BACKUP_FORMAT_VERSION = 2" in backup_format
     assert "BACKUP_FORMAT_VERSION = 3" in backup_format
     assert '"posting_status"' in backup_format
     assert 'transaction["posting_status"] = "posted"' in (
         backup_validator
     )
+
+def test_update_2_task_7a_records_release_candidate_identity():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    roadmap = read_project_file("ROADMAP.md")
+    release_notes = read_project_file(
+        "docs/releases/Enkryon-v1.2.0-release-notes.md"
+    )
+
+    assert "Verified weighted progress: `94%`." in verification
+    assert (
+        "| 7. Close and release Update 2 | 10% | "
+        "In progress — 4% verified |"
+        in verification
+    )
+    assert "Task 7A Release Candidate Evidence" in verification
+    assert "Update 2 Task 7A Release-Candidate Gate" in testing
+    assert "Current release candidate: `v1.2.0`" in roadmap
+    assert "# Enkryon v1.2.0" in release_notes
+    assert "RELEASE CANDIDATE" in release_notes
+    assert "PENDING FINAL RELEASE BUILD" in release_notes
+    assert "Task 7B requires green GitHub Actions" in verification
