@@ -514,7 +514,7 @@ def test_delete_transaction_by_id_returns_repository_result(
     monkeypatch,
     repository_result,
 ):
-    transaction = object()
+    transaction = make_transaction()
     repository_get_transaction = Mock(
         return_value=transaction
     )
@@ -581,7 +581,7 @@ def test_restore_deleted_transaction_returns_repository_result(
     monkeypatch,
     restored,
 ):
-    transaction = object()
+    transaction = make_transaction()
     repository_restore_transaction = Mock(
         return_value=restored
     )

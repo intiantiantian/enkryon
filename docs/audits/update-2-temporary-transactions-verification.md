@@ -6,9 +6,9 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `35%`.
-- Current task: Task 3A complete — form state and temporary save/edit
-  workflows verified.
+- Verified weighted progress: `43%`.
+- Current task: Task 3 complete — UI-independent save, edit, post, delete,
+  and restore workflows verified.
 
 ## Weighted Plan
 
@@ -16,7 +16,7 @@ Updated: August 5, 2026
 |---:|---:|---|
 | 1. Lock status semantics and baseline | 7% | Verified |
 | 2. Add migration and status-aware persistence | 18% | Verified |
-| 3. Add form state and service workflows | 18% | In progress (10% verified) |
+| 3. Add form state and service workflows | 18% | Verified |
 | 4. Build temporary transaction interface | 20% | Not started |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
 | 6. Extend backup and recovery | 11% | Not started |
@@ -100,16 +100,40 @@ The service now rejects unknown status values and invalid date/time input before
 repository access, preserves exact integer-centavo payloads, distinguishes
 temporary save/edit results, handles missing records, and converts repository
 exceptions into stable failure results. The focused Task 3A gate contains `61`
-tests. The complete checkpoint gate is expected to report `666 passed` with
-approximately `83%` total branch coverage.
+tests. The complete checkpoint gate reported `666 passed` with `83%` total branch
+coverage.
 
 No real-application check is required for Task 3A because it adds no visible
 control yet. Task 4 will connect these service and form-state capabilities to
 the temporary-transaction interface.
 
+## Task 3B Post/Delete/Restore Evidence
+
+Task 3B added a dedicated UI-independent posting service that loads the current
+record, rejects missing and already-posted transactions, and performs one
+compare-and-set transition from `temporary` to `posted`. Successful posting
+changes the existing record once, so exact posted totals and account balances
+become effective immediately without copying or rebuilding the transaction.
+
+The posting workflow converts lookup and repository exceptions into stable
+results. An induced SQLite trigger failure proves that an unsuccessful status
+update leaves the record temporary and leaves posted totals and balances
+unchanged. Repeated posting is rejected before a second repository write.
+
+Delete and restore workflows now distinguish temporary records while preserving
+the complete transaction record for the existing undo flow. Repository lookup,
+delete, and restore failures return stable service results, and an integration
+round trip proves that deletion and restoration do not make a temporary record
+financially effective. The focused Task 3B gate contains `89` tests. The
+complete Task 3 gate is expected to report `682 passed` with approximately
+`83%` total branch coverage.
+
+No real-application check is required for Task 3B because it adds no visible
+control. Task 4 will expose temporary save and posting actions and connect them
+to the verified service workflows.
+
 ## Next Gate
 
-Task 3B will add UI-independent posting, delete, and restore workflows for
-temporary transactions. Posting must remain atomic and compare-and-set
-protected, repeated posting must be rejected, and repository failures must leave
-status and totals unchanged.
+Task 4 will build the temporary-transaction interface with explicit save and
+post actions, non-color-only status treatment, preserved edit state, responsive
+layouts, and real-application checks.

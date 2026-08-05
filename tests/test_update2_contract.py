@@ -113,10 +113,10 @@ def test_update_2_task_2_records_status_aware_persistence_evidence():
         "Account- or category-specific status indexes remain deferred"
         in normalized_contract
     )
-    assert "completed Task 2" in roadmap
+    assert "Completed: add migration 6" in roadmap
 
 
-def test_update_2_task_3a_records_temporary_save_edit_workflows():
+def test_update_2_task_3_records_complete_service_workflows():
     verification = read_project_file(
         "docs/audits/update-2-temporary-transactions-verification.md"
     )
@@ -127,14 +127,21 @@ def test_update_2_task_3a_records_temporary_save_edit_workflows():
     roadmap = read_project_file("ROADMAP.md")
     normalized_verification = " ".join(verification.split())
 
-    assert "Verified weighted progress: `35%`." in verification
-    assert "Task 3A complete" in verification
+    assert "Verified weighted progress: `43%`." in verification
+    assert "Task 3 complete" in verification
+    assert "Task 3A" in verification
+    assert "Task 3B" in verification
     assert "`61` tests" in normalized_verification
+    assert "`89` tests" in normalized_verification
     assert "`666 passed`" in verification
+    assert "`682 passed`" in verification
     assert "ordinary save path" in verification
     assert "temporary save/edit workflow gate" in testing
+    assert "posting and recovery workflow gate" in testing
     assert (
         "Ordinary save and edit workflows cannot change posting status"
         in contract
     )
-    assert "temporary form state plus UI-independent save and edit" in roadmap
+    assert "UI-independent save, edit, atomic" in roadmap
+    assert "compare-and-set status update" in contract
+    assert "Delete and undo-restore preserve" in contract

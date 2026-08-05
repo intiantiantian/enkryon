@@ -7,6 +7,7 @@ from database.transaction_repository import (
     get_transactions,
     insert_transaction,
     update_transaction,
+    update_transaction_posting_status,
     restore_transaction,
 )
 from database.records import TransactionDetailRecord
@@ -21,6 +22,11 @@ from utils.transaction_validation import validate_transaction_form
 
 
 class TransactionSaveResult(NamedTuple):
+    success: bool
+    message: str
+
+
+class TransactionPostResult(NamedTuple):
     success: bool
     message: str
 
@@ -304,8 +310,50 @@ def get_transaction_for_edit(transaction_id):
     return get_transaction_by_id(transaction_id)
 
 
+def post_transaction_by_id(transaction_id):
+    try:
+        transaction = get_transaction_by_id(transaction_id)
+    except sqlite3.Error:
+        transaction = None
+
+    if transaction is None:
+        return TransactionPostResult(
+            False,
+            "Transaction could not be posted.",
+        )
+
+    if transaction.posting_status == POSTED_STATUS:
+        return TransactionPostResult(
+            False,
+            "Transaction is already posted.",
+        )
+
+    try:
+        posted = update_transaction_posting_status(
+            transaction_id,
+            POSTED_STATUS,
+            expected_posting_status=TEMPORARY_STATUS,
+        )
+    except sqlite3.Error:
+        posted = False
+
+    if posted:
+        return TransactionPostResult(
+            True,
+            "Temporary transaction posted.",
+        )
+
+    return TransactionPostResult(
+        False,
+        "Temporary transaction could not be posted.",
+    )
+
+
 def delete_transaction_by_id(transaction_id):
-    transaction = get_transaction_by_id(transaction_id)
+    try:
+        transaction = get_transaction_by_id(transaction_id)
+    except sqlite3.Error:
+        transaction = None
 
     if transaction is None:
         return TransactionDeleteResult(
@@ -313,31 +361,57 @@ def delete_transaction_by_id(transaction_id):
             "Transaction could not be deleted.",
         )
 
-    deleted = delete_transaction(transaction_id)
+    try:
+        deleted = delete_transaction(transaction_id)
+    except sqlite3.Error:
+        deleted = False
+
+    is_temporary = transaction.posting_status == TEMPORARY_STATUS
 
     if deleted:
         return TransactionDeleteResult(
             True,
-            "Transaction deleted.",
+            (
+                "Temporary transaction deleted."
+                if is_temporary
+                else "Transaction deleted."
+            ),
             transaction,
         )
 
     return TransactionDeleteResult(
         False,
-        "Transaction could not be deleted.",
+        (
+            "Temporary transaction could not be deleted."
+            if is_temporary
+            else "Transaction could not be deleted."
+        ),
     )
 
 
 def restore_deleted_transaction(transaction):
-    restored = restore_transaction(transaction)
+    try:
+        restored = restore_transaction(transaction)
+    except sqlite3.Error:
+        restored = False
+
+    is_temporary = transaction.posting_status == TEMPORARY_STATUS
 
     if restored:
         return TransactionRestoreResult(
             True,
-            "Transaction restored.",
+            (
+                "Temporary transaction restored."
+                if is_temporary
+                else "Transaction restored."
+            ),
         )
 
     return TransactionRestoreResult(
         False,
-        "Transaction could not be restored.",
+        (
+            "Temporary transaction could not be restored."
+            if is_temporary
+            else "Transaction could not be restored."
+        ),
     )

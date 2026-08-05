@@ -327,3 +327,25 @@ exact centavo payloads, status-preserving edits, invalid-status and date/time
 rejection, missing-record behavior, and stable repository-failure results. The
 complete Task 3A gate is expected to report `666 passed` with approximately
 `83%` total branch coverage.
+
+### Update 2 Task 3B posting and recovery workflow gate
+
+Task 3B completes the UI-independent transaction service workflow without
+adding visible controls. Run the focused gate below before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_services.py ^
+tests/test_temporary_transaction_save_workflows.py ^
+tests/test_temporary_transaction_post_workflows.py ^
+tests/test_temporary_transaction_persistence.py ^
+tests/test_transaction_repository.py ^
+tests/test_transfer_balances.py
+```
+
+The focused gate contains `89` tests. It verifies compare-and-set posting,
+exact-centavo total changes, repeated-post prevention, missing-record behavior,
+induced database-failure rollback, status-preserving delete/restore, and stable
+repository-exception results. The complete Task 3 gate is expected to report
+`682 passed` with approximately `83%` total branch coverage. Because the
+checkpoint introduces no visible control, no real-application check is required.

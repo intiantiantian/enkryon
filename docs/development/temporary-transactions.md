@@ -71,6 +71,13 @@ totals. All stored and calculated money remains integer centavos.
 - Ordinary save and edit workflows cannot change posting status. New records
   may be created explicitly as posted or temporary; an existing record keeps
   its stored status until the dedicated posting workflow succeeds.
+- The dedicated posting service first verifies that the record exists and is
+  still temporary, then performs a compare-and-set status update. An
+  already-posted record is rejected before a second write.
+- Delete and undo-restore preserve the complete posting status. Removing and
+  restoring a temporary record cannot make it financially effective.
+- Lookup, posting, deletion, and restoration failures return stable service
+  results and leave persisted status and posted totals unchanged.
 - The first release does not auto-post, auto-expire, or silently remove
   temporary transactions.
 
