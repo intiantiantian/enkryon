@@ -151,13 +151,13 @@ class TransactionListActionsMixin:
         self.delete_transaction_dialog = (
             EnkryonConfirmationDialog(
                 title=(
-                    "Delete Temporary Transaction?"
+                    "Delete Pending Transaction?"
                     if is_temporary
                     else "Delete Transaction?"
                 ),
                 message=(
                     (
-                        "This temporary transaction will be "
+                        "This pending transaction will be "
                         "permanently deleted. It does not currently "
                         "affect financial totals."
                     )
@@ -180,7 +180,7 @@ class TransactionListActionsMixin:
     def confirm_post_transaction(self, transaction_id):
         self.post_transaction_dialog = (
             EnkryonConfirmationDialog(
-                title="Post Temporary Transaction?",
+                title="Post Pending Transaction?",
                 message=(
                     "Posting makes this transaction financially "
                     "effective immediately. The account balance "

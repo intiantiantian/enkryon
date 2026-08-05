@@ -123,7 +123,7 @@ def create_transaction_card_data(transaction, screen):
         "posting_status": posting_status,
         "is_temporary": is_temporary,
         "posting_status_label": (
-            "TEMPORARY" if is_temporary else ""
+            "PENDING" if is_temporary else ""
         ),
         "posting_status_icon": (
             "clock-outline" if is_temporary else ""

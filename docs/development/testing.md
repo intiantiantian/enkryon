@@ -271,10 +271,10 @@ all collected tests passing, not on preserving a fixed count.
 4. Commit the verified checkpoint.
 5. Push the branch and confirm that GitHub Actions passes.
 
-## Update 2 Temporary-Transaction Contract Baseline
+## Update 2 Pending-Transaction Contract Baseline
 
 Update 2 began from the clean released `v1.1.0` baseline on the
-`update-2-temporary-transactions` branch. Before migration or feature code was
+`update-2-pending-transactions` branch. Before migration or feature code was
 changed, the complete Windows suite reported `637 passed` with `83%` total
 branch coverage on Python `3.13.14`.
 
@@ -307,7 +307,7 @@ Task 2 completed with `654 passed`, `83%` total branch coverage, successful
 Python compilation, and a clean Git whitespace check. It changed no visible
 screen or workflow, so its checkpoint required no real-application check.
 
-### Update 2 Task 3A temporary save/edit workflow gate
+### Update 2 Task 3A pending save/edit workflow gate
 
 Task 3A extends form state and the transaction service without adding visible
 controls. Run the focused gate below before the complete suite:
@@ -322,7 +322,7 @@ tests/test_temporary_transaction_save_workflows.py ^
 tests/test_temporary_transaction_persistence.py
 ```
 
-The focused gate contains `61` tests. It verifies explicit temporary creation,
+The focused gate contains `61` tests. It verifies explicit pending creation,
 exact centavo payloads, status-preserving edits, invalid-status and date/time
 rejection, missing-record behavior, and stable repository-failure results. The
 complete Task 3A gate is expected to report `666 passed` with approximately
@@ -353,7 +353,7 @@ checkpoint introduces no visible control, no real-application check is required.
 
 ### Update 2 Task 4A transaction-form interface gate
 
-Task 4A exposes the verified temporary save and posting services through the
+Task 4A exposes the verified pending save and posting services through the
 transaction form. Run this focused gate before the complete suite:
 
 ```bat
@@ -365,8 +365,8 @@ tests/test_responsive_layout.py ^
 tests/test_accessibility_semantics.py
 ```
 
-The focused gate contains `82` tests. It verifies explicit temporary and posted
-actions, current-field validation before posting an edited temporary record,
+The focused gate contains `82` tests. It verifies explicit pending and posted
+actions, current-field validation before posting an edited pending record,
 failed-save and failed-post preservation, posted-record reversal protection,
 dynamic titles and status text, responsive stacking, enlarged-font growth, and
 non-color-only semantics. The complete Task 4A gate is expected to report `696
@@ -376,7 +376,7 @@ Because Task 4A changes visible behavior, also perform these real-application
 checks before committing:
 
 1. Open a new transaction and confirm both text actions are visible.
-2. Save an expense as temporary and confirm Dashboard balance, Income, and
+2. Save an expense as pending and confirm Dashboard balance, Income, and
    Expenses do not change.
 3. Reopen that record and confirm the title and visible status say temporary.
 4. Edit its amount or notes, post it, and confirm the exact financial effect is
@@ -403,9 +403,9 @@ tests/test_overlay_components.py ^
 tests/test_update2_contract.py
 ```
 
-The gate verifies that temporary records keep their status in unified activity,
+The gate verifies that pending records keep their status in unified activity,
 transfers retain the posted-only shared card contract, recycled cards reset all
-status properties, and only temporary transaction cards expose posting. It also
+status properties, and only pending transaction cards expose posting. It also
 covers financial-effect confirmation copy, temporary-specific deletion copy,
 Dashboard summary refresh, virtualized-list refresh, non-color-only status
 semantics, font-scaled card height, and use of the shared custom overlay.
@@ -415,17 +415,17 @@ The complete Task 4 gate is expected to report `707 passed` with approximately
 behavior, also perform these real-application checks before committing:
 
 1. Save a recognizable expense as temporary and confirm Dashboard recent
-   activity shows a clock icon and `TEMPORARY` text.
+   activity shows a clock icon and `PENDING` text.
 2. Open Activity History and confirm the same record has the same status and
    edit, post, and delete actions.
 3. Open the post confirmation and verify it warns that balances and totals will
    update immediately; cancel and confirm nothing changes.
-4. Post the record from the card, then confirm the Temporary treatment and post
+4. Post the record from the card, then confirm the Pending treatment and post
    action disappear and the exact Dashboard balance and Expense change occurs
    once.
 5. Attempt the stale action again only if an old view remains visible; confirm
    the service rejects repeated posting without a second financial effect.
-6. Delete and undo-restore a temporary record and confirm its Temporary status
+6. Delete and undo-restore a pending record and confirm its Pending status
    returns and totals remain unchanged.
 7. Check Dashboard and Activity History on a narrow window and enlarged system
    text; card content and all actions must remain readable without clipping.

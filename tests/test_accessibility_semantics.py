@@ -125,12 +125,12 @@ def test_temporary_transaction_form_uses_explicit_text_status_cues():
 
     assert "id: posting_status_label" in layout
     assert "id: posting_guidance_label" in layout
-    assert "text: 'SAVE AS TEMPORARY'" in layout
+    assert "text: 'SAVE AS PENDING'" in layout
     assert "text: 'POST TRANSACTION'" in layout
     assert "on_release: root.save_temporary_transaction()" in layout
     assert "on_release: root.post_transaction()" in layout
     assert "CHOOSE POSTING STATUS" in action_source
-    assert 'status_label="TEMPORARY"' in action_source
+    assert 'status_label="PENDING"' in action_source
     assert 'status_label="POSTED"' in action_source
     assert "balances and totals" in action_source
     assert "temporary_action.disabled" in screen_source
@@ -157,9 +157,9 @@ def test_temporary_activity_card_uses_text_icon_and_confirmation_copy():
     assert "id: posting_status_label" in layout
     assert "id: post_transaction_action" in layout
     assert "icon: 'check-circle-outline'" in layout
-    assert '"TEMPORARY" if is_temporary else ""' in card_source
+    assert '"PENDING" if is_temporary else ""' in card_source
     assert '"clock-outline" if is_temporary else ""' in card_source
-    assert "Post Temporary Transaction?" in actions_source
+    assert "Post Pending Transaction?" in actions_source
     assert "financially effective immediately" in normalized_actions
     assert "account balance" in normalized_actions
     assert "totals will update" in normalized_actions

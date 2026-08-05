@@ -538,7 +538,7 @@ def test_save_as_temporary_uses_explicit_temporary_status(
             monkeypatch,
             TransactionSaveResult(
                 success=True,
-                message="Temporary transaction saved.",
+                message="Pending transaction saved.",
             ),
         )
     )
@@ -558,7 +558,7 @@ def test_save_as_temporary_uses_explicit_temporary_status(
         posting_status="temporary",
     )
     show_snackbar.assert_called_once_with(
-        "Temporary transaction saved."
+        "Pending transaction saved."
     )
     dashboard.load_dashboard.assert_called_once_with()
     assert screen.manager.current == "dashboard"
@@ -573,7 +573,7 @@ def test_save_temporary_edit_preserves_edit_state_on_failure(
             TransactionSaveResult(
                 success=False,
                 message=(
-                    "Temporary transaction could not be updated."
+                    "Pending transaction could not be updated."
                 ),
             ),
         )
@@ -597,7 +597,7 @@ def test_save_temporary_edit_preserves_edit_state_on_failure(
         posting_status="temporary",
     )
     show_snackbar.assert_called_once_with(
-        "Temporary transaction could not be updated."
+        "Pending transaction could not be updated."
     )
     dashboard.load_dashboard.assert_not_called()
     assert screen.form_state.transaction_id == 17
@@ -611,7 +611,7 @@ def test_post_temporary_edit_saves_current_values_before_posting(
         monkeypatch,
         TransactionSaveResult(
             success=True,
-            message="Temporary transaction updated successfully.",
+            message="Pending transaction updated successfully.",
         ),
     )
     post_transaction_workflow, show_snackbar = (
@@ -619,7 +619,7 @@ def test_post_temporary_edit_saves_current_values_before_posting(
             monkeypatch,
             TransactionPostResult(
                 success=True,
-                message="Temporary transaction posted.",
+                message="Pending transaction posted.",
             ),
         )
     )
@@ -643,7 +643,7 @@ def test_post_temporary_edit_saves_current_values_before_posting(
     )
     post_transaction_workflow.assert_called_once_with(17)
     show_snackbar.assert_called_once_with(
-        "Temporary transaction posted."
+        "Pending transaction posted."
     )
     dashboard.load_dashboard.assert_called_once_with()
     assert screen.form_state.transaction_id is None
@@ -667,7 +667,7 @@ def test_post_temporary_edit_stops_when_current_values_do_not_save(
         monkeypatch,
         TransactionPostResult(
             success=True,
-            message="Temporary transaction posted.",
+            message="Pending transaction posted.",
         ),
     )
     screen, dashboard = make_save_screen(
@@ -694,7 +694,7 @@ def test_post_temporary_edit_keeps_temporary_state_when_post_fails(
         monkeypatch,
         TransactionSaveResult(
             success=True,
-            message="Temporary transaction updated successfully.",
+            message="Pending transaction updated successfully.",
         ),
     )
     post_transaction_workflow, show_snackbar = (
@@ -702,7 +702,7 @@ def test_post_temporary_edit_keeps_temporary_state_when_post_fails(
             monkeypatch,
             TransactionPostResult(
                 success=False,
-                message="Temporary transaction could not be posted.",
+                message="Pending transaction could not be posted.",
             ),
         )
     )
@@ -716,7 +716,7 @@ def test_post_temporary_edit_keeps_temporary_state_when_post_fails(
     save_transaction_workflow.assert_called_once()
     post_transaction_workflow.assert_called_once_with(17)
     show_snackbar.assert_called_once_with(
-        "Temporary transaction could not be posted."
+        "Pending transaction could not be posted."
     )
     dashboard.load_dashboard.assert_not_called()
     assert screen.form_state.transaction_id == 17

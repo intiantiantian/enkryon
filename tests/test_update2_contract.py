@@ -13,7 +13,7 @@ def test_update_2_contract_locks_non_posting_financial_semantics():
         "docs/development/temporary-transactions.md"
     )
 
-    assert "A temporary transaction is fully non-posting" in contract
+    assert "A pending transaction is fully non-posting" in contract
     for excluded_result in (
         "selected account balance",
         "total Income or Expenses",
@@ -45,11 +45,11 @@ def test_update_2_contract_locks_activity_and_relationship_behavior():
         "docs/development/temporary-transactions.md"
     )
 
-    assert "visible `Temporary` text label" in contract
-    assert "The `Temporary` activity filter returns temporary income and expense" in contract
+    assert "visible `Pending` text label" in contract
+    assert "The `Pending` activity filter returns pending income and expense" in contract
     assert "`Income` and `Expense` activity filters return posted records only" in contract
-    assert "An account referenced by a posted or temporary transaction cannot be deleted" in contract
-    assert "category group referenced by a posted or temporary transaction" in contract
+    assert "An account referenced by a posted or pending transaction cannot be deleted" in contract
+    assert "category group referenced by a posted or pending transaction" in contract
 
 
 def test_update_2_contract_locks_migration_and_backup_compatibility():
@@ -62,9 +62,12 @@ def test_update_2_contract_locks_migration_and_backup_compatibility():
     assert "migrations 1 through 5 are released history" in contract
     assert "Backup format 3 preserves each transaction's posting status" in contract
     assert "Format-1 and format-2 transactions restore as `posted`" in contract
-    assert "Temporary Transactions (`v1.2.0`)" in roadmap
-    assert "Daily Bank Interest (`v1.3.0`)" in roadmap
-    assert "Statistical Visualizations (`v1.4.0`)" in roadmap
+    assert "Pending Transactions (`v1.2.0`)" in roadmap
+    assert "Pass-through Transfers (`v1.3.0`)" in roadmap
+    assert "Daily Bank Interest (`v1.4.0`)" in roadmap
+    assert "Statistical Visualizations (`v1.5.0`)" in roadmap
+    assert "`temporary` remains the internal database and code value" in contract
+    assert "user-facing product term is **Pending**" in contract
 
 
 def test_update_2_task_1_records_baseline_progress_and_release_exception():
@@ -136,7 +139,7 @@ def test_update_2_task_3_records_complete_service_workflows():
     assert "`666 passed`" in verification
     assert "`682 passed`" in verification
     assert "ordinary save path" in verification
-    assert "temporary save/edit workflow gate" in testing
+    assert "pending save/edit workflow gate" in testing
     assert "posting and recovery workflow gate" in testing
     assert (
         "Ordinary save and edit workflows cannot change posting status"
@@ -168,10 +171,10 @@ def test_update_2_task_4a_records_explicit_form_actions():
     assert "`82` tests" in verification
     assert "`696 passed`" in verification
     assert "transaction-form interface gate" in testing
-    assert "Save as Temporary" in contract
+    assert "Save as Pending" in contract
     assert "Post Transaction" in contract
     assert "Already Posted" in contract
-    assert "explicit temporary form actions" in roadmap
+    assert "explicit pending form actions" in roadmap
     assert "id: posting_status_label" in layout
     assert "id: temporary_action" in layout
     assert "id: post_action" in layout
@@ -198,7 +201,7 @@ def test_update_2_task_4b_records_activity_status_and_direct_posting():
 
     assert "Verified weighted progress: `63%`." in verification
     assert (
-        "| 4. Build temporary transaction interface | 20% | Verified |"
+        "| 4. Build pending transaction interface | 20% | Verified |"
         in verification
     )
     assert "Task 4B Activity Interface Evidence" in verification
@@ -211,5 +214,5 @@ def test_update_2_task_4b_records_activity_status_and_direct_posting():
     assert "id: post_transaction_action" in card_layout
     assert "posting_status_label" in card_source
     assert "confirm_post_transaction" in card_source
-    assert "Post Temporary Transaction?" in actions_source
+    assert "Post Pending Transaction?" in actions_source
     assert "refresh_after_transaction_post" in actions_source

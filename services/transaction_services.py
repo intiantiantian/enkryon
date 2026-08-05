@@ -112,11 +112,11 @@ def _create_transaction(payload, posting_status):
         if created:
             return TransactionSaveResult(
                 True,
-                "Temporary transaction saved.",
+                "Pending transaction saved.",
             )
         return TransactionSaveResult(
             False,
-            "Temporary transaction could not be saved.",
+            "Pending transaction could not be saved.",
         )
 
     if created:
@@ -169,7 +169,7 @@ def _update_transaction(payload, transaction_id, posting_status):
         return TransactionSaveResult(
             False,
             (
-                "Temporary transaction could not be updated."
+                "Pending transaction could not be updated."
                 if is_temporary
                 else "Transaction could not be updated."
             ),
@@ -178,7 +178,7 @@ def _update_transaction(payload, transaction_id, posting_status):
     return TransactionSaveResult(
         True,
         (
-            "Temporary transaction updated successfully."
+            "Pending transaction updated successfully."
             if is_temporary
             else "Transaction updated successfully."
         ),
@@ -340,12 +340,12 @@ def post_transaction_by_id(transaction_id):
     if posted:
         return TransactionPostResult(
             True,
-            "Temporary transaction posted.",
+            "Pending transaction posted.",
         )
 
     return TransactionPostResult(
         False,
-        "Temporary transaction could not be posted.",
+        "Pending transaction could not be posted.",
     )
 
 
@@ -372,7 +372,7 @@ def delete_transaction_by_id(transaction_id):
         return TransactionDeleteResult(
             True,
             (
-                "Temporary transaction deleted."
+                "Pending transaction deleted."
                 if is_temporary
                 else "Transaction deleted."
             ),
@@ -382,7 +382,7 @@ def delete_transaction_by_id(transaction_id):
     return TransactionDeleteResult(
         False,
         (
-            "Temporary transaction could not be deleted."
+            "Pending transaction could not be deleted."
             if is_temporary
             else "Transaction could not be deleted."
         ),
@@ -401,7 +401,7 @@ def restore_deleted_transaction(transaction):
         return TransactionRestoreResult(
             True,
             (
-                "Temporary transaction restored."
+                "Pending transaction restored."
                 if is_temporary
                 else "Transaction restored."
             ),
@@ -410,7 +410,7 @@ def restore_deleted_transaction(transaction):
     return TransactionRestoreResult(
         False,
         (
-            "Temporary transaction could not be restored."
+            "Pending transaction could not be restored."
             if is_temporary
             else "Transaction could not be restored."
         ),

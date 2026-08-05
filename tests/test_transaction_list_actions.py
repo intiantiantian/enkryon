@@ -255,7 +255,7 @@ def test_confirm_delete_temporary_transaction_explains_non_posting_state(
 
     dialog_kwargs = dialog_factory.call_args.kwargs
     assert dialog_kwargs["title"] == (
-        "Delete Temporary Transaction?"
+        "Delete Pending Transaction?"
     )
     assert "does not currently affect financial totals" in (
         dialog_kwargs["message"]
@@ -289,7 +289,7 @@ def test_confirm_post_transaction_builds_financial_effect_dialog(
     dialog.open.assert_called_once_with()
     dialog_kwargs = dialog_factory.call_args.kwargs
     assert dialog_kwargs["title"] == (
-        "Post Temporary Transaction?"
+        "Post Pending Transaction?"
     )
     assert "financially effective immediately" in (
         dialog_kwargs["message"]

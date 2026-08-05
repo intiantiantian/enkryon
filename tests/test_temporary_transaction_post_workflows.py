@@ -66,7 +66,7 @@ def test_post_transaction_uses_compare_and_set(monkeypatch):
 
     assert result == transaction_services.TransactionPostResult(
         True,
-        "Temporary transaction posted.",
+        "Pending transaction posted.",
     )
     get_transaction_by_id.assert_called_once_with(17)
     update_status.assert_called_once_with(
@@ -158,7 +158,7 @@ def test_post_transaction_handles_compare_and_set_failure(
 
     assert result == transaction_services.TransactionPostResult(
         False,
-        "Temporary transaction could not be posted.",
+        "Pending transaction could not be posted.",
     )
 
 
@@ -173,7 +173,7 @@ def test_post_transaction_updates_exact_totals_once():
 
     assert first_result == transaction_services.TransactionPostResult(
         True,
-        "Temporary transaction posted.",
+        "Pending transaction posted.",
     )
     assert second_result == transaction_services.TransactionPostResult(
         False,
@@ -207,7 +207,7 @@ def test_failed_database_post_leaves_status_and_totals_unchanged():
 
     assert result == transaction_services.TransactionPostResult(
         False,
-        "Temporary transaction could not be posted.",
+        "Pending transaction could not be posted.",
     )
     assert get_transaction_by_id(1).posting_status == "temporary"
     assert get_total_centavos("expense") == 0
@@ -233,7 +233,7 @@ def test_delete_temporary_transaction_returns_status_preserving_record(
 
     assert result == transaction_services.TransactionDeleteResult(
         True,
-        "Temporary transaction deleted.",
+        "Pending transaction deleted.",
         transaction,
     )
     assert result.deleted_transaction.posting_status == "temporary"
@@ -266,7 +266,7 @@ def test_delete_temporary_transaction_handles_repository_failure(
 
     assert result == transaction_services.TransactionDeleteResult(
         False,
-        "Temporary transaction could not be deleted.",
+        "Pending transaction could not be deleted.",
     )
 
 
@@ -295,12 +295,12 @@ def test_delete_transaction_handles_lookup_failure(monkeypatch):
 @pytest.mark.parametrize(
     ("repository_value", "success", "message"),
     [
-        (True, True, "Temporary transaction restored."),
-        (False, False, "Temporary transaction could not be restored."),
+        (True, True, "Pending transaction restored."),
+        (False, False, "Pending transaction could not be restored."),
         (
             sqlite3.OperationalError("database unavailable"),
             False,
-            "Temporary transaction could not be restored.",
+            "Pending transaction could not be restored.",
         ),
     ],
 )
@@ -335,7 +335,7 @@ def test_delete_and_restore_keep_temporary_transaction_non_posting():
 
     delete_result = transaction_services.delete_transaction_by_id(1)
     assert delete_result.success is True
-    assert delete_result.message == "Temporary transaction deleted."
+    assert delete_result.message == "Pending transaction deleted."
     assert get_transaction_by_id(1) is None
     assert get_total_centavos("expense") == 0
     assert get_current_balance_centavos() == 0
@@ -346,7 +346,7 @@ def test_delete_and_restore_keep_temporary_transaction_non_posting():
 
     assert restore_result == transaction_services.TransactionRestoreResult(
         True,
-        "Temporary transaction restored.",
+        "Pending transaction restored.",
     )
     assert get_transaction_by_id(1).posting_status == "temporary"
     assert get_total_centavos("expense") == 0

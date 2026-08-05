@@ -1,7 +1,7 @@
-# Temporary Transaction Contract
+# Pending Transaction Contract
 
 This document locks the product, persistence, calculation, recovery, and
-integration rules for Enkryon v1.2.0 temporary transactions before migration
+integration rules for Enkryon v1.2.0 Pending Transactions before migration
 6 or feature code is implemented.
 
 ## Release Baseline
@@ -13,7 +13,7 @@ integration rules for Enkryon v1.2.0 temporary transactions before migration
 - Database migrations 1 through 5 are released history and must not be edited,
   deleted, or reordered.
 - Backup formats 1 and 2 remain supported compatibility history.
-- Temporary transactions will be introduced by migration 6 and backup format
+- Pending Transactions will be introduced by migration 6 and backup format
   3.
 
 ## Posting Status
@@ -25,12 +25,14 @@ posting status:
 - `temporary` means the transaction is planned, pending, or provisional and is
   not yet financially effective.
 
+`temporary` remains the internal database and code value for compatibility. The user-facing product term is **Pending**.
+
 Every transaction that exists before migration 6 becomes `posted`. Unknown or
 blank posting-status values are invalid.
 
-## Temporary Record Fields
+## Pending Record Fields
 
-A temporary transaction uses the same core fields as an existing transaction:
+A pending transaction uses the same core fields as an existing transaction:
 
 - one account;
 - one income or expense category;
@@ -38,12 +40,12 @@ A temporary transaction uses the same core fields as an existing transaction:
 - a date and time using Enkryon's supported database format; and
 - optional notes.
 
-Temporary records remain normal transaction identities. They must not be
+Pending records remain normal transaction identities. They must not be
 copied into a second table or duplicated when they are posted.
 
 ## Financial Invariants
 
-A temporary transaction is fully non-posting. Until explicit posting, it must
+A pending transaction is fully non-posting. Until explicit posting, it must
 not change:
 
 - the selected account balance;
@@ -52,19 +54,19 @@ not change:
 - net cash flow; or
 - statistical financial aggregates.
 
-Temporary records may expose a separate count or face-value context, but that
+Pending records may expose a separate count or face-value context, but that
 context must be clearly labeled non-posting and must never be mixed into posted
 totals. All stored and calculated money remains integer centavos.
 
 ## Lifecycle and Atomic Posting
 
-- A user can save, view, search, filter, edit, delete, and restore a temporary
+- A user can save, view, search, filter, edit, delete, and restore a pending
   transaction through the existing transaction and undo patterns.
 - Posting converts the existing record from `temporary` to `posted` in one atomic
   database operation.
 - Successful posting immediately applies the exact account, Income or Expense,
   and category effects of the transaction.
-- A failed posting operation leaves the record temporary and leaves every
+- A failed posting operation leaves the record pending and leaves every
   posted total unchanged.
 - A repeated attempt to post an already-posted transaction must be rejected
   without changing the record or any total.
@@ -72,68 +74,68 @@ totals. All stored and calculated money remains integer centavos.
   may be created explicitly as posted or temporary; an existing record keeps
   its stored status until the dedicated posting workflow succeeds.
 - The dedicated posting service first verifies that the record exists and is
-  still temporary, then performs a compare-and-set status update. An
+  still pending, then performs a compare-and-set status update. An
   already-posted record is rejected before a second write.
 - Delete and undo-restore preserve the complete posting status. Removing and
-  restoring a temporary record cannot make it financially effective.
+  restoring a pending record cannot make it financially effective.
 - Lookup, posting, deletion, and restoration failures return stable service
   results and leave persisted status and posted totals unchanged.
 - The first release does not auto-post, auto-expire, or silently remove
-  temporary transactions.
+  pending transactions.
 
 ## Transaction Form Interface
 
 - The transaction form uses explicit text actions rather than an icon-only save
-  control: `Save as Temporary` and `Post Transaction`.
+  control: `Save as Pending` and `Post Transaction`.
 - New-record guidance explains that posting changes balances and totals while a
-  temporary save remains non-posting.
-- Editing a temporary record shows a visible `TEMPORARY` status label, keeps a
-  `Save Temporary` action, and offers `Post Transaction`.
-- Before posting an edited temporary record, the current validated fields are
-  saved while the record is still temporary. The dedicated compare-and-set
+  pending save remains non-posting.
+- Editing a pending record shows a visible `PENDING` status label, keeps a
+  `Save Pending` action, and offers `Post Transaction`.
+- Before posting an edited pending record, the current validated fields are
+  saved while the record is still pending. The dedicated compare-and-set
   posting operation runs only after that save succeeds.
-- If the posting operation then fails, the edited record remains temporary and
+- If the posting operation then fails, the edited record remains pending and
   every posted balance and total remains unchanged.
 - Editing a posted record shows a visible `POSTED` status label, changes the
   primary action to `Save Changes`, and disables the secondary action with the
   explicit text `Already Posted`. A posted transaction cannot return to
-  temporary.
+  pending.
 - The action group stacks on constrained widths, grows with system font scale,
   and keeps both status and meaning available through text rather than color
   alone.
 
 ## Activity History and Filters
 
-- Temporary transactions appear in Dashboard recent activity and unified
+- Pending transactions appear in Dashboard recent activity and unified
   Activity History.
-- Each temporary record has a visible `Temporary` text label and a
+- Each pending record has a visible `Pending` text label and a
   non-color-only status treatment.
 - Unified Activity records carry posting status into both Dashboard recent
   activity and virtualized Activity History without per-card database reads.
-- Temporary cards pair a clock icon with explicit `TEMPORARY` text and expose a
+- Pending cards pair a clock icon with explicit `PENDING` text and expose a
   guarded post action. Posted transactions and transfers do not expose that
   action.
 - Direct posting requires confirmation that the record becomes financially
   effective immediately and that account balances and totals will update.
-- Temporary deletion confirmation explicitly states that the record does not
+- Pending deletion confirmation explicitly states that the record does not
   currently affect financial totals.
 - A successful direct post refreshes the Dashboard summary and recent activity
   together, while Activity History refreshes its virtualized list.
-- Search includes temporary notes, account names, category-group names, and
+- Search includes pending-record notes, account names, category-group names, and
   category names.
-- The `Temporary` activity filter returns temporary income and expense records.
+- The `Pending` activity filter returns pending income and expense records.
 - Existing `Income` and `Expense` activity filters return posted records only.
 - Account, category-group, category, date, and search filters apply to both
-  posted and temporary records when their activity type is eligible.
+  posted and pending records when their activity type is eligible.
 - Newest-first ordering continues to use the record ID as a stable secondary
   key.
 
 ## Relationship Safety
 
-- An account referenced by a posted or temporary transaction cannot be deleted.
-- A category or category group referenced by a posted or temporary transaction
+- An account referenced by a posted or pending transaction cannot be deleted.
+- A category or category group referenced by a posted or pending transaction
   remains protected by the existing deletion rules.
-- Editing a temporary record must validate its relationships without applying
+- Editing a pending record must validate its relationships without applying
   any posted financial effect.
 
 ## Persistence Direction
@@ -162,7 +164,7 @@ require automated coverage.
 - Malformed posting status, relationship, count, or integrity failures roll
   back the complete restore.
 - Clear All Data, backup preview, replacement restore, sequence restoration,
-  and relaunch checks include temporary records.
+  and relaunch checks include pending records.
 
 ## Carried Release Exception
 
@@ -173,12 +175,12 @@ Android upgrade is not recorded as verified.
 The exception is carried into Update 2. Users must export a backup before an
 upgrade until the missing official test is closed. The v1.2.0 release gate must
 still verify an official `v1.1.0` to `v1.2.0` in-place upgrade with controlled
-posted and temporary records and exact totals.
+posted and pending records and exact totals.
 
 ## Completion Evidence Required
 
 Implementation must prove default-posted legacy upgrades, invalid-status
-constraints, temporary exclusion from every posted calculation, atomic
+constraints, pending exclusion from every posted calculation, atomic
 posting, failure rollback, repeated-post protection, relationship safety,
 unified activity behavior, format-1/2/3 recovery, large-history performance,
 full regression, and Android clean-install and upgrade behavior.

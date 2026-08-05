@@ -1,4 +1,4 @@
-# Update 2 Temporary Transactions Verification
+# Update 2 Pending Transactions Verification
 
 Updated: August 5, 2026
 
@@ -7,7 +7,7 @@ Updated: August 5, 2026
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
 - Verified weighted progress: `63%`.
-- Current task: Task 4 complete — explicit form actions, Temporary activity
+- Current task: Task 4 complete — explicit form actions, Pending activity
   treatment, and guarded direct posting are implemented; Task 5 activity
   filters and financial integration are next.
 
@@ -18,7 +18,7 @@ Updated: August 5, 2026
 | 1. Lock status semantics and baseline | 7% | Verified |
 | 2. Add migration and status-aware persistence | 18% | Verified |
 | 3. Add form state and service workflows | 18% | Verified |
-| 4. Build temporary transaction interface | 20% | Verified |
+| 4. Build pending transaction interface | 20% | Verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
 | 6. Extend backup and recovery | 11% | Not started |
 | 7. Close and release Update 2 | 10% | Not started |
@@ -41,18 +41,18 @@ changed during Task 1.
 
 ## Locked Product Decisions
 
-- A temporary transaction keeps its income or expense type and adds
+- A pending transaction keeps its income or expense type and adds
   `posting_status = 'temporary'`.
-- A temporary record is fully non-posting and cannot affect account balances,
+- A pending record is fully non-posting and cannot affect account balances,
   Income, Expenses, category totals, net cash flow, or statistical financial
   aggregates.
 - Existing transactions upgrade as `posted`.
 - Posting changes the existing record atomically; it does not copy the record.
 - Failed or repeated posting cannot alter the status or posted totals.
-- Temporary records remain visible and searchable in Dashboard recent activity
-  and Activity History with a non-color-only `Temporary` label.
-- Income and Expense filters remain posted-only; the Temporary filter covers
-  temporary income and expense records.
+- Pending records remain visible and searchable in Dashboard recent activity
+  and Activity History with a non-color-only `Pending` label.
+- Income and Expense filters remain posted-only; the Pending filter covers
+  pending income and expense records.
 - Referenced accounts, categories, and category groups remain protected.
 - Migration 6 extends `transactions`; backup format 3 preserves posting status;
   format-1 and format-2 transactions restore as posted.
@@ -99,14 +99,14 @@ workflow.
 
 The service now rejects unknown status values and invalid date/time input before
 repository access, preserves exact integer-centavo payloads, distinguishes
-temporary save/edit results, handles missing records, and converts repository
+pending save/edit results, handles missing records, and converts repository
 exceptions into stable failure results. The focused Task 3A gate contains `61`
 tests. The complete checkpoint gate reported `666 passed` with `83%` total branch
 coverage.
 
 No real-application check is required for Task 3A because it adds no visible
 control yet. Task 4 will connect these service and form-state capabilities to
-the temporary-transaction interface.
+the pending-transaction interface.
 
 ## Task 3B Post/Delete/Restore Evidence
 
@@ -121,10 +121,10 @@ results. An induced SQLite trigger failure proves that an unsuccessful status
 update leaves the record temporary and leaves posted totals and balances
 unchanged. Repeated posting is rejected before a second repository write.
 
-Delete and restore workflows now distinguish temporary records while preserving
+Delete and restore workflows now distinguish pending records while preserving
 the complete transaction record for the existing undo flow. Repository lookup,
 delete, and restore failures return stable service results, and an integration
-round trip proves that deletion and restoration do not make a temporary record
+round trip proves that deletion and restoration do not make a pending record
 financially effective. The focused Task 3B gate contains `89` tests. The complete Task 3 gate
 reported `682 passed` with approximately `83%` total branch coverage. A
 warning-only follow-up closed the directly opened SQLite test connection, and
@@ -136,16 +136,16 @@ control. Task 4 connects these verified workflows to the interface.
 ## Task 4A Form Actions Evidence
 
 Task 4 is split into two weighted checkpoints: Task 4A contributes `11%` for
-the transaction-form interface, and Task 4B contributes `9%` for temporary
+the transaction-form interface, and Task 4B contributes `9%` for pending
 status and posting actions in Dashboard recent activity and Activity History.
 
-Task 4A replaces the icon-only save control with explicit `Save as Temporary`
-and `Post Transaction` buttons. New, temporary-edit, and posted-edit states use
+Task 4A replaces the icon-only save control with explicit `Save as Pending`
+and `Post Transaction` buttons. New, pending-edit, and posted-edit states use
 different titles, status labels, guidance text, and action labels. Posted edits
 show `Already Posted` as a disabled secondary action rather than permitting a
 status reversal.
 
-When an edited temporary transaction is posted, the screen first validates and
+When an edited pending transaction is posted, the screen first validates and
 saves the current fields without changing status. It then calls the dedicated
 compare-and-set posting workflow. A validation or save failure prevents the
 post attempt; a posting failure keeps the edited record temporary and leaves
@@ -167,13 +167,13 @@ activity uses the shared posted-only card contract. Dashboard recent activity
 and virtualized Activity History therefore render the same status data without
 performing a second repository lookup per card.
 
-Temporary cards show a clock icon and explicit `TEMPORARY` text, so status is
-not communicated by color alone. Only temporary transaction cards expose the
+Pending cards show a clock icon and explicit `PENDING` text, so status is
+not communicated by color alone. Only pending transaction cards expose the
 direct post action. Posted transactions and transfers cannot invoke that card
 action. The post confirmation states that the transaction becomes financially
 effective immediately and that account balances and totals will update.
 
-Temporary deletion uses distinct confirmation text explaining that the record
+Pending deletion uses distinct confirmation text explaining that the record
 does not currently affect financial totals. A successful direct post refreshes
 the full Dashboard summary and recent activity together; Activity History uses
 its normal virtualized refresh. Service failure and stale-card double-post
@@ -186,9 +186,21 @@ gate is expected to report `707 passed` with approximately `83%` total branch
 coverage. Real-application Dashboard and Activity History checks are required
 before committing Task 4B.
 
+## Terminology Correction Evidence
+
+The user-facing feature name is **Pending Transactions**. The persisted
+`posting_status = 'temporary'` value, branch name, historical file paths, and
+internal helper identifiers remain unchanged to avoid unnecessary migration and
+code churn. Form labels, card badges, confirmations, service result messages,
+documentation, and future filters use `Pending`.
+
+The originally requested pass-through cash-out scenario is documented as a
+separate future feature because it changes account balances while remaining
+outside Income and Expenses.
+
 ## Next Gate
 
-Task 5 will add the explicit `Temporary` filter, make Income and Expense
+Task 5 will add the explicit `Pending` filter, make Income and Expense
 filters posted-only, verify search/account/category/date combinations, prove
 conversion refreshes every relevant total and list, and repeat the 10,000-row
-performance gate with mixed posted and temporary activity.
+performance gate with mixed posted and pending activity.

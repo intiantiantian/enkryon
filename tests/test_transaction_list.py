@@ -201,7 +201,7 @@ def test_temporary_transaction_card_has_visible_status_state():
 
     assert data["posting_status"] == "temporary"
     assert data["is_temporary"] is True
-    assert data["posting_status_label"] == "TEMPORARY"
+    assert data["posting_status_label"] == "PENDING"
     assert data["posting_status_icon"] == "clock-outline"
 
 

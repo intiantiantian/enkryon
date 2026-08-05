@@ -40,8 +40,8 @@ def make_transaction(posting_status="temporary"):
 @pytest.mark.parametrize(
     ("repository_result", "success", "message"),
     [
-        (True, True, "Temporary transaction saved."),
-        (False, False, "Temporary transaction could not be saved."),
+        (True, True, "Pending transaction saved."),
+        (False, False, "Pending transaction could not be saved."),
     ],
 )
 def test_save_temporary_transaction_uses_explicit_status(
@@ -137,15 +137,15 @@ def test_create_handles_repository_exception(monkeypatch):
 
     assert result == transaction_services.TransactionSaveResult(
         False,
-        "Temporary transaction could not be saved.",
+        "Pending transaction could not be saved.",
     )
 
 
 @pytest.mark.parametrize(
     ("repository_result", "success", "message"),
     [
-        (True, True, "Temporary transaction updated successfully."),
-        (False, False, "Temporary transaction could not be updated."),
+        (True, True, "Pending transaction updated successfully."),
+        (False, False, "Pending transaction could not be updated."),
     ],
 )
 def test_edit_temporary_transaction_preserves_status(
@@ -277,5 +277,5 @@ def test_edit_handles_repository_exception(monkeypatch):
 
     assert result == transaction_services.TransactionSaveResult(
         False,
-        "Temporary transaction could not be updated.",
+        "Pending transaction could not be updated.",
     )
