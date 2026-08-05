@@ -199,6 +199,7 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
     assert migrated_state == original_state
     assert transfer_count == 0

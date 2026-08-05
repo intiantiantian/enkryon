@@ -333,6 +333,7 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
 
 

@@ -207,7 +207,8 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
                 amount_centavos,
                 category_id,
                 date_time,
-                notes
+                notes,
+                posting_status
             FROM transactions
             ORDER BY id
             """
@@ -243,9 +244,11 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
     assert "amount" not in transaction_columns
     assert transaction_columns["amount_centavos"] == "INTEGER"
+    assert transaction_columns["posting_status"] == "TEXT"
     assert record_counts == {
         "accounts": 2,
         "category_groups": 2,
@@ -261,6 +264,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
             1,
             "2026-06-01 08:00:00",
             "June salary",
+            "posted",
         ),
         (
             11,
@@ -269,6 +273,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
             2,
             "2026-06-02 12:30:00",
             "Centavo boundary",
+            "posted",
         ),
         (
             15,
@@ -277,6 +282,7 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
             2,
             "2026-06-03 09:15:00",
             None,
+            "posted",
         ),
     ]
     assert totals == {
@@ -340,6 +346,7 @@ def test_run_migrations_is_idempotent():
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
 
 
@@ -354,7 +361,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
         migrations,
         "MIGRATIONS",
         migrations.MIGRATIONS
-        + ((6, "failing_migration", failing_migration),),
+        + ((7, "failing_migration", failing_migration),),
     )
 
     with pytest.raises(RuntimeError, match="migration failed"):
@@ -367,7 +374,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
             '''
             SELECT version
             FROM schema_migrations
-            WHERE version = 6
+            WHERE version = 7
             '''
         ).fetchone()
         rolled_back_table = connection.execute(
@@ -382,6 +389,60 @@ def test_failed_migration_is_rolled_back(monkeypatch):
 
     assert migration_record is None
     assert rolled_back_table is None
+
+
+def test_adds_transaction_posting_status_with_safe_default():
+    connection = create_centavo_transaction_database()
+
+    try:
+        connection.execute("BEGIN")
+        migrations.add_transaction_constraints(connection)
+        migrations.add_transaction_posting_status(connection)
+        connection.commit()
+
+        columns = {
+            row[1]: row
+            for row in connection.execute(
+                "PRAGMA table_info(transactions)"
+            ).fetchall()
+        }
+        stored_status = connection.execute(
+            "SELECT posting_status FROM transactions WHERE id = 7"
+        ).fetchone()[0]
+
+        connection.execute(
+            """
+            INSERT INTO transactions (
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time
+            )
+            VALUES (1, 500, 1, '2026-07-16 09:00:00')
+            """
+        )
+        default_status = connection.execute(
+            "SELECT posting_status FROM transactions WHERE id = 8"
+        ).fetchone()[0]
+
+        connection.execute(
+            "UPDATE transactions SET posting_status = 'temporary' "
+            "WHERE id = 8"
+        )
+
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "UPDATE transactions SET posting_status = 'invalid' "
+                "WHERE id = 8"
+            )
+    finally:
+        connection.close()
+
+    assert columns["posting_status"][2] == "TEXT"
+    assert columns["posting_status"][3] == 1
+    assert columns["posting_status"][4] == "'posted'"
+    assert stored_status == "posted"
+    assert default_status == "posted"
 
 
 def test_adds_transaction_history_indexes():

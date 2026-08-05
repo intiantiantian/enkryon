@@ -128,7 +128,7 @@ def test_accepts_legacy_backup_with_empty_transfer_set():
     assert validated_backup.preview.total_records == 7
 
 
-@pytest.mark.parametrize("database_version", (4, 5))
+@pytest.mark.parametrize("database_version", (4, 5, 6))
 def test_accepts_compatible_database_migrations(database_version):
     document = make_valid_document()
     document["metadata"]["database_version"] = database_version
@@ -158,7 +158,7 @@ def test_rejects_invalid_identity_and_metadata():
     for path, value in (
         (("format",), "other-backup"),
         (("format_version",), 3),
-        (("metadata", "database_version"), 6),
+        (("metadata", "database_version"), 7),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):
