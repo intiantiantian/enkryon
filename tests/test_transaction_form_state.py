@@ -21,6 +21,7 @@ def test_empty_transaction_form_state_has_prompts_and_current_labels():
         time_label="08:15 AM",
         notes="",
         transaction_id=None,
+        posting_status="posted",
     )
 
 
@@ -37,6 +38,7 @@ def test_transaction_form_state_maps_transaction_for_editing():
         group_id=5,
         group_name="Food",
         transaction_type="expense",
+        posting_status="temporary",
     )
 
     state = TransactionFormState.from_transaction(transaction)
@@ -54,6 +56,7 @@ def test_transaction_form_state_maps_transaction_for_editing():
         time_label="07:30 PM",
         notes="",
         transaction_id=17,
+        posting_status="temporary",
     )
 
 
@@ -71,6 +74,7 @@ def test_transaction_form_state_builds_save_arguments():
         time_label="07:30 PM",
         notes="Dinner",
         transaction_id=17,
+        posting_status="temporary",
     )
 
     assert state.to_save_arguments() == {
@@ -82,6 +86,7 @@ def test_transaction_form_state_builds_save_arguments():
         "time_label": "07:30 PM",
         "notes_label": "Dinner",
         "transaction_id": 17,
+        "posting_status": "temporary",
     }
 
 

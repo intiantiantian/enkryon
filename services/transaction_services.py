@@ -1,3 +1,4 @@
+import sqlite3
 from typing import NamedTuple
 
 from database.transaction_repository import (
@@ -11,6 +12,11 @@ from database.transaction_repository import (
 from database.records import TransactionDetailRecord
 
 from utils.transaction_payload import build_transaction_payload
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
+    is_valid_posting_status,
+)
 from utils.transaction_validation import validate_transaction_form
 
 
@@ -40,7 +46,14 @@ def save_transaction(
     time_label,
     notes_label,
     transaction_id=None,
+    posting_status=POSTED_STATUS,
 ):
+    if not is_valid_posting_status(posting_status):
+        return TransactionSaveResult(
+            False,
+            "Please select a valid posting status.",
+        )
+
     is_valid, message = validate_transaction_form(
         account_id=account_id,
         amount=amount,
@@ -51,53 +64,118 @@ def save_transaction(
     if not is_valid:
         return TransactionSaveResult(False, message)
 
-    payload = build_transaction_payload(
-        account_id=account_id,
-        amount=amount,
-        category_id=category_id,
-        date_label=date_label,
-        time_label=time_label,
-        notes_label=notes_label,
-    )
+    try:
+        payload = build_transaction_payload(
+            account_id=account_id,
+            amount=amount,
+            category_id=category_id,
+            date_label=date_label,
+            time_label=time_label,
+            notes_label=notes_label,
+        )
+    except ValueError:
+        return TransactionSaveResult(
+            False,
+            "Please select a valid date and time.",
+        )
 
     if transaction_id is None:
+        return _create_transaction(payload, posting_status)
+
+    return _update_transaction(
+        payload,
+        transaction_id,
+        posting_status,
+    )
+
+
+def _create_transaction(payload, posting_status):
+    try:
         created = insert_transaction(
             payload["account_id"],
             payload["amount_centavos"],
             payload["category_id"],
             payload["date_time"],
             payload["notes"],
+            posting_status=posting_status,
+        )
+    except sqlite3.Error:
+        created = False
+
+    if posting_status == TEMPORARY_STATUS:
+        if created:
+            return TransactionSaveResult(
+                True,
+                "Temporary transaction saved.",
+            )
+        return TransactionSaveResult(
+            False,
+            "Temporary transaction could not be saved.",
         )
 
-        if not created:
-            return TransactionSaveResult(
-                False,
-                "Transaction could not be added.",
-            )
-
+    if created:
         return TransactionSaveResult(
             True,
             "Transaction added successfully.",
         )
 
-    updated = update_transaction(
-        payload["account_id"],
-        payload["amount_centavos"],
-        payload["category_id"],
-        payload["date_time"],
-        payload["notes"],
-        transaction_id,
+    return TransactionSaveResult(
+        False,
+        "Transaction could not be added.",
     )
 
-    if not updated:
+
+def _update_transaction(payload, transaction_id, posting_status):
+    try:
+        existing_transaction = get_transaction_by_id(transaction_id)
+    except sqlite3.Error:
+        existing_transaction = None
+
+    if existing_transaction is None:
         return TransactionSaveResult(
             False,
             "Transaction could not be updated.",
         )
 
+    if posting_status != existing_transaction.posting_status:
+        return TransactionSaveResult(
+            False,
+            "Transaction status can only be changed by posting it.",
+        )
+
+    try:
+        updated = update_transaction(
+            payload["account_id"],
+            payload["amount_centavos"],
+            payload["category_id"],
+            payload["date_time"],
+            payload["notes"],
+            transaction_id,
+        )
+    except sqlite3.Error:
+        updated = False
+
+    is_temporary = (
+        existing_transaction.posting_status == TEMPORARY_STATUS
+    )
+
+    if not updated:
+        return TransactionSaveResult(
+            False,
+            (
+                "Temporary transaction could not be updated."
+                if is_temporary
+                else "Transaction could not be updated."
+            ),
+        )
+
     return TransactionSaveResult(
         True,
-        "Transaction updated successfully.",
+        (
+            "Temporary transaction updated successfully."
+            if is_temporary
+            else "Transaction updated successfully."
+        ),
     )
 
 

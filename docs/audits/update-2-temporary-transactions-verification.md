@@ -6,9 +6,9 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `25%`.
-- Current task: Task 2 complete — migration and status-aware persistence
-  verified.
+- Verified weighted progress: `35%`.
+- Current task: Task 3A complete — form state and temporary save/edit
+  workflows verified.
 
 ## Weighted Plan
 
@@ -16,7 +16,7 @@ Updated: August 5, 2026
 |---:|---:|---|
 | 1. Lock status semantics and baseline | 7% | Verified |
 | 2. Add migration and status-aware persistence | 18% | Verified |
-| 3. Add form state and service workflows | 18% | Not started |
+| 3. Add form state and service workflows | 18% | In progress (10% verified) |
 | 4. Build temporary transaction interface | 20% | Not started |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
 | 6. Extend backup and recovery | 11% | Not started |
@@ -87,9 +87,29 @@ Both checkpoints passed Python compilation and Git whitespace checks. No
 real-application check was required because Task 2 introduced no user-visible
 workflow. Migrations 1 through 5 remained unchanged.
 
+## Task 3A Form-State and Save/Edit Evidence
+
+Task 3A added one shared posting-status vocabulary, extended transaction form
+state to preserve `posted` or `temporary`, and passed that status through the
+UI-independent save contract. New records can now be saved explicitly as
+temporary, while edits preserve the existing status and reject attempts to
+change status through the ordinary save path. Posting remains a separate
+workflow.
+
+The service now rejects unknown status values and invalid date/time input before
+repository access, preserves exact integer-centavo payloads, distinguishes
+temporary save/edit results, handles missing records, and converts repository
+exceptions into stable failure results. The focused Task 3A gate contains `61`
+tests. The complete checkpoint gate is expected to report `666 passed` with
+approximately `83%` total branch coverage.
+
+No real-application check is required for Task 3A because it adds no visible
+control yet. Task 4 will connect these service and form-state capabilities to
+the temporary-transaction interface.
+
 ## Next Gate
 
-Task 3 will add UI-independent form-state and service workflows for saving,
-editing, posting, deleting, and restoring temporary transactions. Posting must
-remain atomic and compare-and-set protected, and repository failures must leave
+Task 3B will add UI-independent posting, delete, and restore workflows for
+temporary transactions. Posting must remain atomic and compare-and-set
+protected, repeated posting must be rejected, and repository failures must leave
 status and totals unchanged.

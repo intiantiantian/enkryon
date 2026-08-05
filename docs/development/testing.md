@@ -306,3 +306,24 @@ query-plan evidence.
 Task 2 completed with `654 passed`, `83%` total branch coverage, successful
 Python compilation, and a clean Git whitespace check. It changed no visible
 screen or workflow, so its checkpoint required no real-application check.
+
+### Update 2 Task 3A temporary save/edit workflow gate
+
+Task 3A extends form state and the transaction service without adding visible
+controls. Run the focused gate below before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_form_state.py ^
+tests/test_transaction_payload.py ^
+tests/test_transaction_validation.py ^
+tests/test_transaction_services.py ^
+tests/test_temporary_transaction_save_workflows.py ^
+tests/test_temporary_transaction_persistence.py
+```
+
+The focused gate contains `61` tests. It verifies explicit temporary creation,
+exact centavo payloads, status-preserving edits, invalid-status and date/time
+rejection, missing-record behavior, and stable repository-failure results. The
+complete Task 3A gate is expected to report `666 passed` with approximately
+`83%` total branch coverage.

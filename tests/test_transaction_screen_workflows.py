@@ -364,6 +364,7 @@ def test_save_transaction_stops_when_form_is_invalid(
         time_label="7:30 PM",
         notes_label="Dinner",
         transaction_id=None,
+        posting_status="posted",
     )
     show_snackbar.assert_called_once_with(
         "Please select an account."
@@ -399,6 +400,7 @@ def test_save_transaction_creates_transaction_and_refreshes_dashboard(
         time_label="7:30 PM",
         notes_label="Dinner",
         transaction_id=None,
+        posting_status="posted",
     )
     show_snackbar.assert_called_once_with(
         "Transaction added successfully."
@@ -443,6 +445,7 @@ def test_save_transaction_updates_transaction_and_clears_edit_state(
         time_label="7:30 PM",
         notes_label="Dinner",
         transaction_id=17,
+        posting_status="posted",
     )
 
     assert screen.form_state.transaction_id is None
@@ -484,6 +487,7 @@ def test_save_transaction_keeps_edit_state_when_update_fails(
         time_label="7:30 PM",
         notes_label="Dinner",
         transaction_id=17,
+        posting_status="posted",
     )
 
     assert screen.form_state.transaction_id == 17

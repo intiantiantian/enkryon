@@ -102,8 +102,8 @@ def test_update_2_task_2_records_status_aware_persistence_evidence():
     normalized_testing = " ".join(testing.split())
     normalized_contract = " ".join(contract.split())
 
-    assert "Verified weighted progress: `25%`." in verification
-    assert "Task 2 complete" in verification
+    assert "| 2. Add migration and status-aware persistence | 18% | Verified |" in verification
+    assert "Task 2 was completed in two checkpoints" in verification
     assert "`653 passed`" in verification
     assert "`654 passed`" in verification
     assert "transactions_posting_status_history_index" in verification
@@ -114,3 +114,27 @@ def test_update_2_task_2_records_status_aware_persistence_evidence():
         in normalized_contract
     )
     assert "completed Task 2" in roadmap
+
+
+def test_update_2_task_3a_records_temporary_save_edit_workflows():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    normalized_verification = " ".join(verification.split())
+
+    assert "Verified weighted progress: `35%`." in verification
+    assert "Task 3A complete" in verification
+    assert "`61` tests" in normalized_verification
+    assert "`666 passed`" in verification
+    assert "ordinary save path" in verification
+    assert "temporary save/edit workflow gate" in testing
+    assert (
+        "Ordinary save and edit workflows cannot change posting status"
+        in contract
+    )
+    assert "temporary form state plus UI-independent save and edit" in roadmap

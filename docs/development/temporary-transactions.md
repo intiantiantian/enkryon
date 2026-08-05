@@ -68,6 +68,9 @@ totals. All stored and calculated money remains integer centavos.
   posted total unchanged.
 - A repeated attempt to post an already-posted transaction must be rejected
   without changing the record or any total.
+- Ordinary save and edit workflows cannot change posting status. New records
+  may be created explicitly as posted or temporary; an existing record keeps
+  its stored status until the dedicated posting workflow succeeds.
 - The first release does not auto-post, auto-expire, or silently remove
   temporary transactions.
 

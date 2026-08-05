@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from database.records import TransactionDetailRecord
 from services import transaction_services
 
 
@@ -15,6 +16,23 @@ def make_transaction_payload():
         "date_time": "2026-07-19 19:30:00",
         "notes": "Dinner",
     }
+
+
+def make_transaction(posting_status="posted"):
+    return TransactionDetailRecord(
+        transaction_id=17,
+        account_id=2,
+        amount_centavos=12345,
+        category_id=8,
+        date_time="2026-07-19 19:30:00",
+        notes="Dinner",
+        account_name="Cash",
+        category_name="Dining",
+        group_id=5,
+        group_name="Food",
+        transaction_type="expense",
+        posting_status=posting_status,
+    )
 
 
 def test_save_transaction_returns_validation_failure(
@@ -153,6 +171,7 @@ def test_save_transaction_returns_create_result(
         8,
         "2026-07-19 19:30:00",
         "Dinner",
+        posting_status="posted",
     )
     update_transaction.assert_not_called()
 
@@ -199,6 +218,7 @@ def test_save_transaction_returns_update_result(
     )
 
     insert_transaction = Mock()
+    get_transaction_by_id = Mock(return_value=make_transaction())
     update_transaction = Mock(
         return_value=repository_result
     )
@@ -207,6 +227,11 @@ def test_save_transaction_returns_update_result(
         transaction_services,
         "insert_transaction",
         insert_transaction,
+    )
+    monkeypatch.setattr(
+        transaction_services,
+        "get_transaction_by_id",
+        get_transaction_by_id,
     )
     monkeypatch.setattr(
         transaction_services,
@@ -227,6 +252,7 @@ def test_save_transaction_returns_update_result(
 
     assert result == expected_result
     insert_transaction.assert_not_called()
+    get_transaction_by_id.assert_called_once_with(17)
     update_transaction.assert_called_once_with(
         2,
         12345,
