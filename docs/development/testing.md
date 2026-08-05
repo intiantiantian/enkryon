@@ -287,3 +287,22 @@ Android upgrade exception.
 Task 1 changes documentation and contract tests only. Migration, repository,
 service, UI, and recovery behavior must not be implemented until the contract
 checkpoint passes and is committed.
+
+## Update 2 Status-Aware Persistence Regression
+
+Task 2 adds focused persistence coverage for migration 6, the constrained
+`posting_status` column, default-posted legacy upgrades, status-aware records
+and CRUD, compare-and-set posting, status-preserving restore, posted-only
+financial totals, and account/category deletion protection for temporary
+references.
+
+The 10,000-record history regression now seeds both posted and temporary rows.
+It proves that a status-filtered newest-first query uses
+`transactions_posting_status_history_index` and does not create a temporary
+B-tree for ordering. The index is intentionally limited to posting status,
+date, and ID; additional account/category status indexes require their own
+query-plan evidence.
+
+Task 2 completed with `654 passed`, `83%` total branch coverage, successful
+Python compilation, and a clean Git whitespace check. It changed no visible
+screen or workflow, so its checkpoint required no real-application check.

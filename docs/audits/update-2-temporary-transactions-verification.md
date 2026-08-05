@@ -6,15 +6,16 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `7%`.
-- Current task: Task 1 complete — status semantics and baseline locked.
+- Verified weighted progress: `25%`.
+- Current task: Task 2 complete — migration and status-aware persistence
+  verified.
 
 ## Weighted Plan
 
 | Task | Weight | Verification state |
 |---:|---:|---|
 | 1. Lock status semantics and baseline | 7% | Verified |
-| 2. Add migration and status-aware persistence | 18% | Not started |
+| 2. Add migration and status-aware persistence | 18% | Verified |
 | 3. Add form state and service workflows | 18% | Not started |
 | 4. Build temporary transaction interface | 20% | Not started |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
@@ -66,9 +67,29 @@ Until the exception is closed, the documented upgrade precaution is to export
 a backup first. The `v1.1.0`-to-`v1.2.0` official in-place upgrade remains a
 required Update 2 release gate.
 
+## Task 2 Persistence Evidence
+
+Task 2 was completed in two checkpoints:
+
+- Task 2A added migration 6, the constrained posting status, status-aware
+  transaction records and CRUD, compare-and-set posting, status-preserving
+  restore, posted-only totals and balances, relationship protection, and
+  database-version-6 compatibility. Its complete gate reported `653 passed`
+  with `83%` total branch coverage.
+- Task 2B added the query-plan-justified
+  `transactions_posting_status_history_index`, verified its exact columns on
+  fresh and upgraded databases, and extended the 10,000-record history
+  regression to prove status-filtered newest-first retrieval uses the index
+  without a temporary ordering table. Its complete gate reported `654 passed`
+  with `83%` total branch coverage.
+
+Both checkpoints passed Python compilation and Git whitespace checks. No
+real-application check was required because Task 2 introduced no user-visible
+workflow. Migrations 1 through 5 remained unchanged.
+
 ## Next Gate
 
-Task 2 may begin only after the contract documentation tests, complete suite,
-Python compilation, Git whitespace check, changed-file review, and checkpoint
-commit pass. Task 2 will add migration 6 and status-aware persistence without
-changing migrations 1 through 5.
+Task 3 will add UI-independent form-state and service workflows for saving,
+editing, posting, deleting, and restoring temporary transactions. Posting must
+remain atomic and compare-and-set protected, and repository failures must leave
+status and totals unchanged.

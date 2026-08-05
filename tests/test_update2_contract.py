@@ -75,7 +75,10 @@ def test_update_2_task_1_records_baseline_progress_and_release_exception():
     roadmap = read_project_file("ROADMAP.md")
     normalized_verification = " ".join(verification.split())
 
-    assert "Verified weighted progress: `7%`." in verification
+    assert (
+        "| 1. Lock status semantics and baseline | 7% | Verified |"
+        in verification
+    )
     assert "`637 passed in 16.45s`" in verification
     assert "Recorded total branch coverage: `83%`" in verification
     assert "Task 1 changes documentation and contract tests only" in testing
@@ -85,3 +88,29 @@ def test_update_2_task_1_records_baseline_progress_and_release_exception():
         in normalized_verification
     )
     assert "explicit carried exception" in roadmap
+
+
+def test_update_2_task_2_records_status_aware_persistence_evidence():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    normalized_testing = " ".join(testing.split())
+    normalized_contract = " ".join(contract.split())
+
+    assert "Verified weighted progress: `25%`." in verification
+    assert "Task 2 complete" in verification
+    assert "`653 passed`" in verification
+    assert "`654 passed`" in verification
+    assert "transactions_posting_status_history_index" in verification
+    assert "10,000-record history regression" in testing
+    assert "temporary B-tree" in normalized_testing
+    assert (
+        "Account- or category-specific status indexes remain deferred"
+        in normalized_contract
+    )
+    assert "completed Task 2" in roadmap

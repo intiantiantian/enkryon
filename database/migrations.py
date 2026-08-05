@@ -477,6 +477,16 @@ def add_transaction_posting_status(connection):
             CHECK (posting_status IN ('posted', 'temporary'))
         '''
     )
+    connection.execute(
+        '''
+        CREATE INDEX transactions_posting_status_history_index
+        ON transactions (
+            posting_status,
+            date_time DESC,
+            id DESC
+        )
+        '''
+    )
 
 
 MIGRATIONS = (

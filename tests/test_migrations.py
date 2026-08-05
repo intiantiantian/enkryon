@@ -424,6 +424,15 @@ def test_adds_transaction_posting_status_with_safe_default():
         default_status = connection.execute(
             "SELECT posting_status FROM transactions WHERE id = 8"
         ).fetchone()[0]
+        status_index_columns = [
+            (row[2], row[3])
+            for row in connection.execute(
+                "PRAGMA index_xinfo("
+                "'transactions_posting_status_history_index'"
+                ")"
+            ).fetchall()
+            if row[5]
+        ]
 
         connection.execute(
             "UPDATE transactions SET posting_status = 'temporary' "
@@ -443,6 +452,11 @@ def test_adds_transaction_posting_status_with_safe_default():
     assert columns["posting_status"][4] == "'posted'"
     assert stored_status == "posted"
     assert default_status == "posted"
+    assert status_index_columns == [
+        ("posting_status", 0),
+        ("date_time", 1),
+        ("id", 1),
+    ]
 
 
 def test_adds_transaction_history_indexes():

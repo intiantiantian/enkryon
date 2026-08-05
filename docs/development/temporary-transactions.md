@@ -101,10 +101,16 @@ Migration 6 extends the existing `transactions` table with a constrained
 queries must explicitly include posted transactions only, while activity
 queries continue to include both statuses.
 
-Indexes are added only when focused query-plan or performance tests justify
-them. Migration repeat runs, rollback behavior, legacy upgrades, invalid-status
-rejection, stable ordering, and unchanged legacy totals all require automated
-coverage.
+The 10,000-record query-plan regression justifies one composite index named
+`transactions_posting_status_history_index` on `posting_status`, newest-first
+`date_time`, and newest-first `id`. It supports status-filtered Activity History
+without a full transaction scan or a temporary ordering table. Account- or
+category-specific status indexes remain deferred until a focused filter
+combination proves they are necessary.
+
+Migration repeat runs, rollback behavior, legacy upgrades, invalid-status
+rejection, stable ordering, exact index shape, and unchanged legacy totals all
+require automated coverage.
 
 ## Backup and Recovery
 

@@ -2,8 +2,8 @@
 
 Updated: August 5, 2026
 Current release: `v1.1.0`
-Current position: Update 2 temporary transactions are in Task 1 contract
-verification; the official v1.0.0 in-place Android upgrade remains unverified
+Current position: Update 2 temporary transactions completed Task 2
+status-aware persistence; the official v1.0.0 in-place Android upgrade remains unverified
 by release-owner waiver
 
 ## Purpose
@@ -29,13 +29,13 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 |---|---|---|
 | Core product | Accounts, categories, posted income and expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Add temporary transactions as a non-posting record state before building statistics. |
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
-| Database upgrades | A `schema_migrations` table and five ordered, transactional migrations are present; migration 5 adds constrained and indexed account transfers. | Automated migration coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
+| Database upgrades | A `schema_migrations` table and six ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and its newest-first status-history index. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.1.0 baseline contains `637` passing tests with `83%` total coverage; Task 1 of Update 2 starts from that clean baseline. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
+| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; Update 2 persistence closes with `654` passing tests at the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
 | Android release | `v1.1.0` is released; its signed artifact checks and clean install passed, while the official physical-device v1.0.0 upgrade was waived by the release owner. | Carry the exception explicitly, require a pre-upgrade backup, and verify the official v1.1.0-to-v1.2.0 upgrade before releasing Update 2. |
-| Architecture | Focused transfer repositories/services/form state feed a unified SQL activity query and the existing virtualized list. | Transfer behavior remains testable without moving SQL or workflow rules into screens and widgets. |
+| Architecture | Focused transfer components and status-aware transaction persistence feed the existing service and activity boundaries. | Task 3 can add temporary workflows without moving SQL or posting rules into screens and widgets. |
 | User experience | A dedicated transfer screen, responsive two-by-two Dashboard actions, direction-aware balances, and transfer-aware activity filters are released. | Temporary records need explicit non-color-only status treatment and responsive save/post actions. |
-| Backup and recovery | Backup format 2 and database version 5 include transfers; compatible format-1 backups restore with zero transfers. | Update 2 will add backup format 3 while restoring format-1 and format-2 transactions as posted. |
+| Backup and recovery | Backup format 2 remains current while the live database schema is version 6; compatible format-1 backups still restore with zero transfers. | Update 2 will add backup format 3 while restoring format-1 and format-2 transactions as posted. |
 | Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Transfers preserve stable newest-first history without entering category totals. |
 
 ## Phase Overview
@@ -554,7 +554,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 2 temporary-transaction contract
+**Status:** In progress — Update 2 service workflows next
 
 ### Objective
 
@@ -588,7 +588,8 @@ in Activity History but are fully non-posting until the user converts them
 atomically. They cannot affect account balances, Income, Expenses, category
 totals, net cash flow, or statistical financial aggregates.
 
-Migration 6 will extend the existing `transactions` table, and backup format 3
+Migration 6 extends the existing `transactions` table with constrained
+posting status and a query-plan-verified status-history index. Backup format 3
 will preserve status while format-1 and format-2 transactions restore as
 posted. The seven weighted tasks are contract and baseline (7%), persistence
 (18%), workflows (18%), interface (20%), totals and activity integration (16%),
@@ -616,11 +617,11 @@ implementation begins.
 
 The next work should be completed in this order:
 
-1. Lock the fully non-posting temporary-transaction contract and record the
-   clean v1.1.0 baseline.
-2. Add migration 6 and status-aware persistence without changing migrations
-   1 through 5.
-3. Add UI-independent temporary save, edit, post, delete, and restore
+1. Completed: lock the fully non-posting temporary-transaction contract and
+   record the clean v1.1.0 baseline.
+2. Completed: add migration 6 and status-aware persistence without changing
+   migrations 1 through 5.
+3. Next: add UI-independent temporary save, edit, post, delete, and restore
    workflows.
 4. Add the interface and integrate temporary activity while excluding it from
    every posted financial calculation.

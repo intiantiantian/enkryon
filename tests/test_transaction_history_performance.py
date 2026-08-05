@@ -37,6 +37,11 @@ def seed_large_transaction_history(connection):
                 + timedelta(minutes=transaction_id)
             ).strftime("%Y-%m-%d %H:%M:%S"),
             f"Transaction {transaction_id}",
+            (
+                "temporary"
+                if transaction_id % 10 == 0
+                else "posted"
+            ),
         )
         for transaction_id in range(1, HISTORY_SIZE + 1)
     ]
@@ -47,9 +52,10 @@ def seed_large_transaction_history(connection):
             amount_centavos,
             category_id,
             date_time,
-            notes
+            notes,
+            posting_status
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
         transactions,
     )
@@ -121,6 +127,10 @@ def test_large_history_queries_use_transaction_indexes(
             connection,
             category_id=2,
         )
+        temporary_transactions, temporary_plan = run_indexed_query(
+            connection,
+            posting_status="temporary",
+        )
     finally:
         connection.close()
 
@@ -133,6 +143,9 @@ def test_large_history_queries_use_transaction_indexes(
     assert transaction_ids(category_transactions) == list(
         range(9_999, 9_924, -3)
     )
+    assert transaction_ids(temporary_transactions) == list(
+        range(10_000, 9_750, -10)
+    )
     assert any(
         "transactions_history_order_index" in step
         for step in recent_plan
@@ -144,4 +157,12 @@ def test_large_history_queries_use_transaction_indexes(
     assert any(
         "transactions_category_history_index" in step
         for step in category_plan
+    )
+    assert any(
+        "transactions_posting_status_history_index" in step
+        for step in temporary_plan
+    )
+    assert not any(
+        "USE TEMP B-TREE FOR ORDER BY" in step
+        for step in temporary_plan
     )
