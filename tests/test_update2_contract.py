@@ -159,20 +159,57 @@ def test_update_2_task_4a_records_explicit_form_actions():
     roadmap = read_project_file("ROADMAP.md")
     layout = read_project_file("kv/add_transaction.kv")
     screen = read_project_file("screens/add_transaction.py")
+    normalized_verification = " ".join(verification.split())
 
-    assert "Verified weighted progress: `54%`." in verification
-    assert "Task 4A complete" in verification
-    assert "In progress — 11% verified" in verification
+    assert "Task 4A raised verified progress to `54%`." in (
+        normalized_verification
+    )
+    assert "Task 4A Form Actions Evidence" in verification
     assert "`82` tests" in verification
     assert "`696 passed`" in verification
     assert "transaction-form interface gate" in testing
     assert "Save as Temporary" in contract
     assert "Post Transaction" in contract
     assert "Already Posted" in contract
-    assert "completed Task 4A form" in roadmap
+    assert "explicit temporary form actions" in roadmap
     assert "id: posting_status_label" in layout
     assert "id: temporary_action" in layout
     assert "id: post_action" in layout
     assert "icon: 'content-save'" not in layout
     assert "save_temporary_transaction" in screen
     assert "post_transaction_workflow" in screen
+
+
+def test_update_2_task_4b_records_activity_status_and_direct_posting():
+    verification = read_project_file(
+        "docs/audits/update-2-temporary-transactions-verification.md"
+    )
+    testing = read_project_file("docs/development/testing.md")
+    contract = read_project_file(
+        "docs/development/temporary-transactions.md"
+    )
+    roadmap = read_project_file("ROADMAP.md")
+    card_layout = read_project_file("kv/widgets.kv")
+    card_source = read_project_file("widgets/transaction_card.py")
+    actions_source = read_project_file(
+        "screens/transaction_list_actions.py"
+    )
+    normalized_roadmap = " ".join(roadmap.split())
+
+    assert "Verified weighted progress: `63%`." in verification
+    assert (
+        "| 4. Build temporary transaction interface | 20% | Verified |"
+        in verification
+    )
+    assert "Task 4B Activity Interface Evidence" in verification
+    assert "`707 passed`" in verification
+    assert "activity-card interface gate" in testing
+    assert "Unified Activity records carry posting status" in contract
+    assert "guarded post action" in contract
+    assert "completed the Task 4 interface" in normalized_roadmap
+    assert "id: posting_status_badge" in card_layout
+    assert "id: post_transaction_action" in card_layout
+    assert "posting_status_label" in card_source
+    assert "confirm_post_transaction" in card_source
+    assert "Post Temporary Transaction?" in actions_source
+    assert "refresh_after_transaction_post" in actions_source

@@ -135,3 +135,31 @@ def test_temporary_transaction_form_uses_explicit_text_status_cues():
     assert "balances and totals" in action_source
     assert "temporary_action.disabled" in screen_source
     assert "temporary_action.opacity" in screen_source
+
+
+def test_temporary_activity_card_uses_text_icon_and_confirmation_copy():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "widgets.kv"
+    ).read_text(encoding="utf-8")
+    card_source = (
+        project_root / "widgets" / "transaction_card.py"
+    ).read_text(encoding="utf-8")
+    actions_source = (
+        project_root / "screens" / "transaction_list_actions.py"
+    ).read_text(encoding="utf-8")
+    normalized_actions = " ".join(
+        actions_source.replace('"', "").split()
+    )
+
+    assert "id: posting_status_badge" in layout
+    assert "id: posting_status_icon" in layout
+    assert "id: posting_status_label" in layout
+    assert "id: post_transaction_action" in layout
+    assert "icon: 'check-circle-outline'" in layout
+    assert '"TEMPORARY" if is_temporary else ""' in card_source
+    assert '"clock-outline" if is_temporary else ""' in card_source
+    assert "Post Temporary Transaction?" in actions_source
+    assert "financially effective immediately" in normalized_actions
+    assert "account balance" in normalized_actions
+    assert "totals will update" in normalized_actions

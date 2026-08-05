@@ -59,6 +59,42 @@ def test_combined_activity_is_newest_first_across_record_types():
         "transfer",
         "income",
     ]
+    assert [row.posting_status for row in activities] == [
+        "posted",
+        "posted",
+        "posted",
+    ]
+
+
+def test_activity_includes_temporary_transaction_status():
+    seed_activity()
+    assert insert_transaction(
+        1,
+        2_500,
+        2,
+        "2026-08-04 12:00:00",
+        "Planned meal",
+        posting_status="temporary",
+    ) is True
+
+    activities = get_activity()
+
+    temporary = activities[0]
+    assert temporary.record_type == "transaction"
+    assert temporary.activity_type == "expense"
+    assert temporary.posting_status == "temporary"
+
+
+def test_transfer_activity_uses_posted_status_for_shared_card_contract():
+    seed_activity()
+
+    transfer = next(
+        activity
+        for activity in get_activity()
+        if activity.record_type == "transfer"
+    )
+
+    assert transfer.posting_status == "posted"
 
 
 def test_activity_limit_applies_after_combining_record_types():

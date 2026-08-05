@@ -73,6 +73,7 @@ class ActivityRecord(NamedTuple):
     source_account_name: str | None
     destination_account_name: str | None
     direction: str
+    posting_status: str = "posted"
 
     @property
     def transaction_id(self):

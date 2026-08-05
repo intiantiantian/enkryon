@@ -6,9 +6,10 @@ Updated: August 5, 2026
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `54%`.
-- Current task: Task 4A complete — explicit temporary-save and posting form
-  actions implemented; Activity History presentation remains Task 4B.
+- Verified weighted progress: `63%`.
+- Current task: Task 4 complete — explicit form actions, Temporary activity
+  treatment, and guarded direct posting are implemented; Task 5 activity
+  filters and financial integration are next.
 
 ## Weighted Plan
 
@@ -17,7 +18,7 @@ Updated: August 5, 2026
 | 1. Lock status semantics and baseline | 7% | Verified |
 | 2. Add migration and status-aware persistence | 18% | Verified |
 | 3. Add form state and service workflows | 18% | Verified |
-| 4. Build temporary transaction interface | 20% | In progress — 11% verified |
+| 4. Build temporary transaction interface | 20% | Verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Not started |
 | 6. Extend backup and recovery | 11% | Not started |
 | 7. Close and release Update 2 | 10% | Not started |
@@ -153,12 +154,41 @@ all posted totals unchanged.
 The form action group stacks on constrained screens, expands with system font
 scale, and communicates status through visible text rather than color alone.
 The focused Task 4A gate contains `82` tests. The complete checkpoint gate is
-expected to report `696 passed` with approximately `83%` total branch coverage.
-A real-application form check is required before this checkpoint is committed.
+recorded as `696 passed` with approximately `83%` total branch coverage. Task
+4A raised verified progress to `54%`. The supplied execution log records a
+successful application launch under Python 3.13.14, Kivy 2.3.1, and KivyMD
+1.2.0 before commit `0358ef5`.
+
+## Task 4B Activity Interface Evidence
+
+Task 4B carries posting status through unified Activity records. Transaction
+activity retains its stored `posted` or `temporary` value, while transfer
+activity uses the shared posted-only card contract. Dashboard recent activity
+and virtualized Activity History therefore render the same status data without
+performing a second repository lookup per card.
+
+Temporary cards show a clock icon and explicit `TEMPORARY` text, so status is
+not communicated by color alone. Only temporary transaction cards expose the
+direct post action. Posted transactions and transfers cannot invoke that card
+action. The post confirmation states that the transaction becomes financially
+effective immediately and that account balances and totals will update.
+
+Temporary deletion uses distinct confirmation text explaining that the record
+does not currently affect financial totals. A successful direct post refreshes
+the full Dashboard summary and recent activity together; Activity History uses
+its normal virtualized refresh. Service failure and stale-card double-post
+results remain stable and do not trigger a success refresh.
+
+The focused Task 4B gate covers status-aware Activity records, recycled-card
+state, direct posting, confirmation and deletion copy, responsive card height,
+non-color-only semantics, and Dashboard refresh behavior. The complete Task 4
+gate is expected to report `707 passed` with approximately `83%` total branch
+coverage. Real-application Dashboard and Activity History checks are required
+before committing Task 4B.
 
 ## Next Gate
 
-Task 4B will add a visible `Temporary` treatment to transaction cards in
-Dashboard recent activity and Activity History, expose edit/delete/post actions
-without applying Activity filters yet, and complete responsive and
-real-application interface verification.
+Task 5 will add the explicit `Temporary` filter, make Income and Expense
+filters posted-only, verify search/account/category/date combinations, prove
+conversion refreshes every relevant total and list, and repeat the 10,000-row
+performance gate with mixed posted and temporary activity.

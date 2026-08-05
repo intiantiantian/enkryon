@@ -108,6 +108,17 @@ totals. All stored and calculated money remains integer centavos.
   Activity History.
 - Each temporary record has a visible `Temporary` text label and a
   non-color-only status treatment.
+- Unified Activity records carry posting status into both Dashboard recent
+  activity and virtualized Activity History without per-card database reads.
+- Temporary cards pair a clock icon with explicit `TEMPORARY` text and expose a
+  guarded post action. Posted transactions and transfers do not expose that
+  action.
+- Direct posting requires confirmation that the record becomes financially
+  effective immediately and that account balances and totals will update.
+- Temporary deletion confirmation explicitly states that the record does not
+  currently affect financial totals.
+- A successful direct post refreshes the Dashboard summary and recent activity
+  together, while Activity History refreshes its virtualized list.
 - Search includes temporary notes, account names, category-group names, and
   category names.
 - The `Temporary` activity filter returns temporary income and expense records.

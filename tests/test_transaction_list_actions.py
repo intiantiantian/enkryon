@@ -12,6 +12,7 @@ from screens.transaction_list_actions import (
 from screens.transactions import TransactionsScreen
 from services.transaction_services import (
     TransactionDeleteResult,
+    TransactionPostResult,
     TransactionRestoreResult,
 )
 from services.transfer_services import (
@@ -228,6 +229,122 @@ def test_confirm_delete_transaction_builds_working_dialog(
     screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
+def test_confirm_delete_temporary_transaction_explains_non_posting_state(
+    monkeypatch,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        actions_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        delete_transaction=Mock(),
+        close_delete_transaction_dialog=Mock(),
+    )
+
+    TransactionListActionsMixin.confirm_delete_transaction(
+        screen,
+        17,
+        "temporary",
+    )
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+    assert dialog_kwargs["title"] == (
+        "Delete Temporary Transaction?"
+    )
+    assert "does not currently affect financial totals" in (
+        dialog_kwargs["message"]
+    )
+
+
+def test_confirm_post_transaction_builds_financial_effect_dialog(
+    monkeypatch,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        actions_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        post_transaction=Mock(),
+        close_post_transaction_dialog=Mock(),
+    )
+
+    TransactionListActionsMixin.confirm_post_transaction(
+        screen,
+        17,
+    )
+
+    assert screen.post_transaction_dialog is dialog
+    dialog.open.assert_called_once_with()
+    dialog_kwargs = dialog_factory.call_args.kwargs
+    assert dialog_kwargs["title"] == (
+        "Post Temporary Transaction?"
+    )
+    assert "financially effective immediately" in (
+        dialog_kwargs["message"]
+    )
+    assert "account balance and totals will update" in (
+        dialog_kwargs["message"]
+    )
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
+    screen.post_transaction.assert_called_once_with(17)
+    screen.close_post_transaction_dialog.assert_called_once_with()
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_post_transaction_renders_service_result(
+    monkeypatch,
+    success,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    service_result = TransactionPostResult(
+        success=success,
+        message="Posting result.",
+    )
+    post_transaction_by_id = Mock(return_value=service_result)
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "post_transaction_by_id",
+        post_transaction_by_id,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        close_post_transaction_dialog=Mock(),
+        refresh_after_transaction_post=Mock(),
+    )
+
+    TransactionListActionsMixin.post_transaction(screen, 17)
+
+    post_transaction_by_id.assert_called_once_with(17)
+    screen.close_post_transaction_dialog.assert_called_once_with()
+    show_snackbar.assert_called_once_with(service_result.message)
+    assert (
+        screen.refresh_after_transaction_post.call_count
+        == int(success)
+    )
+
+
 def test_confirm_delete_transfer_builds_working_dialog(monkeypatch):
     actions_module = import_module(
         "screens.transaction_list_actions"
@@ -257,17 +374,20 @@ def test_confirm_delete_transfer_builds_working_dialog(monkeypatch):
     screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
-def test_default_delete_refresh_uses_transaction_list_refresh():
+def test_default_transaction_refresh_hooks_use_transaction_list_refresh():
     screen = SimpleNamespace(refresh_transaction_list=Mock())
 
     TransactionListActionsMixin.refresh_after_transaction_delete(
         screen
     )
+    TransactionListActionsMixin.refresh_after_transaction_post(
+        screen
+    )
 
-    screen.refresh_transaction_list.assert_called_once_with()
+    assert screen.refresh_transaction_list.call_count == 2
 
 
-def test_dashboard_defines_list_and_delete_refresh_hooks():
+def test_dashboard_defines_list_delete_and_post_refresh_hooks():
     screen = SimpleNamespace(
         load_recent_transactions=Mock(),
         load_dashboard=Mock(),
@@ -275,9 +395,10 @@ def test_dashboard_defines_list_and_delete_refresh_hooks():
 
     DashboardScreen.refresh_transaction_list(screen)
     DashboardScreen.refresh_after_transaction_delete(screen)
+    DashboardScreen.refresh_after_transaction_post(screen)
 
     screen.load_recent_transactions.assert_called_once_with()
-    screen.load_dashboard.assert_called_once_with()
+    assert screen.load_dashboard.call_count == 2
 
 
 def test_dashboard_reset_preserves_account_and_clears_type():

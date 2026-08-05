@@ -2,10 +2,10 @@
 
 Updated: August 5, 2026
 Current release: `v1.1.0`
-Current position: Update 2 temporary transactions completed Task 4A form
-actions at 54% verified progress; temporary activity-card treatment is next,
-and the official v1.0.0 in-place Android upgrade remains unverified by
-release-owner waiver
+Current position: Update 2 temporary transactions completed the Task 4
+interface at 63% verified progress; posted-only activity filters and full
+history integration are next, and the official v1.0.0 in-place Android upgrade
+remains unverified by release-owner waiver
 
 ## Purpose
 
@@ -32,12 +32,12 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
 | Database upgrades | A `schema_migrations` table and six ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and its newest-first status-history index. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the Task 4A checkpoint is expected to contain `696` passing tests at approximately the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
+| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the Task 4 interface checkpoint is expected to contain `707` passing tests at approximately the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
 | Android release | `v1.1.0` is released; its signed artifact checks and clean install passed, while the official physical-device v1.0.0 upgrade was waived by the release owner. | Carry the exception explicitly, require a pre-upgrade backup, and verify the official v1.1.0-to-v1.2.0 upgrade before releasing Update 2. |
-| Architecture | Focused transfer components, status-aware persistence, UI-independent temporary workflows, and explicit form actions now feed the existing service boundaries. | Complete temporary activity presentation without moving SQL or posting rules into UI code. |
-| User experience | The transaction form now presents explicit temporary-save and post actions with dynamic status guidance and responsive text controls. | Dashboard and Activity History cards still need visible Temporary treatment and direct posting actions. |
+| Architecture | Focused transfer components, status-aware persistence, UI-independent temporary workflows, explicit form actions, and status-aware activity records now feed the existing service boundaries. | Add posted-only and Temporary filters without moving SQL or posting rules into UI code. |
+| User experience | The transaction form and activity cards now expose non-color-only Temporary status, guarded posting, edit, delete, and responsive actions. | Complete activity filter semantics and large-history refresh behavior. |
 | Backup and recovery | Backup format 2 remains current while the live database schema is version 6; compatible format-1 backups still restore with zero transfers. | Update 2 will add backup format 3 while restoring format-1 and format-2 transactions as posted. |
-| Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Transfers preserve stable newest-first history without entering category totals. |
+| Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Add Temporary as an explicit filter and make Income and Expense posted-only while preserving stable newest-first history. |
 
 ## Phase Overview
 
@@ -555,7 +555,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 2 temporary transaction interface
+**Status:** In progress — Update 2 activity integration
 
 ### Objective
 
@@ -624,10 +624,12 @@ The next work should be completed in this order:
    migrations 1 through 5.
 3. Completed: add temporary form state and UI-independent save, edit, atomic
    post, delete, and restore workflows.
-4. In progress: form-side temporary save and post actions are complete; add
-   temporary activity-card treatment and then integrate filters while excluding
-   temporary records from every posted financial calculation.
-5. Add backup format 3, complete regression, CI, signed Android artifact,
+4. Completed: add explicit temporary form actions, non-color-only activity-card
+   treatment, and guarded direct posting from Dashboard and Activity History.
+5. In progress: add posted-only Income and Expense filters, an explicit
+   Temporary filter, refresh invariants, and large-history integration while
+   excluding temporary records from every posted financial calculation.
+6. Add backup format 3, complete regression, CI, signed Android artifact,
    clean-install, official v1.1.0 upgrade, and recovery evidence.
 
 Do not begin daily interest or statistical visualizations until temporary

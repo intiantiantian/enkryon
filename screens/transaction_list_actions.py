@@ -1,6 +1,11 @@
 from services.transaction_services import (
     delete_transaction_by_id,
+    post_transaction_by_id,
     restore_deleted_transaction,
+)
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
 )
 from services.transfer_services import (
     delete_transfer_by_id,
@@ -95,6 +100,16 @@ class TransactionListActionsMixin:
         )
 
 
+    def post_transaction(self, transaction_id):
+        result = post_transaction_by_id(transaction_id)
+        self.close_post_transaction_dialog()
+        render_action_result(
+            result,
+            refresh=self.refresh_after_transaction_post,
+            refresh_required=result.success,
+        )
+
+
     def delete_transfer(self, transfer_id):
         result = delete_transfer_by_id(transfer_id)
         self.close_delete_transaction_dialog()
@@ -127,13 +142,30 @@ class TransactionListActionsMixin:
         )
 
 
-    def confirm_delete_transaction(self, transaction_id):
+    def confirm_delete_transaction(
+        self,
+        transaction_id,
+        posting_status=POSTED_STATUS,
+    ):
+        is_temporary = posting_status == TEMPORARY_STATUS
         self.delete_transaction_dialog = (
             EnkryonConfirmationDialog(
-                title="Delete Transaction?",
+                title=(
+                    "Delete Temporary Transaction?"
+                    if is_temporary
+                    else "Delete Transaction?"
+                ),
                 message=(
-                    "This transaction will be permanently "
-                    "deleted."
+                    (
+                        "This temporary transaction will be "
+                        "permanently deleted. It does not currently "
+                        "affect financial totals."
+                    )
+                    if is_temporary
+                    else (
+                        "This transaction will be permanently "
+                        "deleted."
+                    )
                 ),
                 confirm_callback=lambda:
                     self.delete_transaction(transaction_id),
@@ -143,6 +175,25 @@ class TransactionListActionsMixin:
             )
         )
         self.delete_transaction_dialog.open()
+
+
+    def confirm_post_transaction(self, transaction_id):
+        self.post_transaction_dialog = (
+            EnkryonConfirmationDialog(
+                title="Post Temporary Transaction?",
+                message=(
+                    "Posting makes this transaction financially "
+                    "effective immediately. The account balance "
+                    "and totals will update."
+                ),
+                confirm_callback=lambda:
+                    self.post_transaction(transaction_id),
+                cancel_callback=(
+                    self.close_post_transaction_dialog
+                ),
+            )
+        )
+        self.post_transaction_dialog.open()
 
 
     def confirm_delete_transfer(self, transfer_id):
@@ -168,5 +219,15 @@ class TransactionListActionsMixin:
             self.delete_transaction_dialog = None
 
 
+    def close_post_transaction_dialog(self, *args):
+        if self.post_transaction_dialog:
+            self.post_transaction_dialog.dismiss()
+            self.post_transaction_dialog = None
+
+
     def refresh_after_transaction_delete(self):
+        self.refresh_transaction_list()
+
+
+    def refresh_after_transaction_post(self):
         self.refresh_transaction_list()

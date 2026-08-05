@@ -98,6 +98,10 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         self.load_dashboard()
 
 
+    def refresh_after_transaction_post(self):
+        self.load_dashboard()
+
+
     def load_summary(self):
         balance_centavos = get_current_balance_centavos(
             self.filter_state.account_id

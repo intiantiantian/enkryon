@@ -384,3 +384,48 @@ checks before committing:
 5. Reopen a posted record and confirm the secondary action reads `Already
    Posted` and is disabled.
 6. Check the action group on a narrow window and with enlarged system text.
+
+### Update 2 Task 4B activity-card interface gate
+
+Task 4B carries posting status through unified Activity records and exposes the
+verified posting workflow from Dashboard recent activity and virtualized
+Activity History. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_database_records.py ^
+tests/test_transaction_list.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_overlay_components.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies that temporary records keep their status in unified activity,
+transfers retain the posted-only shared card contract, recycled cards reset all
+status properties, and only temporary transaction cards expose posting. It also
+covers financial-effect confirmation copy, temporary-specific deletion copy,
+Dashboard summary refresh, virtualized-list refresh, non-color-only status
+semantics, font-scaled card height, and use of the shared custom overlay.
+
+The complete Task 4 gate is expected to report `707 passed` with approximately
+`83%` total branch coverage. Because this checkpoint changes visible activity
+behavior, also perform these real-application checks before committing:
+
+1. Save a recognizable expense as temporary and confirm Dashboard recent
+   activity shows a clock icon and `TEMPORARY` text.
+2. Open Activity History and confirm the same record has the same status and
+   edit, post, and delete actions.
+3. Open the post confirmation and verify it warns that balances and totals will
+   update immediately; cancel and confirm nothing changes.
+4. Post the record from the card, then confirm the Temporary treatment and post
+   action disappear and the exact Dashboard balance and Expense change occurs
+   once.
+5. Attempt the stale action again only if an old view remains visible; confirm
+   the service rejects repeated posting without a second financial effect.
+6. Delete and undo-restore a temporary record and confirm its Temporary status
+   returns and totals remain unchanged.
+7. Check Dashboard and Activity History on a narrow window and enlarged system
+   text; card content and all actions must remain readable without clipping.

@@ -3,7 +3,11 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 
-def make_transaction(transaction_id, transaction_type="income"):
+def make_transaction(
+    transaction_id,
+    transaction_type="income",
+    posting_status="posted",
+):
     return SimpleNamespace(
         transaction_id=transaction_id,
         account_name="Cash",
@@ -11,6 +15,7 @@ def make_transaction(transaction_id, transaction_type="income"):
         category_name="Monthly",
         amount_centavos=2500,
         transaction_type=transaction_type,
+        posting_status=posting_status,
         date_time="2026-07-22 17:30:00",
     )
 
@@ -162,6 +167,11 @@ def test_virtualized_history_tracks_all_recycled_card_state():
         "transaction_type_icon",
         "transaction_type_label",
         "transaction_type_color",
+        "posting_status",
+        "is_temporary",
+        "posting_status_label",
+        "posting_status_icon",
+        "posting_status_color",
     }
     assert set(income_data) == expected_keys
     assert set(expense_data) == expected_keys
@@ -172,6 +182,27 @@ def test_virtualized_history_tracks_all_recycled_card_state():
     assert expense_data["transaction_type_label"] == "EXPENSE"
     assert expense_data["transaction_type_icon"] == "arrow-down"
     assert expense_data["amount_text"] == "- ₱ 25.00"
+    assert income_data["posting_status"] == "posted"
+    assert income_data["is_temporary"] is False
+    assert income_data["posting_status_label"] == ""
+
+
+def test_temporary_transaction_card_has_visible_status_state():
+    card_module = import_module("widgets.transaction_card")
+
+    data = card_module.create_transaction_card_data(
+        make_transaction(
+            3,
+            "expense",
+            posting_status="temporary",
+        ),
+        object(),
+    )
+
+    assert data["posting_status"] == "temporary"
+    assert data["is_temporary"] is True
+    assert data["posting_status_label"] == "TEMPORARY"
+    assert data["posting_status_icon"] == "clock-outline"
 
 
 def test_recycled_card_actions_use_refreshed_transaction_id():
@@ -190,7 +221,53 @@ def test_recycled_card_actions_use_refreshed_transaction_id():
     card_module.TransactionCard.delete_transaction(card)
 
     screen.edit_transaction.assert_called_once_with(17)
-    screen.confirm_delete_transaction.assert_called_once_with(18)
+    screen.confirm_delete_transaction.assert_called_once_with(
+        18,
+        "posted",
+    )
+
+
+def test_temporary_card_exposes_post_action_for_current_record():
+    card_module = import_module("widgets.transaction_card")
+    screen = SimpleNamespace(confirm_post_transaction=Mock())
+    card = SimpleNamespace(
+        screen=screen,
+        transaction_id=17,
+        record_type="transaction",
+        is_temporary=True,
+    )
+
+    card_module.TransactionCard.confirm_post_transaction(card)
+    card.transaction_id = 18
+    card_module.TransactionCard.confirm_post_transaction(card)
+
+    assert screen.confirm_post_transaction.call_args_list == [
+        ((17,), {}),
+        ((18,), {}),
+    ]
+
+
+def test_posted_and_transfer_cards_ignore_post_action():
+    card_module = import_module("widgets.transaction_card")
+    screen = SimpleNamespace(confirm_post_transaction=Mock())
+
+    posted = SimpleNamespace(
+        screen=screen,
+        transaction_id=17,
+        record_type="transaction",
+        is_temporary=False,
+    )
+    transfer = SimpleNamespace(
+        screen=screen,
+        transaction_id=18,
+        record_type="transfer",
+        is_temporary=True,
+    )
+
+    card_module.TransactionCard.confirm_post_transaction(posted)
+    card_module.TransactionCard.confirm_post_transaction(transfer)
+
+    screen.confirm_post_transaction.assert_not_called()
 
 
 def test_transfer_card_shows_accounts_direction_and_neutral_amount():
@@ -224,6 +301,8 @@ def test_transfer_card_shows_accounts_direction_and_neutral_amount():
     assert data["amount_text"] == "₱ 100.25"
     assert data["transaction_type_label"] == "TRANSFER"
     assert data["transaction_type_icon"] == "swap-horizontal"
+    assert data["posting_status"] == "posted"
+    assert data["is_temporary"] is False
 
 
 def test_transfer_card_uses_direction_aware_amount_and_actions():

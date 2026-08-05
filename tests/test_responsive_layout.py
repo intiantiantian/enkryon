@@ -196,12 +196,12 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transaction_card.count(
         "text_size: self.size"
-    ) == 7
-    assert transaction_card.count("max_lines: 1") == 6
-    assert transaction_card.count("shorten: True") == 6
+    ) == 9
+    assert transaction_card.count("max_lines: 1") == 7
+    assert transaction_card.count("shorten: True") == 7
     assert transaction_card.count(
         "shorten_from: 'right'"
-    ) == 5
+    ) == 6
     assert transaction_card.count(
         "shorten_from: 'left'"
     ) == 1
@@ -210,7 +210,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert "size_hint: 1.1, None" in transaction_card
     assert "spacing: '8dp'" in transaction_card
     assert transaction_card.count("pos_hint: {'top': 1}") == 3
-    assert transaction_card.count("adaptive_height: True") == 9
+    assert transaction_card.count("adaptive_height: True") == 10
     assert transaction_card.count("spacing: '4dp'") == 3
     assert (
         "height: root.fixed_height or self.minimum_height"
@@ -233,14 +233,23 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     )
     assert "id: transactions_container" not in transactions_layout
     assert (
-        "dp(72) * max(1, Metrics.fontscale)"
+        "dp(88) * max(1, Metrics.fontscale)"
         in transactions_layout
     )
     assert (
-        "fixed_height: dp(72) * max(1, Metrics.fontscale)"
+        "fixed_height: dp(88) * max(1, Metrics.fontscale)"
         in transaction_history_card
     )
     assert "\n    height:" not in transaction_history_card
+    assert "id: posting_status_badge" in transaction_card
+    assert "height: self.minimum_height if root.is_temporary else 0" in (
+        transaction_card
+    )
+    assert "id: post_transaction_action" in transaction_card
+    assert "width: dp(48) if root.is_temporary else 0" in (
+        transaction_card
+    )
+    assert "disabled: not root.is_temporary" in transaction_card
 
     amount_block = transaction_card.split(
         "id: amount",

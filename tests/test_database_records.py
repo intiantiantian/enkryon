@@ -134,6 +134,7 @@ def test_activity_record_exposes_unified_identity_and_compatibility():
         source_account_name="Cash",
         destination_account_name="Savings",
         direction="outgoing",
+        posting_status="posted",
     )
 
     assert activity.record_id == 23
@@ -142,3 +143,4 @@ def test_activity_record_exposes_unified_identity_and_compatibility():
     assert activity.transaction_id == 23
     assert activity.transaction_type == "transfer"
     assert activity.direction == "outgoing"
+    assert activity.posting_status == "posted"

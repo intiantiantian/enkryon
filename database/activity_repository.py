@@ -41,7 +41,8 @@ def _transaction_activity_query(
             CASE category_groups.transaction_type
                 WHEN 'income' THEN 'incoming'
                 ELSE 'outgoing'
-            END AS direction
+            END AS direction,
+            transactions.posting_status AS posting_status
         FROM transactions
         INNER JOIN accounts
             ON transactions.account_id = accounts.id
@@ -135,7 +136,8 @@ def _transfer_activity_query(
                 AS destination_account_id,
             source_accounts.name AS source_account_name,
             destination_accounts.name AS destination_account_name,
-            {direction_expression} AS direction
+            {direction_expression} AS direction,
+            'posted' AS posting_status
         FROM account_transfers
         INNER JOIN accounts AS source_accounts
             ON account_transfers.source_account_id = source_accounts.id
