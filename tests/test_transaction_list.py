@@ -170,7 +170,6 @@ def test_virtualized_history_tracks_all_recycled_card_state():
         "posting_status",
         "is_temporary",
         "posting_status_label",
-        "posting_status_icon",
         "posting_status_color",
     }
     assert set(income_data) == expected_keys
@@ -202,7 +201,7 @@ def test_temporary_transaction_card_has_visible_status_state():
     assert data["posting_status"] == "temporary"
     assert data["is_temporary"] is True
     assert data["posting_status_label"] == "PENDING"
-    assert data["posting_status_icon"] == "clock-outline"
+    assert "posting_status_icon" not in data
 
 
 def test_recycled_card_actions_use_refreshed_transaction_id():

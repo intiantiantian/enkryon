@@ -125,9 +125,6 @@ def create_transaction_card_data(transaction, screen):
         "posting_status_label": (
             "PENDING" if is_temporary else ""
         ),
-        "posting_status_icon": (
-            "clock-outline" if is_temporary else ""
-        ),
         "posting_status_color": hex_to_rgba(Colors.WARNING),
     }
     return card_data
@@ -150,7 +147,6 @@ class TransactionCard(MDCard):
     posting_status = StringProperty(POSTED_STATUS)
     is_temporary = BooleanProperty(False)
     posting_status_label = StringProperty("")
-    posting_status_icon = StringProperty("")
     posting_status_color = ListProperty([0, 0, 0, 1])
 
 

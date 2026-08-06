@@ -196,7 +196,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transaction_card.count(
         "text_size: self.size"
-    ) == 9
+    ) == 8
     assert transaction_card.count("max_lines: 1") == 7
     assert transaction_card.count("shorten: True") == 7
     assert transaction_card.count(
@@ -242,6 +242,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     )
     assert "\n    height:" not in transaction_history_card
     assert "id: posting_status_badge" in transaction_card
+    assert "id: posting_status_icon" not in transaction_card
     assert "height: self.minimum_height if root.is_temporary else 0" in (
         transaction_card
     )

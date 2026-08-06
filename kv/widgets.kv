@@ -204,18 +204,6 @@
                     opacity: 1 if root.is_temporary else 0
                     spacing: '2dp'
 
-                    MDIcon:
-                        id: posting_status_icon
-                        icon: root.posting_status_icon
-                        size_hint_x: None
-                        width: '16dp'
-                        font_size: '12sp'
-                        halign: 'center'
-                        valign: 'middle'
-                        text_size: self.size
-                        theme_text_color: 'Custom'
-                        text_color: root.posting_status_color
-
                     MDLabel:
                         id: posting_status_label
                         text: root.posting_status_label

@@ -137,7 +137,7 @@ def test_temporary_transaction_form_uses_explicit_text_status_cues():
     assert "temporary_action.opacity" in screen_source
 
 
-def test_temporary_activity_card_uses_text_icon_and_confirmation_copy():
+def test_temporary_activity_card_uses_text_and_confirmation_copy():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
         project_root / "kv" / "widgets.kv"
@@ -153,12 +153,12 @@ def test_temporary_activity_card_uses_text_icon_and_confirmation_copy():
     )
 
     assert "id: posting_status_badge" in layout
-    assert "id: posting_status_icon" in layout
+    assert "id: posting_status_icon" not in layout
     assert "id: posting_status_label" in layout
     assert "id: post_transaction_action" in layout
     assert "icon: 'check-circle-outline'" in layout
     assert '"PENDING" if is_temporary else ""' in card_source
-    assert '"clock-outline" if is_temporary else ""' in card_source
+    assert "posting_status_icon" not in card_source
     assert "Post Pending Transaction?" in actions_source
     assert "financially effective immediately" in normalized_actions
     assert "account balance" in normalized_actions
