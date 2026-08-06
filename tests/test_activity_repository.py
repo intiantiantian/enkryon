@@ -59,6 +59,42 @@ def test_combined_activity_is_newest_first_across_record_types():
         "transfer",
         "income",
     ]
+    assert [row.posting_status for row in activities] == [
+        "posted",
+        "posted",
+        "posted",
+    ]
+
+
+def test_activity_includes_temporary_transaction_status():
+    seed_activity()
+    assert insert_transaction(
+        1,
+        2_500,
+        2,
+        "2026-08-04 12:00:00",
+        "Planned meal",
+        posting_status="temporary",
+    ) is True
+
+    activities = get_activity()
+
+    temporary = activities[0]
+    assert temporary.record_type == "transaction"
+    assert temporary.activity_type == "expense"
+    assert temporary.posting_status == "temporary"
+
+
+def test_transfer_activity_uses_posted_status_for_shared_card_contract():
+    seed_activity()
+
+    transfer = next(
+        activity
+        for activity in get_activity()
+        if activity.record_type == "transfer"
+    )
+
+    assert transfer.posting_status == "posted"
 
 
 def test_activity_limit_applies_after_combining_record_types():
@@ -166,3 +202,96 @@ def test_date_filters_apply_to_transactions_and_transfers():
     assert [activity_identity(row) for row in activities] == [
         ("transfer", 1)
     ]
+
+
+def test_income_and_expense_filters_exclude_pending_records():
+    seed_activity()
+    assert insert_transaction(
+        1,
+        5_000,
+        1,
+        "2026-08-04 12:00:00",
+        "Pending bonus",
+        posting_status="temporary",
+    ) is True
+    assert insert_transaction(
+        2,
+        2_000,
+        2,
+        "2026-08-05 12:00:00",
+        "Pending dinner",
+        posting_status="temporary",
+    ) is True
+
+    income = get_activity(activity_type="income")
+    expense = get_activity(activity_type="expense")
+
+    assert [row.notes for row in income] == ["August salary"]
+    assert [row.notes for row in expense] == ["Team lunch"]
+    assert all(row.posting_status == "posted" for row in income)
+    assert all(row.posting_status == "posted" for row in expense)
+
+
+def test_pending_filter_returns_only_pending_income_and_expense():
+    seed_activity()
+    assert insert_transaction(
+        1,
+        5_000,
+        1,
+        "2026-08-04 12:00:00",
+        "Pending bonus",
+        posting_status="temporary",
+    ) is True
+    assert insert_transaction(
+        2,
+        2_000,
+        2,
+        "2026-08-05 12:00:00",
+        "Pending dinner",
+        posting_status="temporary",
+    ) is True
+
+    pending = get_activity(posting_status="temporary")
+
+    assert [row.notes for row in pending] == [
+        "Pending dinner",
+        "Pending bonus",
+    ]
+    assert {row.activity_type for row in pending} == {
+        "income",
+        "expense",
+    }
+    assert all(row.posting_status == "temporary" for row in pending)
+    assert all(row.record_type == "transaction" for row in pending)
+
+
+def test_pending_filter_combines_with_type_account_category_and_date():
+    seed_activity()
+    assert insert_transaction(
+        1,
+        5_000,
+        1,
+        "2026-08-04 12:00:00",
+        "Pending bonus",
+        posting_status="temporary",
+    ) is True
+    assert insert_transaction(
+        2,
+        2_000,
+        2,
+        "2026-08-05 12:00:00",
+        "Pending dinner",
+        posting_status="temporary",
+    ) is True
+
+    matches = get_activity(
+        activity_type="expense",
+        posting_status="temporary",
+        account_id=2,
+        category_id=2,
+        search_text="dinner",
+        start_date=date(2026, 8, 5),
+        end_date=date(2026, 8, 5),
+    )
+
+    assert [row.notes for row in matches] == ["Pending dinner"]

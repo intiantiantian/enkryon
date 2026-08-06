@@ -8,6 +8,7 @@ import services.backup_restorer as backup_restorer
 from services.backup_format import (
     BACKUP_RECORD_COLUMNS,
     LEGACY_BACKUP_FORMAT_VERSION,
+    TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
 )
@@ -72,6 +73,7 @@ def make_backup_document():
                     "category_id": 12,
                     "date_time": "2026-07-01 08:30:00",
                     "notes": None,
+                    "posting_status": "posted",
                 },
                 {
                     "id": 21,
@@ -80,6 +82,7 @@ def make_backup_document():
                     "category_id": 6,
                     "date_time": "2026-07-02 12:00:00",
                     "notes": "",
+                    "posting_status": "temporary",
                 },
             ],
             "account_transfers": [
@@ -94,6 +97,22 @@ def make_backup_document():
             ],
         },
     )
+
+
+
+def convert_to_format(document, format_version):
+    document["format_version"] = format_version
+
+    for transaction in document["records"]["transactions"]:
+        transaction.pop("posting_status", None)
+
+    if format_version == LEGACY_BACKUP_FORMAT_VERSION:
+        del document["records"]["account_transfers"]
+        del document["metadata"]["record_counts"][
+            "account_transfers"
+        ]
+
+    return document
 
 
 def seed_current_records():
@@ -333,27 +352,53 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
 
 
 def test_restore_legacy_backup_replaces_transfers_with_empty_set():
     seed_current_records()
-    document = make_backup_document()
-    document["format_version"] = LEGACY_BACKUP_FORMAT_VERSION
-    del document["records"]["account_transfers"]
-    del document["metadata"]["record_counts"]["account_transfers"]
+    document = convert_to_format(
+        make_backup_document(),
+        LEGACY_BACKUP_FORMAT_VERSION,
+    )
 
     restore_backup_json(serialize_backup_document(document))
 
     restored_records = read_current_records()
     assert restored_records["account_transfers"] == []
-    assert {
-        table_name: restored_records[table_name]
-        for table_name in document["records"]
-    } == document["records"]
+    assert restored_records["transactions"] == [
+        {
+            **transaction,
+            "posting_status": "posted",
+        }
+        for transaction in document["records"]["transactions"]
+    ]
 
 
-def test_current_backup_round_trip_preserves_transfer_records():
+def test_restore_transfer_backup_defaults_transactions_to_posted():
+    seed_current_records()
+    document = convert_to_format(
+        make_backup_document(),
+        TRANSFER_BACKUP_FORMAT_VERSION,
+    )
+
+    restore_backup_json(serialize_backup_document(document))
+
+    restored_records = read_current_records()
+    assert restored_records["account_transfers"] == (
+        document["records"]["account_transfers"]
+    )
+    assert restored_records["transactions"] == [
+        {
+            **transaction,
+            "posting_status": "posted",
+        }
+        for transaction in document["records"]["transactions"]
+    ]
+
+
+def test_current_backup_round_trip_preserves_posting_status_and_transfers():
     seed_current_records()
     original_records = read_current_records()
     document = export_backup_document(

@@ -36,6 +36,7 @@ def make_records():
                 "category_id": 6,
                 "date_time": "2026-07-01 08:30:00",
                 "notes": None,
+                "posting_status": "temporary",
             },
         ],
         "account_transfers": [],

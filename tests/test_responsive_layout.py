@@ -27,13 +27,13 @@ def test_controls_share_a_row_on_wide_standard_layout():
     assert not should_stack_controls(600, 1.0)
 
 
-def test_transaction_selectors_use_responsive_grids():
+def test_transaction_form_controls_use_responsive_grids():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
         project_root / "kv" / "add_transaction.kv"
     ).read_text(encoding="utf-8")
 
-    assert layout.count("should_stack_controls(") == 2
+    assert layout.count("should_stack_controls(") == 3
     assert layout.count("row_force_default: True") >= 2
 
 
@@ -175,7 +175,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transactions_layout.count(
         "should_stack_controls("
-    ) == 1
+    ) == 2
     assert "row_default_height: '44dp'" in transactions_layout
     assert "row_force_default: True" in transactions_layout
 
@@ -196,12 +196,12 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transaction_card.count(
         "text_size: self.size"
-    ) == 7
-    assert transaction_card.count("max_lines: 1") == 6
-    assert transaction_card.count("shorten: True") == 6
+    ) == 8
+    assert transaction_card.count("max_lines: 1") == 7
+    assert transaction_card.count("shorten: True") == 7
     assert transaction_card.count(
         "shorten_from: 'right'"
-    ) == 5
+    ) == 6
     assert transaction_card.count(
         "shorten_from: 'left'"
     ) == 1
@@ -210,7 +210,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     assert "size_hint: 1.1, None" in transaction_card
     assert "spacing: '8dp'" in transaction_card
     assert transaction_card.count("pos_hint: {'top': 1}") == 3
-    assert transaction_card.count("adaptive_height: True") == 9
+    assert transaction_card.count("adaptive_height: True") == 10
     assert transaction_card.count("spacing: '4dp'") == 3
     assert (
         "height: root.fixed_height or self.minimum_height"
@@ -233,14 +233,24 @@ def test_transaction_list_uses_responsive_filters_and_cards():
     )
     assert "id: transactions_container" not in transactions_layout
     assert (
-        "dp(72) * max(1, Metrics.fontscale)"
+        "dp(88) * max(1, Metrics.fontscale)"
         in transactions_layout
     )
     assert (
-        "fixed_height: dp(72) * max(1, Metrics.fontscale)"
+        "fixed_height: dp(88) * max(1, Metrics.fontscale)"
         in transaction_history_card
     )
     assert "\n    height:" not in transaction_history_card
+    assert "id: posting_status_badge" in transaction_card
+    assert "id: posting_status_icon" not in transaction_card
+    assert "height: self.minimum_height if root.is_temporary else 0" in (
+        transaction_card
+    )
+    assert "id: post_transaction_action" in transaction_card
+    assert "width: dp(48) if root.is_temporary else 0" in (
+        transaction_card
+    )
+    assert "disabled: not root.is_temporary" in transaction_card
 
     amount_block = transaction_card.split(
         "id: amount",
@@ -289,7 +299,7 @@ def test_transaction_search_controls_fit_small_widths():
     )
 
 
-def test_activity_type_filters_include_transfer_without_overflow():
+def test_dashboard_and_history_separate_primary_and_secondary_filters():
     project_root = Path(__file__).resolve().parents[1]
     dashboard_layout = (
         project_root / "kv" / "dashboard.kv"
@@ -298,10 +308,122 @@ def test_activity_type_filters_include_transfer_without_overflow():
         project_root / "kv" / "transactions.kv"
     ).read_text(encoding="utf-8")
 
-    for layout in (dashboard_layout, history_layout):
-        assert "id: transfer_filter" in layout
-        assert "text: 'TRANSFER'" in layout
-        assert "else 4" in layout
+    assert "id: all_filter" in dashboard_layout
+    assert "id: income_filter" in dashboard_layout
+    assert "id: expense_filter" in dashboard_layout
+    assert "id: transfer_filter" not in dashboard_layout
+    assert "id: pending_filter" not in dashboard_layout
+    assert "else 3" in dashboard_layout
+
+    primary_filters = history_layout.split(
+        "id: primary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[0]
+    secondary_filters = history_layout.split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "ScrollView:",
+        maxsplit=1,
+    )[0]
+
+    assert "id: all_filter" in primary_filters
+    assert "id: income_filter" in primary_filters
+    assert "id: expense_filter" in primary_filters
+    assert "id: transfer_filter" not in primary_filters
+    assert "id: pending_filter" not in primary_filters
+    assert "else 3" in primary_filters
+
+    assert "id: transfer_filter" in secondary_filters
+    assert "text: 'TRANSFER'" in secondary_filters
+    assert "id: pending_filter" in secondary_filters
+    assert "text: 'PENDING'" in secondary_filters
+    assert "else 2" in secondary_filters
+
+
+def test_activity_history_has_collapsible_advanced_filters_section():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+
+    advanced_section = layout.split(
+        "id: advanced_filters_section",
+        maxsplit=1,
+    )[1].split(
+        "id: active_filter_summary",
+        maxsplit=1,
+    )[0]
+    toggle_block = advanced_section.split(
+        "id: advanced_filters_toggle",
+        maxsplit=1,
+    )[1].split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[0]
+    secondary_filters = advanced_section.split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "id: advanced_filter_scroll",
+        maxsplit=1,
+    )[0]
+    field_filters = advanced_section.split(
+        "id: advanced_filter_scroll",
+        maxsplit=1,
+    )[1]
+
+    assert "orientation: 'vertical'" in advanced_section
+    assert "height: self.minimum_height" in advanced_section
+    assert "spacing:" in advanced_section
+    assert (
+        "dp(8) if root.advanced_filters_expanded else 0"
+        in advanced_section
+    )
+
+    assert "text: 'HIDE ADVANCED FILTERS'" in toggle_block
+    assert "'SHOW ADVANCED FILTERS'" in toggle_block
+    assert "root.toggle_advanced_filters()" in toggle_block
+    assert "size_hint: 1, None" in toggle_block
+    assert "height: '48dp'" in toggle_block
+    assert "elevation: 0" in toggle_block
+    assert "padding: '16dp'" in advanced_section
+    assert "size_hint_x: None" in advanced_section
+    assert "width: self.parent.width - dp(20)" in advanced_section
+    assert "pos_hint: {'center_x': .5}" in advanced_section
+
+    for block in (secondary_filters, field_filters):
+        assert (
+            "root.advanced_filters_expanded else 0"
+            in block
+        )
+        assert (
+            "opacity: 1 if root.advanced_filters_expanded else 0"
+            in block
+        )
+        assert (
+            "disabled: not root.advanced_filters_expanded"
+            in block
+        )
+
+    expected_order = (
+        "id: advanced_filters_toggle",
+        "id: secondary_activity_filters",
+        "id: advanced_filter_scroll",
+        "id: account_filter",
+        "id: group_filter",
+        "id: category_filter",
+        "id: start_date_filter",
+        "id: end_date_filter",
+    )
+    positions = [
+        advanced_section.index(marker)
+        for marker in expected_order
+    ]
+    assert positions == sorted(positions)
 
 
 def test_settings_content_remains_scrollable_and_contained():
@@ -577,3 +699,53 @@ def test_transaction_advanced_filters_scroll_on_small_widths():
     assert "text: 'RESET ALL'" in active_summary
     assert "width: '104dp'" in active_summary
     assert "height: '48dp'" in active_summary
+
+
+def test_add_transaction_posting_actions_stack_and_grow_with_font_scale():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+
+    action_group = layout.split(
+        "id: transaction_actions",
+        maxsplit=1,
+    )[1]
+
+    assert "should_stack_controls(" in action_group
+    assert "height: self.minimum_height" in action_group
+    assert "row_force_default: True" in action_group
+    assert "dp(48) * max(1, Metrics.fontscale)" in action_group
+    assert "id: temporary_action" in action_group
+    assert "id: post_action" in action_group
+    assert action_group.count("size_hint: 1, None") >= 2
+
+
+def test_add_transaction_header_and_guidance_fit_enlarged_text():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+
+    header = layout.split(
+        "BoxLayout:",
+        maxsplit=2,
+    )[2].split(
+        "Widget:",
+        maxsplit=1,
+    )[0]
+    guidance = layout.split(
+        "id: posting_status_card",
+        maxsplit=1,
+    )[1].split(
+        "OutlinedCard:",
+        maxsplit=1,
+    )[0]
+
+    assert "dp(64) * max(1, Metrics.fontscale)" in header
+    assert "id: screen_title" in header
+    assert "max_lines: 1" in header
+    assert "shorten: True" in header
+    assert "icon: 'content-save'" not in header
+    assert guidance.count("height: self.texture_size[1]") == 2
+    assert guidance.count("text_size: self.width, None") == 2

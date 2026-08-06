@@ -1,4 +1,5 @@
 from kivy.clock import Clock
+from kivy.properties import BooleanProperty
 from kivy.uix.screenmanager import Screen
 
 from database.account_repository import get_all_accounts
@@ -18,11 +19,13 @@ from services.activity_services import (
 from widgets.transaction_list import render_transaction_history
 from widgets.date_time_pickers import DatePickerDialog
 from widgets.overlays import EnkryonSelectionPanel
+from utils.transaction_posting import TEMPORARY_STATUS
 
 
 SEARCH_REFRESH_DELAY = 0.25
 
 class TransactionsScreen(TransactionListActionsMixin, Screen):
+    advanced_filters_expanded = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -40,7 +43,14 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.manager.current = "add_transaction"
 
 
+    def toggle_advanced_filters(self):
+        self.advanced_filters_expanded = (
+            not self.advanced_filters_expanded
+        )
+
+
     def on_pre_enter(self):
+        self.advanced_filters_expanded = False
         self.cancel_pending_search_refresh()
         self.filter_state.reset()
         self.render_filter_state()
@@ -51,15 +61,18 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
     def render_filter_state(self):
         transaction_type = self.filter_state.transaction_type
+        is_pending = (
+            self.filter_state.posting_status == TEMPORARY_STATUS
+        )
 
         self.ids.all_filter.set_selected(
-            transaction_type is None
+            transaction_type is None and not is_pending
         )
         self.ids.income_filter.set_selected(
-            transaction_type == "income"
+            transaction_type == "income" and not is_pending
         )
         self.ids.expense_filter.set_selected(
-            transaction_type == "expense"
+            transaction_type == "expense" and not is_pending
         )
         transfer_filter = getattr(
             self.ids,
@@ -70,6 +83,13 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
             transfer_filter.set_selected(
                 transaction_type == "transfer"
             )
+        pending_filter = getattr(
+            self.ids,
+            "pending_filter",
+            None,
+        )
+        if pending_filter is not None:
+            pending_filter.set_selected(is_pending)
 
 
     def render_advanced_filter_state(self):

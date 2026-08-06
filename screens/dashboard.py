@@ -69,7 +69,7 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
 
     def reset_dashboard(self):
-        self.filter_state.select_transaction_type(None)
+        self.filter_state.select_activity_filter(None)
         self.ids.all_filter.set_selected(True)
         self.ids.income_filter.set_selected(False)
         self.ids.expense_filter.set_selected(False)
@@ -80,6 +80,13 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
         )
         if transfer_filter is not None:
             transfer_filter.set_selected(False)
+        pending_filter = getattr(
+            self.ids,
+            "pending_filter",
+            None,
+        )
+        if pending_filter is not None:
+            pending_filter.set_selected(False)
         self.ids.account_label.text = (
             self.filter_state.account_name
         )
@@ -95,6 +102,10 @@ class DashboardScreen(TransactionListActionsMixin, Screen):
 
 
     def refresh_after_transaction_delete(self):
+        self.load_dashboard()
+
+
+    def refresh_after_transaction_post(self):
         self.load_dashboard()
 
 

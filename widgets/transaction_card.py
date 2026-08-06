@@ -1,4 +1,5 @@
 from kivy.properties import (
+    BooleanProperty,
     ListProperty,
     NumericProperty,
     ObjectProperty,
@@ -10,6 +11,10 @@ from kivymd.uix.card import MDCard
 from datetime import datetime
 
 from utils.money import format_signed_money
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
+)
 
 from widgets.empty_state import EmptyState
 
@@ -68,6 +73,11 @@ def create_transaction_card_data(transaction, screen):
     group_name = transaction.group_name
     category_name = transaction.category_name
     amount_sign_type = transaction_type
+    posting_status = getattr(
+        transaction,
+        "posting_status",
+        POSTED_STATUS,
+    )
 
     if record_type == "transfer":
         account_name = (
@@ -84,6 +94,9 @@ def create_transaction_card_data(transaction, screen):
             "incoming": "income",
             "outgoing": "expense",
         }.get(direction)
+        posting_status = POSTED_STATUS
+
+    is_temporary = posting_status == TEMPORARY_STATUS
 
     record_id = getattr(transaction, "record_id", None)
     if record_id is None:
@@ -107,6 +120,12 @@ def create_transaction_card_data(transaction, screen):
         "transaction_type_icon": presentation["icon"],
         "transaction_type_label": presentation["label"],
         "transaction_type_color": presentation["color"],
+        "posting_status": posting_status,
+        "is_temporary": is_temporary,
+        "posting_status_label": (
+            "PENDING" if is_temporary else ""
+        ),
+        "posting_status_color": hex_to_rgba(Colors.WARNING),
     }
     return card_data
 
@@ -125,6 +144,10 @@ class TransactionCard(MDCard):
     transaction_type_icon = StringProperty("")
     transaction_type_label = StringProperty("")
     transaction_type_color = ListProperty([0, 0, 0, 1])
+    posting_status = StringProperty(POSTED_STATUS)
+    is_temporary = BooleanProperty(False)
+    posting_status_label = StringProperty("")
+    posting_status_color = ListProperty([0, 0, 0, 1])
 
 
     def set_transaction(self, transaction):
@@ -150,7 +173,21 @@ class TransactionCard(MDCard):
             )
             return
 
-        self.screen.confirm_delete_transaction(self.transaction_id)
+        self.screen.confirm_delete_transaction(
+            self.transaction_id,
+            getattr(self, "posting_status", POSTED_STATUS),
+        )
+
+
+    def confirm_post_transaction(self):
+        if (
+            getattr(self, "record_type", "transaction")
+            != "transaction"
+            or not getattr(self, "is_temporary", False)
+        ):
+            return
+
+        self.screen.confirm_post_transaction(self.transaction_id)
 
 
 class TransactionHistoryCard(

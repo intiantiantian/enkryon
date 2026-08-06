@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 
 from database import connection as database_connection
+from database import activity_repository
 from database import transaction_repository
 
 
@@ -37,6 +38,11 @@ def seed_large_transaction_history(connection):
                 + timedelta(minutes=transaction_id)
             ).strftime("%Y-%m-%d %H:%M:%S"),
             f"Transaction {transaction_id}",
+            (
+                "temporary"
+                if transaction_id % 10 == 0
+                else "posted"
+            ),
         )
         for transaction_id in range(1, HISTORY_SIZE + 1)
     ]
@@ -47,9 +53,10 @@ def seed_large_transaction_history(connection):
             amount_centavos,
             category_id,
             date_time,
-            notes
+            notes,
+            posting_status
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
         transactions,
     )
@@ -121,6 +128,10 @@ def test_large_history_queries_use_transaction_indexes(
             connection,
             category_id=2,
         )
+        temporary_transactions, temporary_plan = run_indexed_query(
+            connection,
+            posting_status="temporary",
+        )
     finally:
         connection.close()
 
@@ -133,6 +144,9 @@ def test_large_history_queries_use_transaction_indexes(
     assert transaction_ids(category_transactions) == list(
         range(9_999, 9_924, -3)
     )
+    assert transaction_ids(temporary_transactions) == list(
+        range(10_000, 9_750, -10)
+    )
     assert any(
         "transactions_history_order_index" in step
         for step in recent_plan
@@ -144,4 +158,62 @@ def test_large_history_queries_use_transaction_indexes(
     assert any(
         "transactions_category_history_index" in step
         for step in category_plan
+    )
+    assert any(
+        "transactions_posting_status_history_index" in step
+        for step in temporary_plan
+    )
+    assert not any(
+        "USE TEMP B-TREE FOR ORDER BY" in step
+        for step in temporary_plan
+    )
+
+
+def test_large_pending_activity_query_uses_status_history_index(
+    monkeypatch,
+):
+    connection = database_connection.connect_database()
+    traced_statements = []
+
+    try:
+        seed_large_transaction_history(connection)
+        monkeypatch.setattr(
+            activity_repository,
+            "managed_connection",
+            lambda: keep_connection_open(connection),
+        )
+        connection.set_trace_callback(traced_statements.append)
+        pending = activity_repository.get_activity(
+            posting_status="temporary",
+            limit=RESULT_LIMIT,
+        )
+        connection.set_trace_callback(None)
+
+        select_statement = next(
+            statement
+            for statement in traced_statements
+            if statement.lstrip().startswith("SELECT")
+            and "transactions.posting_status" in statement
+        )
+        query_plan = [
+            row[3]
+            for row in connection.execute(
+                f"EXPLAIN QUERY PLAN {select_statement}"
+            ).fetchall()
+        ]
+    finally:
+        connection.set_trace_callback(None)
+        connection.close()
+
+    assert [row.record_id for row in pending] == list(
+        range(10_000, 9_750, -10)
+    )
+    assert all(row.posting_status == "temporary" for row in pending)
+    assert any(
+        "transactions_posting_status_history_index" in step
+        for step in query_plan
+    )
+    assert not any(
+        "USE TEMP B-TREE FOR ORDER BY" in step
+        for step in query_plan
     )

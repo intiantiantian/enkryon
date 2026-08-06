@@ -29,6 +29,7 @@ class TransactionListRecord(NamedTuple):
     date_time: str
     notes: str | None
     transaction_type: str
+    posting_status: str = "posted"
 
 
 class TransactionDetailRecord(NamedTuple):
@@ -43,6 +44,7 @@ class TransactionDetailRecord(NamedTuple):
     group_id: int
     group_name: str
     transaction_type: str
+    posting_status: str = "posted"
 
 
 class TransferRecord(NamedTuple):
@@ -71,6 +73,7 @@ class ActivityRecord(NamedTuple):
     source_account_name: str | None
     destination_account_name: str | None
     direction: str
+    posting_status: str = "posted"
 
     @property
     def transaction_id(self):

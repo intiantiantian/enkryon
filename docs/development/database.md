@@ -60,6 +60,7 @@ The current migrations are:
 | 3 | `validation_constraints` | Add transaction, name, type, and date/time rules. |
 | 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
 | 5 | `account_transfers` | Add atomic transfer records plus newest-first, outgoing, and incoming indexes. |
+| 6 | `transaction_posting_status` | Add constrained posted/Pending state and the status-history index. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -93,6 +94,7 @@ The current schema enforces these core rules:
 
 - Transaction amounts must be positive integer centavos.
 - Transaction date/time values must use the supported valid format.
+- Transaction posting status must be exactly `posted` or `temporary`.
 - Accounts, category groups, and categories require trimmed, non-empty
   names.
 - Account names are unique after normalization.
@@ -133,7 +135,9 @@ The upgrade tests verify:
 ## Large-History Access
 
 Migration 4 creates three transaction-history indexes for newest-first and
-filtered access. Repository queries combine search and filters with bound
+filtered access. Migration 6 adds
+`transactions_posting_status_history_index` for status-filtered newest-first
+activity. Repository queries combine search and filters with bound
 parameters, treat wildcard characters literally, include complete selected
 dates, and use transaction ID as the stable secondary ordering key.
 
@@ -178,7 +182,7 @@ file-based backup could copy and later restore the database without
 Enkryon validating its schema version, application version, record
 counts, or financial totals.
 
-This policy remains in effect for version 1.1:
+This policy remains in effect for version 1.2:
 
 - Enkryon does not opt into Android cloud backup.
 - No custom Android backup-rules file is configured.
@@ -193,8 +197,10 @@ Phase 7 introduced versioned JSON backup documents containing application and
 database versions, export metadata, record counts, and the account, category
 group, category, and transaction records needed for recovery. Version 1.1 uses
 backup format 2, which adds `account_transfers` as a fifth record collection.
-Compatible format-1 documents from version 1.0 are normalized to an empty
-transfer collection before validation and restore.
+Update 2 uses backup format 3, which adds `posting_status` to each transaction.
+Compatible format-1 documents from version 1.0 normalize to an empty transfer
+collection, and transactions from both format 1 and format 2 normalize to
+`posted` before validation and replacement restore.
 
 Before restore begins, the complete document is validated for supported
 versions, structure, field values, record counts, IDs, uniqueness, and
@@ -217,4 +223,6 @@ requesting broad storage permission.
 Restore in `v0.7.0` does not merge records.
 Restore in `v1.0.0` does not merge records either; this replacement-only behavior remains unchanged.
 Restore in `v1.1.0` remains replacement-only and is transfer-aware.
+Restore in `v1.2.0` remains replacement-only and preserves posted and Pending
+status through format-3 round trips.
 Backup merging is deferred until after statistics.

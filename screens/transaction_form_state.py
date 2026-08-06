@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from database.records import TransactionDetailRecord
 from utils.money import centavos_to_peso_text
+from utils.transaction_posting import POSTED_STATUS
 from utils.transaction_datetime import split_database_datetime
 
 
@@ -19,6 +20,7 @@ class TransactionFormState:
     time_label: str = ""
     notes: str = ""
     transaction_id: int | None = None
+    posting_status: str = POSTED_STATUS
 
 
     @classmethod
@@ -48,6 +50,7 @@ class TransactionFormState:
             time_label=time_label,
             notes=transaction.notes or "",
             transaction_id=transaction.transaction_id,
+            posting_status=transaction.posting_status,
         )
 
 
@@ -61,6 +64,7 @@ class TransactionFormState:
             "time_label": self.time_label,
             "notes_label": self.notes,
             "transaction_id": self.transaction_id,
+            "posting_status": self.posting_status,
         }
 
 

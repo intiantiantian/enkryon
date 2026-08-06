@@ -118,6 +118,81 @@ repeated afterward; that explicit evidence limit is recorded in
 Future interface changes must run their focused tests, the complete suite,
 and the device or desktop checks relevant to the changed behavior.
 
+### Update 2 Task 5 activity and financial integration gate
+
+Task 5 adds posting status to the shared Dashboard and Activity History filter
+contract. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_activity_services.py ^
+tests/test_transaction_filter_state.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_pending_activity_integration.py ^
+tests/test_transaction_history_performance.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies explicit Pending controls on Dashboard and Activity History,
+posted-only Income and Expense views, Pending-only transaction results, shared
+filter-state forwarding, account/group/category/search/date combinations,
+status-specific empty states, exact balance and total exclusion, one-time
+posting movement between views, responsive five-control layouts, non-color-only
+labels, and status-index use for 10,000 mixed records.
+
+The complete Task 5 gate is expected to report `725 passed` with approximately
+`83%` total branch coverage. Because the checkpoint changes visible filters,
+also perform these real-application checks before committing:
+
+1. Create one posted income, one posted expense, one pending income, one pending
+   expense, and one transfer with recognizable notes.
+2. Confirm `All` shows all five newest-first.
+3. Confirm `INCOME` and `EXPENSE` show only their posted records.
+4. Confirm `PENDING` shows both pending records and no transfer.
+5. Combine Pending with account, search, category, and date filters.
+6. Post one pending record and confirm it leaves Pending, enters the matching
+   posted type, and changes the exact balance and total once.
+7. Check both filter rows on a narrow window and enlarged system text.
+
+### Update 2 Task 6 backup and recovery gate
+
+Task 6 advances exports to backup format 3 while preserving strict validation
+and replacement-only restore. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_backup_format.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_validator.py ^
+tests/test_backup_restorer.py ^
+tests/test_pending_backup_recovery.py ^
+tests/test_recovery_contract.py ^
+tests/test_document_transfer.py ^
+tests/test_settings_screen_workflows.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies exact format-3 status export, posted/Pending round trips,
+format-1 empty-transfer normalization, format-2 transfer preservation, default
+posted status for both older formats, malformed-status rejection before
+replacement, record counts, IDs, sequences, foreign keys, integrity, Clear All
+Data, rollback, restore preview, document transfer, and Settings workflows.
+
+The complete Task 6 gate is expected to report `737 passed` with approximately
+`83%` total branch coverage. Also perform one real-application recovery check:
+
+1. Create one posted transaction, one Pending transaction, and one transfer.
+2. Record exact account balances, Income, and Expenses.
+3. Export a backup and confirm the preview counts.
+4. Clear All Data through the existing backup-first confirmation flow.
+5. Restore the exported document and relaunch the app.
+6. Confirm both transaction statuses, the transfer, record counts, and exact
+   financial totals match the pre-export state.
+
 ## Phase 7 Recovery Regression
 
 Phase 7 began with `395` tests. Its implementation closeout baseline contains
@@ -270,3 +345,180 @@ all collected tests passing, not on preserving a fixed count.
 3. Perform any real-application check relevant to the change.
 4. Commit the verified checkpoint.
 5. Push the branch and confirm that GitHub Actions passes.
+
+## Update 2 Pending-Transaction Contract Baseline
+
+Update 2 began from the clean released `v1.1.0` baseline on the
+`update-2-pending-transactions` branch. Before migration or feature code was
+changed, the complete Windows suite reported `637 passed` with `83%` total
+branch coverage on Python `3.13.14`.
+
+The Task 1 contract regression is maintained in
+`tests/test_update2_contract.py`. It verifies the non-posting calculation
+contract, status and migration direction, activity/filter behavior, backup
+compatibility, weighted checkpoint evidence, and the explicitly carried
+Android upgrade exception.
+
+Task 1 changes documentation and contract tests only. Migration, repository,
+service, UI, and recovery behavior must not be implemented until the contract
+checkpoint passes and is committed.
+
+## Update 2 Status-Aware Persistence Regression
+
+Task 2 adds focused persistence coverage for migration 6, the constrained
+`posting_status` column, default-posted legacy upgrades, status-aware records
+and CRUD, compare-and-set posting, status-preserving restore, posted-only
+financial totals, and account/category deletion protection for temporary
+references.
+
+The 10,000-record history regression now seeds both posted and temporary rows.
+It proves that a status-filtered newest-first query uses
+`transactions_posting_status_history_index` and does not create a temporary
+B-tree for ordering. The index is intentionally limited to posting status,
+date, and ID; additional account/category status indexes require their own
+query-plan evidence.
+
+Task 2 completed with `654 passed`, `83%` total branch coverage, successful
+Python compilation, and a clean Git whitespace check. It changed no visible
+screen or workflow, so its checkpoint required no real-application check.
+
+### Update 2 Task 3A pending save/edit workflow gate
+
+Task 3A extends form state and the transaction service without adding visible
+controls. Run the focused gate below before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_form_state.py ^
+tests/test_transaction_payload.py ^
+tests/test_transaction_validation.py ^
+tests/test_transaction_services.py ^
+tests/test_temporary_transaction_save_workflows.py ^
+tests/test_temporary_transaction_persistence.py
+```
+
+The focused gate contains `61` tests. It verifies explicit pending creation,
+exact centavo payloads, status-preserving edits, invalid-status and date/time
+rejection, missing-record behavior, and stable repository-failure results. The
+complete Task 3A gate is expected to report `666 passed` with approximately
+`83%` total branch coverage.
+
+### Update 2 Task 3B posting and recovery workflow gate
+
+Task 3B completes the UI-independent transaction service workflow without
+adding visible controls. Run the focused gate below before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_services.py ^
+tests/test_temporary_transaction_save_workflows.py ^
+tests/test_temporary_transaction_post_workflows.py ^
+tests/test_temporary_transaction_persistence.py ^
+tests/test_transaction_repository.py ^
+tests/test_transfer_balances.py
+```
+
+The focused gate contains `89` tests. It verifies compare-and-set posting,
+exact-centavo total changes, repeated-post prevention, missing-record behavior,
+induced database-failure rollback, status-preserving delete/restore, and stable
+repository-exception results. The complete Task 3 gate is expected to report
+`682 passed` with approximately `83%` total branch coverage. Because the
+checkpoint introduces no visible control, no real-application check is required.
+
+
+### Update 2 Task 4A transaction-form interface gate
+
+Task 4A exposes the verified pending save and posting services through the
+transaction form. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transaction_form_actions.py ^
+tests/test_transaction_form_state.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The focused gate contains `82` tests. It verifies explicit pending and posted
+actions, current-field validation before posting an edited pending record,
+failed-save and failed-post preservation, posted-record reversal protection,
+dynamic titles and status text, responsive stacking, enlarged-font growth, and
+non-color-only semantics. The complete Task 4A gate is expected to report `696
+passed` with approximately `83%` total branch coverage.
+
+Because Task 4A changes visible behavior, also perform these real-application
+checks before committing:
+
+1. Open a new transaction and confirm both text actions are visible.
+2. Save an expense as pending and confirm Dashboard balance, Income, and
+   Expenses do not change.
+3. Reopen that record and confirm the title and visible status say Pending.
+4. Edit its amount or notes, post it, and confirm the exact financial effect is
+   applied once.
+5. Reopen a posted record and confirm the secondary action reads `Already
+   Posted` and is disabled.
+6. Check the action group on a narrow window and with enlarged system text.
+
+### Update 2 Task 4B activity-card interface gate
+
+Task 4B carries posting status through unified Activity records and exposes the
+verified posting workflow from Dashboard recent activity and virtualized
+Activity History. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_database_records.py ^
+tests/test_transaction_list.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_overlay_components.py ^
+tests/test_update2_contract.py
+```
+
+The gate verifies that pending records keep their status in unified activity,
+transfers retain the posted-only shared card contract, recycled cards reset all
+status properties, and only pending transaction cards expose posting. It also
+covers financial-effect confirmation copy, temporary-specific deletion copy,
+Dashboard summary refresh, virtualized-list refresh, non-color-only status
+semantics, font-scaled card height, and use of the shared custom overlay.
+
+The complete Task 4 gate is expected to report `707 passed` with approximately
+`83%` total branch coverage. Because this checkpoint changes visible activity
+behavior, also perform these real-application checks before committing:
+
+1. Save a recognizable expense as temporary and confirm Dashboard recent
+   activity shows a clock icon and `PENDING` text.
+2. Open Activity History and confirm the same record has the same status and
+   edit, post, and delete actions.
+3. Open the post confirmation and verify it warns that balances and totals will
+   update immediately; cancel and confirm nothing changes.
+4. Post the record from the card, then confirm the Pending treatment and post
+   action disappear and the exact Dashboard balance and Expense change occurs
+   once.
+5. Attempt the stale action again only if an old view remains visible; confirm
+   the service rejects repeated posting without a second financial effect.
+6. Delete and undo-restore a pending record and confirm its Pending status
+   returns and totals remain unchanged.
+7. Check Dashboard and Activity History on a narrow window and enlarged system
+   text; card content and all actions must remain readable without clipping.
+
+## Update 2 Task 7A Release-Candidate Gate
+
+Task 7A prepares the v1.2.0 source release identity before the Android artifact
+is built. The gate verifies:
+
+- `main.py`, README, changelog, roadmap candidate identity, release guide, and
+  candidate release notes agree on `1.2.0`;
+- Pending Transactions, migration 6, backup format 3, and older-format
+  normalization are documented consistently;
+- the Android checklist requires the official v1.1.0-to-v1.2.0 upgrade and
+  controlled posted/Pending checks;
+- release-note evidence that depends on CI, signing, installation, upgrade, or
+  the generated APK remains explicitly pending rather than guessed; and
+- the complete suite, coverage, compilation, and whitespace checks pass.
+
+Task 7B replaces every pending release-evidence field only after the signed APK
+and physical-device checks provide the actual values.

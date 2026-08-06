@@ -42,6 +42,7 @@ def insert_transaction(
     category_id,
     date_time,
     notes,
+    posting_status="posted",
 ):
     try:
         with managed_connection() as connection:
@@ -52,15 +53,17 @@ def insert_transaction(
                     amount_centavos,
                     category_id,
                     date_time,
-                    notes
+                    notes,
+                    posting_status
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
             ''', (
                 account_id,
                 amount_centavos,
                 category_id,
                 date_time,
                 notes,
+                posting_status,
             ))
             connection.commit()
             return True
@@ -77,6 +80,7 @@ def get_transactions(
     category_id=None,
     start_date=None,
     end_date=None,
+    posting_status=None,
 ):
     with managed_connection() as connection:
         cursor = connection.cursor()
@@ -87,7 +91,8 @@ def get_transactions(
                     transactions.amount_centavos,
                     transactions.date_time,
                     transactions.notes,
-                    category_groups.transaction_type
+                    category_groups.transaction_type,
+                    transactions.posting_status
                     FROM transactions
                     INNER JOIN accounts
                         ON transactions.account_id = accounts.id
@@ -134,6 +139,10 @@ def get_transactions(
             conditions.append('transactions.category_id = ?')
             params.append(category_id)
 
+        if posting_status is not None:
+            conditions.append('transactions.posting_status = ?')
+            params.append(posting_status)
+
         if start_date is not None:
             conditions.append('transactions.date_time >= ?')
             params.append(
@@ -179,7 +188,8 @@ def get_transaction_by_id(transaction_id):
                        categories.name,
                        categories.group_id,
                        category_groups.name,
-                       category_groups.transaction_type
+                       category_groups.transaction_type,
+                       transactions.posting_status
                        FROM transactions
                        INNER JOIN accounts
                            ON transactions.account_id = accounts.id
@@ -204,29 +214,66 @@ def update_transaction(
     date_time,
     notes,
     transaction_id,
+    posting_status=None,
 ):
     try:
         with managed_connection() as connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                '''
-                UPDATE transactions
-                SET account_id = ?,
-                    amount_centavos = ?,
-                    category_id = ?,
-                    date_time = ?,
-                    notes = ?
-                WHERE id = ?
-                ''',
-                (
-                    account_id,
-                    amount_centavos,
-                    category_id,
-                    date_time,
-                    notes,
-                    transaction_id,
-                ),
+            assignments = [
+                "account_id = ?",
+                "amount_centavos = ?",
+                "category_id = ?",
+                "date_time = ?",
+                "notes = ?",
+            ]
+            params = [
+                account_id,
+                amount_centavos,
+                category_id,
+                date_time,
+                notes,
+            ]
+
+            if posting_status is not None:
+                assignments.append("posting_status = ?")
+                params.append(posting_status)
+
+            params.append(transaction_id)
+            query = (
+                "UPDATE transactions SET "
+                + ", ".join(assignments)
+                + " WHERE id = ?"
             )
+
+            cursor = connection.execute(query, tuple(params))
+
+            if cursor.rowcount == 0:
+                return False
+
+            connection.commit()
+            return True
+    except sqlite3.Error:
+        return False
+
+
+def update_transaction_posting_status(
+    transaction_id,
+    posting_status,
+    expected_posting_status=None,
+):
+    try:
+        with managed_connection() as connection:
+            query = '''
+                UPDATE transactions
+                SET posting_status = ?
+                WHERE id = ?
+            '''
+            params = [posting_status, transaction_id]
+
+            if expected_posting_status is not None:
+                query += " AND posting_status = ?"
+                params.append(expected_posting_status)
+
+            cursor = connection.execute(query, tuple(params))
 
             if cursor.rowcount == 0:
                 return False
@@ -267,9 +314,10 @@ def restore_transaction(transaction):
                     amount_centavos,
                     category_id,
                     date_time,
-                    notes
+                    notes,
+                    posting_status
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''',
                 (
                     transaction.transaction_id,
@@ -278,6 +326,7 @@ def restore_transaction(transaction):
                     transaction.category_id,
                     transaction.date_time,
                     transaction.notes,
+                    transaction.posting_status,
                 ),
             )
             connection.commit()
@@ -298,6 +347,7 @@ def get_total_centavos(transaction_type, account_id=None):
                 INNER JOIN category_groups
                     ON categories.group_id = category_groups.group_id
                 WHERE transaction_type = ?
+                  AND transactions.posting_status = 'posted'
             '''
 
             params = [transaction_type]

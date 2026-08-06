@@ -32,6 +32,7 @@ USER_TABLES = {
             "category_id",
             "date_time",
             "notes",
+            "posting_status",
         ),
         "rows": [
             (
@@ -41,6 +42,7 @@ USER_TABLES = {
                 12,
                 "2026-07-01 08:30:00",
                 "Salary – July",
+                "posted",
             ),
             (
                 21,
@@ -49,6 +51,7 @@ USER_TABLES = {
                 6,
                 "2026-07-02 12:00:00",
                 None,
+                "posted",
             ),
             (
                 34,
@@ -57,6 +60,7 @@ USER_TABLES = {
                 6,
                 "2026-07-03 19:45:00",
                 "",
+                "posted",
             ),
         ],
     },
@@ -88,6 +92,7 @@ MIGRATION_ROWS = [
     (3, "validation_constraints"),
     (4, "transaction_history_indexes"),
     (5, "account_transfers"),
+    (6, "transaction_posting_status"),
 ]
 
 

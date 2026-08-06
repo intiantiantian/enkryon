@@ -64,6 +64,7 @@ def test_transaction_list_record_exposes_named_fields():
     assert transaction.date_time == "2026-07-19 19:30:00"
     assert transaction.notes == "Dinner"
     assert transaction.transaction_type == "expense"
+    assert transaction.posting_status == "posted"
 
 
 def test_transaction_detail_record_exposes_named_fields():
@@ -92,6 +93,7 @@ def test_transaction_detail_record_exposes_named_fields():
     assert transaction.group_id == 5
     assert transaction.group_name == "Food"
     assert transaction.transaction_type == "expense"
+    assert transaction.posting_status == "posted"
 
 
 def test_transfer_record_exposes_named_fields():
@@ -132,6 +134,7 @@ def test_activity_record_exposes_unified_identity_and_compatibility():
         source_account_name="Cash",
         destination_account_name="Savings",
         direction="outgoing",
+        posting_status="posted",
     )
 
     assert activity.record_id == 23
@@ -140,3 +143,4 @@ def test_activity_record_exposes_unified_identity_and_compatibility():
     assert activity.transaction_id == 23
     assert activity.transaction_type == "transfer"
     assert activity.direction == "outgoing"
+    assert activity.posting_status == "posted"

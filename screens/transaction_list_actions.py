@@ -1,6 +1,11 @@
 from services.transaction_services import (
     delete_transaction_by_id,
+    post_transaction_by_id,
     restore_deleted_transaction,
+)
+from utils.transaction_posting import (
+    POSTED_STATUS,
+    TEMPORARY_STATUS,
 )
 from services.transfer_services import (
     delete_transfer_by_id,
@@ -13,19 +18,23 @@ from .action_results import render_action_result
 
 class TransactionListActionsMixin:
 
-    def set_transaction_filter(self, transaction_type):
-        self.filter_state.select_transaction_type(
-            transaction_type
+    def set_transaction_filter(self, activity_filter):
+        self.filter_state.select_activity_filter(
+            activity_filter
+        )
+        transaction_type = self.filter_state.transaction_type
+        is_pending = (
+            self.filter_state.posting_status == TEMPORARY_STATUS
         )
 
         self.ids.all_filter.set_selected(
-            transaction_type is None
+            transaction_type is None and not is_pending
         )
         self.ids.income_filter.set_selected(
-            transaction_type == "income"
+            transaction_type == "income" and not is_pending
         )
         self.ids.expense_filter.set_selected(
-            transaction_type == "expense"
+            transaction_type == "expense" and not is_pending
         )
         transfer_filter = getattr(
             self.ids,
@@ -36,6 +45,13 @@ class TransactionListActionsMixin:
             transfer_filter.set_selected(
                 transaction_type == "transfer"
             )
+        pending_filter = getattr(
+            self.ids,
+            "pending_filter",
+            None,
+        )
+        if pending_filter is not None:
+            pending_filter.set_selected(is_pending)
 
         self.refresh_transaction_list()
 
@@ -95,6 +111,16 @@ class TransactionListActionsMixin:
         )
 
 
+    def post_transaction(self, transaction_id):
+        result = post_transaction_by_id(transaction_id)
+        self.close_post_transaction_dialog()
+        render_action_result(
+            result,
+            refresh=self.refresh_after_transaction_post,
+            refresh_required=result.success,
+        )
+
+
     def delete_transfer(self, transfer_id):
         result = delete_transfer_by_id(transfer_id)
         self.close_delete_transaction_dialog()
@@ -127,13 +153,30 @@ class TransactionListActionsMixin:
         )
 
 
-    def confirm_delete_transaction(self, transaction_id):
+    def confirm_delete_transaction(
+        self,
+        transaction_id,
+        posting_status=POSTED_STATUS,
+    ):
+        is_temporary = posting_status == TEMPORARY_STATUS
         self.delete_transaction_dialog = (
             EnkryonConfirmationDialog(
-                title="Delete Transaction?",
+                title=(
+                    "Delete Pending Transaction?"
+                    if is_temporary
+                    else "Delete Transaction?"
+                ),
                 message=(
-                    "This transaction will be permanently "
-                    "deleted."
+                    (
+                        "This pending transaction will be "
+                        "permanently deleted. It does not currently "
+                        "affect financial totals."
+                    )
+                    if is_temporary
+                    else (
+                        "This transaction will be permanently "
+                        "deleted."
+                    )
                 ),
                 confirm_callback=lambda:
                     self.delete_transaction(transaction_id),
@@ -143,6 +186,25 @@ class TransactionListActionsMixin:
             )
         )
         self.delete_transaction_dialog.open()
+
+
+    def confirm_post_transaction(self, transaction_id):
+        self.post_transaction_dialog = (
+            EnkryonConfirmationDialog(
+                title="Post Pending Transaction?",
+                message=(
+                    "Posting makes this transaction financially "
+                    "effective immediately. The account balance "
+                    "and totals will update."
+                ),
+                confirm_callback=lambda:
+                    self.post_transaction(transaction_id),
+                cancel_callback=(
+                    self.close_post_transaction_dialog
+                ),
+            )
+        )
+        self.post_transaction_dialog.open()
 
 
     def confirm_delete_transfer(self, transfer_id):
@@ -168,5 +230,15 @@ class TransactionListActionsMixin:
             self.delete_transaction_dialog = None
 
 
+    def close_post_transaction_dialog(self, *args):
+        if self.post_transaction_dialog:
+            self.post_transaction_dialog.dismiss()
+            self.post_transaction_dialog = None
+
+
     def refresh_after_transaction_delete(self):
+        self.refresh_transaction_list()
+
+
+    def refresh_after_transaction_post(self):
         self.refresh_transaction_list()

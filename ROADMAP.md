@@ -1,9 +1,11 @@
 # Enkryon Development Roadmap
 
-Updated: August 4, 2026
-Current release: `v1.1.0`
-Current position: Update 1 account transfers are released; the official
-v1.0.0 in-place Android upgrade remains unverified by release-owner waiver
+Updated: August 6, 2026
+Current release: `v1.2.0`
+Next planned release: `v1.3.0`
+Current position: Update 2 Pending Transactions passed its complete automated,
+signed-Android, clean-install, official v1.1.0-to-v1.2.0 upgrade, and format-3
+recovery gates. Merge, tag, and GitHub Release publication remain.
 
 ## Purpose
 
@@ -26,16 +28,16 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, categories, income, expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Complete the v1.1.0 release gate before starting statistics. |
+| Core product | Accounts, categories, posted income and expenses, Pending Transactions, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add pass-through transfers next without weakening posted/Pending financial semantics. |
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
-| Database upgrades | A `schema_migrations` table and five ordered, transactional migrations are present; migration 5 adds constrained and indexed account transfers. | The official v1.0.0-to-v1.1.0 Android upgrade must prove migration 5 on real data. |
+| Database upgrades | A `schema_migrations` table and six ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and its newest-first status-history index. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.0 baseline contains `504` implementation tests with `81%` total coverage; every Update 1 checkpoint passed its focused gate. | The complete post-update Windows suite and GitHub Actions remain part of the final release gate. |
-| Android release | The `v1.1.0` source candidate is being prepared from official `v1.0.0`. | Signature, alignment, clean installation, official v1.0.0 upgrade, checksum, and publication evidence must pass before release. |
-| Architecture | Focused transfer repositories/services/form state feed a unified SQL activity query and the existing virtualized list. | Transfer behavior remains testable without moving SQL or workflow rules into screens and widgets. |
-| User experience | A dedicated transfer screen, responsive two-by-two Dashboard actions, direction-aware balances, and transfer-aware activity filters are implemented. | Final small-phone, enlarged-font, clean-install, and upgrade checks remain. |
-| Backup and recovery | Backup format 2 and database version 5 include transfers; compatible v1.0 format-1 backups restore with zero transfers. | New/old round trips, Clear All Data, and rollback behavior are covered; Android release verification remains. |
-| Search and advanced filters | Unified activity search and filters cover income, expenses, transfer accounts, notes, type, account, and inclusive dates. | Transfers preserve stable newest-first history without entering category totals. |
+| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the final v1.2.0 release gate contains `746` passing tests at `83%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.3.0. |
+| Android release | The permanently signed `v1.2.0` artifact passed checksum, signature, alignment, clean-install, package-identity, official v1.1.0-to-v1.2.0 upgrade, Pending workflow, backup/restore, and relaunch checks. The older v1.0.0-to-v1.1.0 waiver remains historical. | Publish v1.2.0, continue recommending a pre-upgrade backup, and preserve the permanent signing identity for v1.3.0. |
+| Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
+| User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
+| Backup and recovery | Backup format 3 preserves transaction posting status and transfers; format-1 and format-2 documents normalize their transactions to posted before replacement restore. | Preserve this compatibility through release regression and the official v1.1.0-to-v1.2.0 upgrade. |
+| Search and advanced filters | Unified activity search and filters cover posted Income, posted Expenses, Transfers, Pending records, accounts, notes, groups, categories, and inclusive dates with stable newest-first ordering. | Preserve exact status and filter behavior through backup format 3 and release regression. |
 
 ## Phase Overview
 
@@ -553,7 +555,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 1 release verification
+**Status:** In progress — Update 2 release candidate
 
 ### Objective
 
@@ -561,13 +563,12 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 
 ### Candidate order after version 1.0
 
-1. Account transfers (`v1.1.0`) — implemented; final release gate remains.
-2. Statistical visualizations (`v1.2.0`) — planned after v1.1.0 is stable.
-3. Budget tracking.
-4. Recurring transactions.
-5. Broader import/export formats such as CSV.
-6. Dark mode.
-7. Optional cloud synchronization.
+1. Account transfers (`v1.1.0`) — released.
+2. Pending Transactions (`v1.2.0`) — release candidate.
+3. Pass-through Transfers (`v1.3.0`) — the originally requested cash-out or money-forwarding workflow.
+4. Daily Bank Interest (`v1.4.0`) — planned after transfer semantics are stable.
+5. Statistical Visualizations (`v1.5.0`) — planned after pending, pass-through, and interest records are defined.
+6. Budget tracking, recurring transactions, CSV import/export, dark mode, and optional synchronization.
 
 ### Update 1 — Account Transfers (`v1.1.0`)
 
@@ -576,35 +577,83 @@ direction-aware per-account balances, all-account net-zero behavior, unified
 activity history, edit/delete/undo, account-deletion protection, migration 5,
 backup format 2, and format-1 restore compatibility.
 
-The final gate requires the complete suite, GitHub Actions, signed Android
-artifact checks, clean installation, and an official v1.0.0-to-v1.1.0
-in-place upgrade with controlled transfer and recovery scenarios.
+The release completed with the complete suite, GitHub Actions, signed Android
+artifact checks, clean installation, and transfer/recovery verification. The
+official physical-device v1.0.0-to-v1.1.0 in-place upgrade was waived by the
+release owner and remains an explicit carried exception.
 
-### Update 2 — Statistical Visualizations (`v1.2.0`)
+### Update 2 — Pending Transactions (`v1.2.0`)
 
-Statistics will add exact income/expense/net summaries, time-bucket
-comparisons, expense breakdowns, and textual equivalents. Transfers remain
-separate context and must never enter income, expense, net-cash-flow, or
-category-spending metrics.
+Pending Transactions add an explicit internal `temporary` or `posted` status to
+the existing transaction identity. Pending records remain visible and searchable
+in Activity History but are fully non-posting until the user converts them
+atomically. They cannot affect account balances, Income, Expenses, category
+totals, net cash flow, or statistical financial aggregates.
 
-Each major feature should have its own objective, user flow, data design, database migration, automated tests, Android regression test, and release notes before implementation begins.
+Migration 6 extends the existing `transactions` table with constrained
+posting status and a query-plan-verified status-history index. Dashboard and
+Activity History now expose an explicit Pending filter, while Income and
+Expense filters return posted records only. Backup format 3 preserves exact
+posting status, while format-1 and format-2 transactions normalize to posted
+before restore. The seven
+weighted tasks are contract and baseline (7%), persistence
+(18%), workflows (18%), interface (20%), totals and activity integration (16%),
+backup and recovery (11%), and release closeout (10%). The locked rules are in
+`docs/development/temporary-transactions.md`.
+
+### Update 3 — Pass-through Transfers (`v1.3.0`)
+
+Pass-through Transfers will cover cases such as a friend sending money into the
+user's bank account while the user gives the same amount from Cash. The two
+account balances change directionally, but Income, Expenses, category totals,
+and net cash flow do not change. The feature should build on first-class
+transfers and may add counterparty, purpose, settlement, and optional separate
+fee handling.
+
+### Update 4 — Daily Bank Interest (`v1.4.0`)
+
+Daily bank interest will provide deterministic, float-free estimated accruals
+for configured accounts. Estimates remain non-posting; only explicit
+reconciliation creates a normal posted Income transaction.
+
+### Update 5 — Statistical Visualizations (`v1.5.0`)
+
+Statistics will add exact posted income, expense, and net summaries,
+time-bucket comparisons, expense breakdowns, and textual equivalents.
+Transfers, pending records, pass-through transfers, and estimated interest
+remain separate context and must not enter posted financial metrics.
+
+Each major feature requires its own objective, user flow, data design, database
+migration, automated tests, Android regression test, and release notes before
+implementation begins.
 
 ## Immediate Action Order
 
 The next work should be completed in this order:
 
-1. Run the complete v1.1.0 Windows suite, compilation, whitespace checks, and
-   real-application transfer/recovery regression.
-2. Push the release candidate and require green GitHub Actions.
-3. Build the signed `v1.1.0` Android candidate and verify its signature,
-   alignment, package metadata, API levels, ABIs, contents, and checksum.
-4. Verify a clean install and an official in-place upgrade from `v1.0.0`
-   without changing controlled records, relationships, notes, or totals.
-5. Finalize the v1.1.0 release notes and Update 1 evidence, commit the verified
-   release, and create the signed tag.
+1. Completed: lock the fully non-posting Pending Transaction contract and
+   record the clean v1.1.0 baseline.
+2. Completed: add migration 6 and status-aware persistence without changing
+   migrations 1 through 5.
+3. Completed: add pending form state and UI-independent save, edit, atomic
+   post, delete, and restore workflows.
+4. Completed: add explicit pending form actions, non-color-only activity-card
+   treatment, and guarded direct posting from Dashboard and Activity History.
+5. Completed: add posted-only Income and Expense filters, an explicit
+   Pending filter, refresh invariants, mixed-history combinations, and
+   10,000-record integration while excluding pending records from every
+   posted financial calculation.
+6. Completed: add backup format 3, exact status round trips, format-1/2
+   normalization, malformed-status rejection, sequences, integrity, Clear All
+   Data, relaunch, and rollback evidence.
+7. In progress: the v1.2.0 source identity, changelog, release notes, architecture,
+   database guide, checklist, and desktop regression evidence are prepared.
+   GitHub Actions, the signed Android artifact, clean installation, official
+   v1.1.0 upgrade, and final artifact evidence remain.
 
-Do not begin statistical visualizations until the v1.1.0 transfer release gate
-passes.
+Do not begin Pass-through Transfers, Daily Bank Interest, or Statistical
+Visualizations until Pending Transaction posting semantics are implemented and
+verified.
 
 ## Rule for Completing Every Phase
 

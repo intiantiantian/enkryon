@@ -3,6 +3,7 @@ from database.activity_repository import get_activity
 
 def get_empty_activity_state(
     activity_type=None,
+    posting_status=None,
     compact=False,
     account_filtered=False,
     advanced_filters_active=False,
@@ -13,6 +14,12 @@ def get_empty_activity_state(
             "message": (
                 "Try changing or resetting your search and filters."
             ),
+        }
+
+    if posting_status == "temporary":
+        return {
+            "title": "No pending transactions",
+            "message": "No pending transactions match the current view.",
         }
 
     if activity_type == "income":
@@ -60,6 +67,7 @@ def get_empty_activity_state(
 def get_activity_for_view(
     account_id=None,
     activity_type=None,
+    posting_status=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -70,6 +78,7 @@ def get_activity_for_view(
     return get_activity(
         account_id=account_id,
         activity_type=activity_type,
+        posting_status=posting_status,
         search_text=search_text,
         group_id=group_id,
         category_id=category_id,
@@ -82,6 +91,7 @@ def get_activity_for_view(
 def get_activity_list_data(
     account_id=None,
     activity_type=None,
+    posting_status=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -93,6 +103,7 @@ def get_activity_list_data(
     activities = get_activity_for_view(
         account_id=account_id,
         activity_type=activity_type,
+        posting_status=posting_status,
         search_text=search_text,
         group_id=group_id,
         category_id=category_id,
@@ -111,6 +122,7 @@ def get_activity_list_data(
     )
     empty_state = get_empty_activity_state(
         activity_type,
+        posting_status,
         compact_empty_state,
         account_filtered=account_id is not None,
         advanced_filters_active=advanced_filters_active,

@@ -109,3 +109,74 @@ def test_transaction_rows_use_multiple_type_cues(
     assert card.amount_text == expected_amount
     assert card.date_time_text == "2026-07-22 05:30 PM"
     assert card.transaction_type_color == expected_color
+
+
+def test_temporary_transaction_form_uses_explicit_text_status_cues():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "add_transaction.kv"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        project_root / "screens" / "add_transaction.py"
+    ).read_text(encoding="utf-8")
+    action_source = (
+        project_root / "screens" / "transaction_form_actions.py"
+    ).read_text(encoding="utf-8")
+
+    assert "id: posting_status_label" in layout
+    assert "id: posting_guidance_label" in layout
+    assert "text: 'SAVE AS PENDING'" in layout
+    assert "text: 'POST TRANSACTION'" in layout
+    assert "on_release: root.save_temporary_transaction()" in layout
+    assert "on_release: root.post_transaction()" in layout
+    assert "CHOOSE POSTING STATUS" in action_source
+    assert 'status_label="PENDING"' in action_source
+    assert 'status_label="POSTED"' in action_source
+    assert "balances and totals" in action_source
+    assert "temporary_action.disabled" in screen_source
+    assert "temporary_action.opacity" in screen_source
+
+
+def test_temporary_activity_card_uses_text_and_confirmation_copy():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "widgets.kv"
+    ).read_text(encoding="utf-8")
+    card_source = (
+        project_root / "widgets" / "transaction_card.py"
+    ).read_text(encoding="utf-8")
+    actions_source = (
+        project_root / "screens" / "transaction_list_actions.py"
+    ).read_text(encoding="utf-8")
+    normalized_actions = " ".join(
+        actions_source.replace('"', "").split()
+    )
+
+    assert "id: posting_status_badge" in layout
+    assert "id: posting_status_icon" not in layout
+    assert "id: posting_status_label" in layout
+    assert "id: post_transaction_action" in layout
+    assert "icon: 'check-circle-outline'" in layout
+    assert '"PENDING" if is_temporary else ""' in card_source
+    assert "posting_status_icon" not in card_source
+    assert "Post Pending Transaction?" in actions_source
+    assert "financially effective immediately" in normalized_actions
+    assert "account balance" in normalized_actions
+    assert "totals will update" in normalized_actions
+
+
+def test_pending_activity_filter_uses_explicit_text_in_activity_history():
+    project_root = Path(__file__).resolve().parents[1]
+    dashboard_layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+    history_layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+
+    assert "id: pending_filter" not in dashboard_layout
+    assert "id: transfer_filter" not in dashboard_layout
+
+    assert "id: pending_filter" in history_layout
+    assert "text: 'PENDING'" in history_layout
+    assert "root.set_transaction_filter('pending')" in history_layout

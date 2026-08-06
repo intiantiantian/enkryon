@@ -469,6 +469,26 @@ def add_transaction_history_indexes(connection):
     )
 
 
+def add_transaction_posting_status(connection):
+    connection.execute(
+        '''
+        ALTER TABLE transactions
+        ADD COLUMN posting_status TEXT NOT NULL DEFAULT 'posted'
+            CHECK (posting_status IN ('posted', 'temporary'))
+        '''
+    )
+    connection.execute(
+        '''
+        CREATE INDEX transactions_posting_status_history_index
+        ON transactions (
+            posting_status,
+            date_time DESC,
+            id DESC
+        )
+        '''
+    )
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
     (
@@ -490,6 +510,11 @@ MIGRATIONS = (
         5,
         "account_transfers",
         create_account_transfers_table,
+    ),
+    (
+        6,
+        "transaction_posting_status",
+        add_transaction_posting_status,
     ),
 )
 

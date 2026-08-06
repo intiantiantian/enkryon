@@ -11,6 +11,7 @@ def test_empty_filter_state_has_all_filter_defaults():
     assert state == TransactionFilterState(
         search_text="",
         transaction_type=None,
+        posting_status=None,
         account_id=None,
         account_name="All Accounts",
         group_id=None,
@@ -159,6 +160,7 @@ def test_filter_state_builds_complete_query_arguments():
         "search_text": "lunch",
         "account_id": 7,
         "activity_type": "expense",
+        "posting_status": "posted",
         "group_id": 8,
         "category_id": 9,
         "start_date": date(2026, 7, 1),
@@ -188,9 +190,69 @@ def test_reset_restores_full_unfiltered_state():
         "search_text": None,
         "account_id": None,
         "activity_type": None,
+        "posting_status": None,
         "group_id": None,
         "category_id": None,
         "start_date": None,
         "end_date": None,
     }
     assert state.is_active is False
+
+
+def test_pending_filter_sets_temporary_status_without_type():
+    state = TransactionFilterState()
+
+    state.select_activity_filter("pending")
+
+    assert state.transaction_type is None
+    assert state.posting_status == "temporary"
+    assert state.active_filter_labels == ["Pending"]
+    assert state.to_query_arguments()["posting_status"] == "temporary"
+
+
+def test_income_and_expense_filters_are_explicitly_posted_only():
+    state = TransactionFilterState()
+
+    state.select_activity_filter("income")
+
+    assert state.transaction_type == "income"
+    assert state.posting_status == "posted"
+
+    state.select_activity_filter("expense")
+
+    assert state.transaction_type == "expense"
+    assert state.posting_status == "posted"
+
+
+def test_pending_category_filter_preserves_pending_scope():
+    state = TransactionFilterState()
+    state.select_activity_filter("pending")
+
+    state.select_category(
+        9,
+        "Lunch",
+        8,
+        "Food",
+        "expense",
+    )
+
+    assert state.transaction_type == "expense"
+    assert state.posting_status == "temporary"
+    assert state.active_filter_labels[:2] == ["Pending", "Expense"]
+
+
+def test_switching_from_pending_to_posted_filter_clears_category_scope():
+    state = TransactionFilterState(
+        transaction_type="expense",
+        posting_status="temporary",
+        group_id=8,
+        group_name="Food",
+        category_id=9,
+        category_name="Lunch",
+    )
+
+    state.select_activity_filter("expense")
+
+    assert state.posting_status == "posted"
+    assert state.group_id is None
+    assert state.category_id is None

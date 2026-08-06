@@ -12,6 +12,7 @@ from screens.transaction_list_actions import (
 from screens.transactions import TransactionsScreen
 from services.transaction_services import (
     TransactionDeleteResult,
+    TransactionPostResult,
     TransactionRestoreResult,
 )
 from services.transfer_services import (
@@ -24,30 +25,50 @@ action_results_module = import_module("screens.action_results")
 
 @pytest.mark.parametrize(
     (
-        "transaction_type",
+        "activity_filter",
+        "expected_type",
+        "expected_status",
         "all_selected",
         "income_selected",
         "expense_selected",
         "transfer_selected",
+        "pending_selected",
     ),
     [
-        (None, True, False, False, False),
-        ("income", False, True, False, False),
-        ("expense", False, False, True, False),
-        ("transfer", False, False, False, True),
+        (None, None, None, True, False, False, False, False),
+        (
+            "income", "income", "posted",
+            False, True, False, False, False,
+        ),
+        (
+            "expense", "expense", "posted",
+            False, False, True, False, False,
+        ),
+        (
+            "transfer", "transfer", None,
+            False, False, False, True, False,
+        ),
+        (
+            "pending", None, "temporary",
+            False, False, False, False, True,
+        ),
     ],
 )
 def test_set_transaction_filter_updates_buttons_and_refreshes(
-    transaction_type,
+    activity_filter,
+    expected_type,
+    expected_status,
     all_selected,
     income_selected,
     expense_selected,
     transfer_selected,
+    pending_selected,
 ):
     all_filter = SimpleNamespace(set_selected=Mock())
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
     transfer_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
     state = TransactionFilterState(
         transaction_type="old-value",
     )
@@ -58,20 +79,23 @@ def test_set_transaction_filter_updates_buttons_and_refreshes(
             income_filter=income_filter,
             expense_filter=expense_filter,
             transfer_filter=transfer_filter,
+            pending_filter=pending_filter,
         ),
         refresh_transaction_list=Mock(),
     )
 
     TransactionListActionsMixin.set_transaction_filter(
         screen,
-        transaction_type,
+        activity_filter,
     )
 
-    assert state.transaction_type == transaction_type
+    assert state.transaction_type == expected_type
+    assert state.posting_status == expected_status
     all_filter.set_selected.assert_called_once_with(all_selected)
     income_filter.set_selected.assert_called_once_with(income_selected)
     expense_filter.set_selected.assert_called_once_with(expense_selected)
     transfer_filter.set_selected.assert_called_once_with(transfer_selected)
+    pending_filter.set_selected.assert_called_once_with(pending_selected)
     screen.refresh_transaction_list.assert_called_once_with()
 
 
@@ -90,6 +114,7 @@ def test_set_transaction_filter_updates_shared_filter_state():
             income_filter=SimpleNamespace(set_selected=Mock()),
             expense_filter=SimpleNamespace(set_selected=Mock()),
             transfer_filter=SimpleNamespace(set_selected=Mock()),
+            pending_filter=SimpleNamespace(set_selected=Mock()),
         ),
         refresh_transaction_list=Mock(),
     )
@@ -100,6 +125,7 @@ def test_set_transaction_filter_updates_shared_filter_state():
     )
 
     assert state.transaction_type == "expense"
+    assert state.posting_status == "posted"
     assert state.group_id is None
     assert state.category_id is None
     screen.refresh_transaction_list.assert_called_once_with()
@@ -228,6 +254,122 @@ def test_confirm_delete_transaction_builds_working_dialog(
     screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
+def test_confirm_delete_temporary_transaction_explains_non_posting_state(
+    monkeypatch,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        actions_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        delete_transaction=Mock(),
+        close_delete_transaction_dialog=Mock(),
+    )
+
+    TransactionListActionsMixin.confirm_delete_transaction(
+        screen,
+        17,
+        "temporary",
+    )
+
+    dialog_kwargs = dialog_factory.call_args.kwargs
+    assert dialog_kwargs["title"] == (
+        "Delete Pending Transaction?"
+    )
+    assert "does not currently affect financial totals" in (
+        dialog_kwargs["message"]
+    )
+
+
+def test_confirm_post_transaction_builds_financial_effect_dialog(
+    monkeypatch,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(
+        actions_module,
+        "EnkryonConfirmationDialog",
+        dialog_factory,
+    )
+    screen = SimpleNamespace(
+        post_transaction=Mock(),
+        close_post_transaction_dialog=Mock(),
+    )
+
+    TransactionListActionsMixin.confirm_post_transaction(
+        screen,
+        17,
+    )
+
+    assert screen.post_transaction_dialog is dialog
+    dialog.open.assert_called_once_with()
+    dialog_kwargs = dialog_factory.call_args.kwargs
+    assert dialog_kwargs["title"] == (
+        "Post Pending Transaction?"
+    )
+    assert "financially effective immediately" in (
+        dialog_kwargs["message"]
+    )
+    assert "account balance and totals will update" in (
+        dialog_kwargs["message"]
+    )
+
+    dialog_kwargs["confirm_callback"]()
+    dialog_kwargs["cancel_callback"]()
+
+    screen.post_transaction.assert_called_once_with(17)
+    screen.close_post_transaction_dialog.assert_called_once_with()
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_post_transaction_renders_service_result(
+    monkeypatch,
+    success,
+):
+    actions_module = import_module(
+        "screens.transaction_list_actions"
+    )
+    service_result = TransactionPostResult(
+        success=success,
+        message="Posting result.",
+    )
+    post_transaction_by_id = Mock(return_value=service_result)
+    show_snackbar = Mock()
+    monkeypatch.setattr(
+        actions_module,
+        "post_transaction_by_id",
+        post_transaction_by_id,
+    )
+    monkeypatch.setattr(
+        action_results_module,
+        "show_snackbar",
+        show_snackbar,
+    )
+    screen = SimpleNamespace(
+        close_post_transaction_dialog=Mock(),
+        refresh_after_transaction_post=Mock(),
+    )
+
+    TransactionListActionsMixin.post_transaction(screen, 17)
+
+    post_transaction_by_id.assert_called_once_with(17)
+    screen.close_post_transaction_dialog.assert_called_once_with()
+    show_snackbar.assert_called_once_with(service_result.message)
+    assert (
+        screen.refresh_after_transaction_post.call_count
+        == int(success)
+    )
+
+
 def test_confirm_delete_transfer_builds_working_dialog(monkeypatch):
     actions_module = import_module(
         "screens.transaction_list_actions"
@@ -257,17 +399,20 @@ def test_confirm_delete_transfer_builds_working_dialog(monkeypatch):
     screen.close_delete_transaction_dialog.assert_called_once_with()
 
 
-def test_default_delete_refresh_uses_transaction_list_refresh():
+def test_default_transaction_refresh_hooks_use_transaction_list_refresh():
     screen = SimpleNamespace(refresh_transaction_list=Mock())
 
     TransactionListActionsMixin.refresh_after_transaction_delete(
         screen
     )
+    TransactionListActionsMixin.refresh_after_transaction_post(
+        screen
+    )
 
-    screen.refresh_transaction_list.assert_called_once_with()
+    assert screen.refresh_transaction_list.call_count == 2
 
 
-def test_dashboard_defines_list_and_delete_refresh_hooks():
+def test_dashboard_defines_list_delete_and_post_refresh_hooks():
     screen = SimpleNamespace(
         load_recent_transactions=Mock(),
         load_dashboard=Mock(),
@@ -275,9 +420,10 @@ def test_dashboard_defines_list_and_delete_refresh_hooks():
 
     DashboardScreen.refresh_transaction_list(screen)
     DashboardScreen.refresh_after_transaction_delete(screen)
+    DashboardScreen.refresh_after_transaction_post(screen)
 
     screen.load_recent_transactions.assert_called_once_with()
-    screen.load_dashboard.assert_called_once_with()
+    assert screen.load_dashboard.call_count == 2
 
 
 def test_dashboard_reset_preserves_account_and_clears_type():
@@ -290,6 +436,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     income_filter = SimpleNamespace(set_selected=Mock())
     expense_filter = SimpleNamespace(set_selected=Mock())
     transfer_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
     account_label = SimpleNamespace(text="")
     screen = SimpleNamespace(
         filter_state=state,
@@ -298,6 +445,7 @@ def test_dashboard_reset_preserves_account_and_clears_type():
             income_filter=income_filter,
             expense_filter=expense_filter,
             transfer_filter=transfer_filter,
+            pending_filter=pending_filter,
             account_label=account_label,
         ),
     )
@@ -305,12 +453,14 @@ def test_dashboard_reset_preserves_account_and_clears_type():
     DashboardScreen.reset_dashboard(screen)
 
     assert state.transaction_type is None
+    assert state.posting_status is None
     assert state.account_id == 7
     assert state.account_name == "Cash"
     all_filter.set_selected.assert_called_once_with(True)
     income_filter.set_selected.assert_called_once_with(False)
     expense_filter.set_selected.assert_called_once_with(False)
     transfer_filter.set_selected.assert_called_once_with(False)
+    pending_filter.set_selected.assert_called_once_with(False)
     assert account_label.text == "Cash"
 
 

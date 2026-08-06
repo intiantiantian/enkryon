@@ -179,6 +179,7 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
                 "transactions_history_order_index",
                 "transactions_account_history_index",
                 "transactions_category_history_index",
+                "transactions_posting_status_history_index",
             )
         }
         transfer_count = connection.execute(
@@ -199,6 +200,7 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
         (3, "validation_constraints"),
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
+        (6, "transaction_posting_status"),
     ]
     assert migrated_state == original_state
     assert transfer_count == 0
@@ -222,6 +224,11 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
         ],
         "transactions_category_history_index": [
             ("category_id", 0),
+            ("date_time", 1),
+            ("id", 1),
+        ],
+        "transactions_posting_status_history_index": [
+            ("posting_status", 0),
             ("date_time", 1),
             ("id", 1),
         ],

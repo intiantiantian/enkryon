@@ -5,6 +5,7 @@ import pytest
 from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
+    TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
 )
@@ -64,6 +65,7 @@ def make_valid_document():
                     "category_id": 12,
                     "date_time": "2026-07-01 08:30:00",
                     "notes": None,
+                    "posting_status": "temporary",
                 },
             ],
             "account_transfers": [
@@ -78,6 +80,22 @@ def make_valid_document():
             ],
         },
     )
+
+
+
+def convert_to_format(document, format_version):
+    document["format_version"] = format_version
+
+    for transaction in document["records"]["transactions"]:
+        transaction.pop("posting_status", None)
+
+    if format_version == LEGACY_BACKUP_FORMAT_VERSION:
+        del document["records"]["account_transfers"]
+        del document["metadata"]["record_counts"][
+            "account_transfers"
+        ]
+
+    return document
 
 
 def validate_document(document):
@@ -113,10 +131,10 @@ def test_valid_backup_returns_restore_preview():
 
 
 def test_accepts_legacy_backup_with_empty_transfer_set():
-    document = make_valid_document()
-    document["format_version"] = LEGACY_BACKUP_FORMAT_VERSION
-    del document["records"]["account_transfers"]
-    del document["metadata"]["record_counts"]["account_transfers"]
+    document = convert_to_format(
+        make_valid_document(),
+        LEGACY_BACKUP_FORMAT_VERSION,
+    )
 
     validated_backup = validate_document(document)
 
@@ -126,9 +144,37 @@ def test_accepts_legacy_backup_with_empty_transfer_set():
     assert validated_backup.document["records"]["account_transfers"] == []
     assert validated_backup.preview.record_counts["account_transfers"] == 0
     assert validated_backup.preview.total_records == 7
+    assert validated_backup.document["records"]["transactions"] == [
+        {
+            **document["records"]["transactions"][0],
+            "posting_status": "posted",
+        }
+    ]
 
 
-@pytest.mark.parametrize("database_version", (4, 5))
+def test_accepts_transfer_backup_and_defaults_transactions_to_posted():
+    document = convert_to_format(
+        make_valid_document(),
+        TRANSFER_BACKUP_FORMAT_VERSION,
+    )
+
+    validated_backup = validate_document(document)
+
+    assert validated_backup.document["format_version"] == (
+        BACKUP_FORMAT_VERSION
+    )
+    assert validated_backup.document["records"]["account_transfers"] == (
+        document["records"]["account_transfers"]
+    )
+    assert validated_backup.document["records"]["transactions"] == [
+        {
+            **document["records"]["transactions"][0],
+            "posting_status": "posted",
+        }
+    ]
+
+
+@pytest.mark.parametrize("database_version", (4, 5, 6))
 def test_accepts_compatible_database_migrations(database_version):
     document = make_valid_document()
     document["metadata"]["database_version"] = database_version
@@ -157,8 +203,8 @@ def test_rejects_invalid_identity_and_metadata():
 
     for path, value in (
         (("format",), "other-backup"),
-        (("format_version",), 3),
-        (("metadata", "database_version"), 6),
+        (("format_version",), 4),
+        (("metadata", "database_version"), 7),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):
@@ -216,6 +262,7 @@ def test_rejects_invalid_record_values():
             "2026-02-30 08:30:00",
         ),
         ("transactions", 0, "notes", 42),
+        ("transactions", 0, "posting_status", "invalid"),
         ("account_transfers", 0, "amount_centavos", 0),
         (
             "account_transfers",
@@ -265,6 +312,7 @@ def test_rejects_duplicate_or_conflicting_records():
                 "category_id": 6,
                 "date_time": "2026-07-02 12:00:00",
                 "notes": "",
+                "posting_status": "posted",
             },
         ),
         (

@@ -17,6 +17,7 @@ def _transaction_activity_query(
     *,
     account_id,
     activity_type,
+    posting_status,
     search_text,
     group_id,
     category_id,
@@ -41,7 +42,8 @@ def _transaction_activity_query(
             CASE category_groups.transaction_type
                 WHEN 'income' THEN 'incoming'
                 ELSE 'outgoing'
-            END AS direction
+            END AS direction,
+            transactions.posting_status AS posting_status
         FROM transactions
         INNER JOIN accounts
             ON transactions.account_id = accounts.id
@@ -72,6 +74,12 @@ def _transaction_activity_query(
     if activity_type in {"income", "expense"}:
         conditions.append("category_groups.transaction_type = ?")
         params.append(activity_type)
+
+    if posting_status is not None:
+        conditions.append("transactions.posting_status = ?")
+        params.append(posting_status)
+    elif activity_type in {"income", "expense"}:
+        conditions.append("transactions.posting_status = 'posted'")
 
     if group_id is not None:
         conditions.append("categories.group_id = ?")
@@ -135,7 +143,8 @@ def _transfer_activity_query(
                 AS destination_account_id,
             source_accounts.name AS source_account_name,
             destination_accounts.name AS destination_account_name,
-            {direction_expression} AS direction
+            {direction_expression} AS direction,
+            'posted' AS posting_status
         FROM account_transfers
         INNER JOIN accounts AS source_accounts
             ON account_transfers.source_account_id = source_accounts.id
@@ -187,6 +196,7 @@ def get_activity(
     limit=None,
     account_id=None,
     activity_type=None,
+    posting_status=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -198,7 +208,8 @@ def get_activity(
 
     include_transactions = activity_type != "transfer"
     include_transfers = (
-        activity_type not in {"income", "expense"}
+        posting_status is None
+        and activity_type not in {"income", "expense"}
         and group_id is None
         and category_id is None
     )
@@ -208,6 +219,7 @@ def get_activity(
             _transaction_activity_query(
                 account_id=account_id,
                 activity_type=activity_type,
+                posting_status=posting_status,
                 search_text=search_text,
                 group_id=group_id,
                 category_id=category_id,

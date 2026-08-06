@@ -17,7 +17,7 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: '64dp'
+            height: dp(64) * max(1, Metrics.fontscale)
             padding: '16dp', 0
             spacing: '8dp'
             canvas.before:
@@ -36,18 +36,15 @@
                 pos_hint: {'center_y': .5}
 
             MDLabel:
+                id: screen_title
                 text: 'Add Transaction'
                 font_size: '26sp'
                 size_hint_x: 1
+                max_lines: 1
+                shorten: True
+                shorten_from: 'right'
                 theme_text_color: 'Custom'
                 text_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
-
-            MDIconButton:
-                icon: 'content-save'
-                on_release: root.save_transaction()
-                theme_icon_color: 'Custom'
-                icon_color: get_color_from_hex(Colors.TEXT_ON_PRIMARY)
-                pos_hint: {'center_y': .5}
 
         Widget:
             size_hint_y: None
@@ -62,6 +59,7 @@
                     size: self.size        
 
         ScrollView:
+            do_scroll_x: False
 
             BoxLayout:
                 orientation: 'vertical'
@@ -88,6 +86,35 @@
                         text: "EXPENSE"
                         size_hint_x: 1
                         on_release: root.update_groups_button('expense')
+
+                OutlinedCard:
+                    id: posting_status_card
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: '16dp'
+                    spacing: '4dp'
+
+                    MDLabel:
+                        id: posting_status_label
+                        text: 'CHOOSE POSTING STATUS'
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        bold: True
+                        font_size: '13sp'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+
+                    MDLabel:
+                        id: posting_guidance_label
+                        text: 'Post now to update balances and totals, or save as temporary to keep this record non-posting.'
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        font_size: '13sp'
+                        theme_text_color: 'Custom'
+                        text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
                         
                 OutlinedCard:
                     size_hint_y: None
@@ -267,3 +294,27 @@
                             text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
                             shorten: True
                             shorten_from: 'right'
+
+
+                GridLayout:
+                    id: transaction_actions
+                    cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: dp(48) * max(1, Metrics.fontscale)
+                    row_force_default: True
+                    spacing: '12dp'
+
+                    EnkryonSecondaryButton:
+                        id: temporary_action
+                        text: 'SAVE AS PENDING'
+                        size_hint: 1, None
+                        height: transaction_actions.row_default_height
+                        on_release: root.save_temporary_transaction()
+
+                    EnkryonPrimaryButton:
+                        id: post_action
+                        text: 'POST TRANSACTION'
+                        size_hint: 1, None
+                        height: transaction_actions.row_default_height
+                        on_release: root.post_transaction()
