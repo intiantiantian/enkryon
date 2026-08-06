@@ -8,7 +8,7 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_v1_2_release_candidate_identity_is_consistent():
+def test_v1_2_release_identity_is_consistent():
     main_source = read_project_file("main.py")
     readme = read_project_file("README.md")
     changelog = read_project_file("CHANGELOG.md")
@@ -19,9 +19,10 @@ def test_v1_2_release_candidate_identity_is_consistent():
 
     assert '__version__ = "1.2.0"' in main_source
     assert "Enkryon-v1.2.0.apk" in readme
-    assert "## [1.2.0] - 2026-08-05" in changelog
-    assert "Current release candidate: `v1.2.0`" in roadmap
+    assert "## [1.2.0] - 2026-08-06" in changelog
+    assert "Current release: `v1.2.0`" in roadmap
     assert "# Enkryon v1.2.0" in release_notes
+    assert "Release status: `RELEASE APPROVED`" in release_notes
     assert "Enkryon-v1.2.0.apk" in release_notes
 
 
@@ -75,17 +76,23 @@ def test_v1_2_android_checklist_requires_official_upgrade_and_recovery():
     assert "Backup format 3 export" in checklist
 
 
-def test_v1_2_candidate_does_not_claim_unobserved_android_evidence():
+def test_v1_2_release_notes_record_observed_android_evidence():
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.2.0-release-notes.md"
     )
 
-    for pending_evidence in (
-        "GitHub Actions: `PENDING`",
-        "Signature: `PENDING`",
-        "Alignment: `PENDING`",
-        "Official in-place upgrade: `PENDING`",
-        "Size: `PENDING FINAL RELEASE BUILD`",
-        "SHA-256: `PENDING FINAL RELEASE BUILD`",
+    for observed_evidence in (
+        "Automated tests: `746 passed in 21.09s`",
+        "Total branch coverage: `83%`",
+        "GitHub Actions: `PASSED`",
+        "APK signature: `PASSED`",
+        "APK alignment: `PASSED`",
+        "Official in-place upgrade: `PASSED`",
+        "Backup format 3 export/restore/relaunch: `PASSED`",
+        "Size: `45,770,820 bytes`",
+        "b5e1942d160d19c78604c84099d203972f9f886dc66e49a1c66eaee3e2aebdc3",
     ):
-        assert pending_evidence in release_notes
+        assert observed_evidence in release_notes
+
+    assert "PENDING FINAL" not in release_notes
+    assert ": `PENDING`" not in release_notes

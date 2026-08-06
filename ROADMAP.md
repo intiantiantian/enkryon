@@ -1,12 +1,11 @@
 # Enkryon Development Roadmap
 
-Updated: August 5, 2026
-Current release: `v1.1.0`
-Current release candidate: `v1.2.0`
-Current position: Update 2 Pending Transactions completed the desktop release-
-candidate closeout at 94% verified progress; GitHub Actions, the signed Android
-artifact, clean installation, and the official v1.1.0-to-v1.2.0 upgrade remain
-required before release
+Updated: August 6, 2026
+Current release: `v1.2.0`
+Next planned release: `v1.3.0`
+Current position: Update 2 Pending Transactions passed its complete automated,
+signed-Android, clean-install, official v1.1.0-to-v1.2.0 upgrade, and format-3
+recovery gates. Merge, tag, and GitHub Release publication remain.
 
 ## Purpose
 
@@ -29,12 +28,12 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, categories, posted income and expenses, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, advanced filters, and local storage are implemented. | Complete Pending Transactions as a non-posting record state, then add pass-through transfers separately. |
+| Core product | Accounts, categories, posted income and expenses, Pending Transactions, first-class account transfers, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add pass-through transfers next without weakening posted/Pending financial semantics. |
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; per-account transfers are directional while the all-account balance, Income, and Expenses remain unchanged. | Transfer movement stays separate from earned income and spending. |
 | Database upgrades | A `schema_migrations` table and six ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and its newest-first status-history index. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the Task 6 recovery checkpoint contains `737` passing tests at approximately the same total coverage. | Every weighted checkpoint still requires focused tests, the complete suite, compilation, whitespace checks, and review. |
-| Android release | `v1.1.0` is released; its signed artifact checks and clean install passed, while the official physical-device v1.0.0 upgrade was waived by the release owner. | Carry the exception explicitly, require a pre-upgrade backup, and verify the official v1.1.0-to-v1.2.0 upgrade before releasing Update 2. |
+| Automated tests | The released v1.1.0 baseline contained `637` passing tests with `83%` total coverage; the final v1.2.0 release gate contains `746` passing tests at `83%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.3.0. |
+| Android release | The permanently signed `v1.2.0` artifact passed checksum, signature, alignment, clean-install, package-identity, official v1.1.0-to-v1.2.0 upgrade, Pending workflow, backup/restore, and relaunch checks. The older v1.0.0-to-v1.1.0 waiver remains historical. | Publish v1.2.0, continue recommending a pre-upgrade backup, and preserve the permanent signing identity for v1.3.0. |
 | Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
 | User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
 | Backup and recovery | Backup format 3 preserves transaction posting status and transfers; format-1 and format-2 documents normalize their transactions to posted before replacement restore. | Preserve this compatibility through release regression and the official v1.1.0-to-v1.2.0 upgrade. |

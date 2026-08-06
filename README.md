@@ -121,8 +121,7 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 Official Android APKs are published on the GitHub Releases page after their
 release checks pass.
 
-The version 1.2 release candidate uses this artifact name after the final
-Android release gate passes:
+The verified version 1.2 Android release uses this artifact name:
 
 ```
 Enkryon-v1.2.0.apk

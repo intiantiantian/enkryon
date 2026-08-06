@@ -1,16 +1,15 @@
 # Update 2 Pending Transactions Verification
 
-Updated: August 5, 2026
+Updated: August 6, 2026
 
 ## Current Checkpoint
 
 - Target release: `v1.2.0`.
 - Branch: `update-2-temporary-transactions`.
-- Verified weighted progress: `94%`.
-- Current task: Task 7A complete — v1.2.0 release-candidate identity,
-  changelog, release notes, architecture, database, checklist, and desktop
-  closeout evidence are verified; Task 7B Android and publication evidence
-  remains.
+- Verified weighted progress: `99%`.
+- Current task: Task 7B Android, upgrade, recovery, artifact, and approval
+  evidence are verified. Only merge, tag, and GitHub Release publication
+  remain.
 
 ## Weighted Plan
 
@@ -22,7 +21,7 @@ Updated: August 5, 2026
 | 4. Build pending transaction interface | 20% | Verified |
 | 5. Integrate balances, totals, and activity filters | 16% | Verified |
 | 6. Extend backup and recovery | 11% | Verified |
-| 7. Close and release Update 2 | 10% | In progress — 4% verified |
+| 7. Close and release Update 2 | 10% | In progress — 9% verified; publication remains |
 
 ## Verified v1.1.0 Baseline
 
@@ -276,10 +275,49 @@ The desktop gate repeats the complete test suite with coverage, Python
 compilation, Git whitespace checks, version consistency, and documentation
 contracts. Task 7A contributes `4%` and raises verified progress to `94%`.
 
-## Next Gate
+## Task 7B Final Android and Recovery Evidence
 
-Task 7B requires green GitHub Actions, the signed and aligned Android artifact,
-clean installation, the official `v1.1.0`-to-`v1.2.0` in-place upgrade,
-backup/clear/restore/relaunch, controlled posted/Pending financial checks,
-final artifact size and checksum, final release-note replacement, and release
-approval.
+The final verified application checkpoint before release-evidence documentation
+is commit `0b9da6a` on `update-2-temporary-transactions`. Its complete local
+gate reported
+`746 passed in 21.09s` with `83%` total branch coverage. Python compilation,
+Git whitespace checks, focused interface tests, real-application checks, and
+GitHub Actions all passed.
+
+The verified Windows source was synchronized one-way into the WSL Buildozer
+copy. A checksum-mode rsync dry run produced no output, and the WSL copy
+reported application version `1.2.0` plus the final collapsible Advanced
+Filters implementation.
+
+The secure release helper built and verified `Enkryon-v1.2.0.apk` using the
+permanent Enkryon signing identity. Signature and zip-alignment checks passed.
+The final artifact is `45,770,820` bytes with SHA-256
+`b5e1942d160d19c78604c84099d203972f9f886dc66e49a1c66eaee3e2aebdc3`.
+The checksum passed in WSL and again after copying the APK to Windows.
+
+A clean physical-device installation passed on Xiaomi `2312DRA50G` running
+Android 16 / API 36. Android reported package `com.intian.enkryon`, version
+name `1.2.0`, version code `102410200`, minimum API 24, and target API 36.
+Launch, Activity History collapse/reset behavior, Advanced Filters layout,
+and Pending controls passed.
+
+For the official upgrade gate, an official v1.1.0 installation restored a
+legacy JSON dataset before `adb install -r` installed v1.2.0 without clearing
+application data. Accounts, groups, categories, transactions, transfers,
+notes, dates, balances, and exact centavo values remained intact. Pending
+creation, one-time posting, force-stop, and relaunch persistence passed.
+
+The final recovery gate exported a v1.2.0 format-3 JSON document containing a
+recognizable Pending transaction, then performed uninstall, clean reinstall,
+replacement restore, Pending-filter verification, one-time posting, force-stop,
+and relaunch. Posted/Pending state, legacy records, relationships, notes,
+amounts, and balances were preserved. The release owner approved the observed
+results.
+
+## Final Publication Gate
+
+Merge the verified branch into `main`, confirm the merge commit receives green
+GitHub Actions, create and push annotated tag `v1.2.0`, publish the GitHub
+Release with the verified APK, checksum sidecar, and release notes, and verify
+the public assets and checksum. Completion of that gate raises Update 2 from
+`99%` to `100%`.

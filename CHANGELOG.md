@@ -9,7 +9,7 @@ version reference.
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-08-05
+## [1.2.0] - 2026-08-06
 
 ### Added
 
