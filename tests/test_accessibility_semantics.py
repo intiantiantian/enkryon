@@ -165,12 +165,18 @@ def test_temporary_activity_card_uses_text_and_confirmation_copy():
     assert "totals will update" in normalized_actions
 
 
-def test_pending_activity_filter_uses_explicit_text_on_both_views():
+def test_pending_activity_filter_uses_explicit_text_in_activity_history():
     project_root = Path(__file__).resolve().parents[1]
+    dashboard_layout = (
+        project_root / "kv" / "dashboard.kv"
+    ).read_text(encoding="utf-8")
+    history_layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
 
-    for relative_path in ("kv/dashboard.kv", "kv/transactions.kv"):
-        layout = (project_root / relative_path).read_text(encoding="utf-8")
+    assert "id: pending_filter" not in dashboard_layout
+    assert "id: transfer_filter" not in dashboard_layout
 
-        assert "id: pending_filter" in layout
-        assert "text: 'PENDING'" in layout
-        assert "root.set_transaction_filter('pending')" in layout
+    assert "id: pending_filter" in history_layout
+    assert "text: 'PENDING'" in history_layout
+    assert "root.set_transaction_filter('pending')" in history_layout

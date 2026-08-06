@@ -299,7 +299,7 @@ def test_transaction_search_controls_fit_small_widths():
     )
 
 
-def test_activity_filters_include_transfer_and_pending_without_overflow():
+def test_dashboard_uses_primary_filters_and_history_keeps_extended_filters():
     project_root = Path(__file__).resolve().parents[1]
     dashboard_layout = (
         project_root / "kv" / "dashboard.kv"
@@ -308,13 +308,18 @@ def test_activity_filters_include_transfer_and_pending_without_overflow():
         project_root / "kv" / "transactions.kv"
     ).read_text(encoding="utf-8")
 
-    for layout in (dashboard_layout, history_layout):
-        assert "id: transfer_filter" in layout
-        assert "text: 'TRANSFER'" in layout
-        assert "id: pending_filter" in layout
-        assert "text: 'PENDING'" in layout
-        assert "else 5" in layout
+    assert "id: all_filter" in dashboard_layout
+    assert "id: income_filter" in dashboard_layout
+    assert "id: expense_filter" in dashboard_layout
+    assert "id: transfer_filter" not in dashboard_layout
+    assert "id: pending_filter" not in dashboard_layout
+    assert "else 3" in dashboard_layout
 
+    assert "id: transfer_filter" in history_layout
+    assert "text: 'TRANSFER'" in history_layout
+    assert "id: pending_filter" in history_layout
+    assert "text: 'PENDING'" in history_layout
+    assert "else 5" in history_layout
 
 def test_settings_content_remains_scrollable_and_contained():
     project_root = Path(__file__).resolve().parents[1]

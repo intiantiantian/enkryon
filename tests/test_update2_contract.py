@@ -252,10 +252,11 @@ def test_update_2_task_5_records_pending_filter_and_financial_integration():
     assert "Completed: add posted-only Income and Expense filters" in roadmap
     assert "posting_status" in activity_repository
     assert "transactions.posting_status = 'posted'" in activity_repository
-    for layout in (dashboard_layout, history_layout):
-        assert "id: pending_filter" in layout
-        assert "text: 'PENDING'" in layout
-        assert "root.set_transaction_filter('pending')" in layout
+    assert "id: pending_filter" not in dashboard_layout
+    assert "id: transfer_filter" not in dashboard_layout
+    assert "id: pending_filter" in history_layout
+    assert "text: 'PENDING'" in history_layout
+    assert "root.set_transaction_filter('pending')" in history_layout
 
 def test_update_2_task_6_records_backup_format_3_recovery_evidence():
     verification = read_project_file(

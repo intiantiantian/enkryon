@@ -303,7 +303,7 @@
                                 root.go_to_transactions()
 
                     GridLayout:
-                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 5
+                        cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
                         size_hint_y: None
                         height: self.minimum_height
                         row_default_height: '48dp'
@@ -331,20 +331,6 @@
                             size_hint_x: 1
                             on_release:
                                 root.set_transaction_filter('expense')
-
-                        EnkryonFilterButton:
-                            id: transfer_filter
-                            text: 'TRANSFER'
-                            size_hint_x: 1
-                            on_release:
-                                root.set_transaction_filter('transfer')
-
-                        EnkryonFilterButton:
-                            id: pending_filter
-                            text: 'PENDING'
-                            size_hint_x: 1
-                            on_release:
-                                root.set_transaction_filter('pending')
 
                     BoxLayout:
                         id: transactions_container
