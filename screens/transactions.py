@@ -1,4 +1,5 @@
 from kivy.clock import Clock
+from kivy.properties import BooleanProperty
 from kivy.uix.screenmanager import Screen
 
 from database.account_repository import get_all_accounts
@@ -24,6 +25,7 @@ from utils.transaction_posting import TEMPORARY_STATUS
 SEARCH_REFRESH_DELAY = 0.25
 
 class TransactionsScreen(TransactionListActionsMixin, Screen):
+    advanced_filters_expanded = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -41,7 +43,14 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.manager.current = "add_transaction"
 
 
+    def toggle_advanced_filters(self):
+        self.advanced_filters_expanded = (
+            not self.advanced_filters_expanded
+        )
+
+
     def on_pre_enter(self):
+        self.advanced_filters_expanded = False
         self.cancel_pending_search_refresh()
         self.filter_state.reset()
         self.render_filter_state()

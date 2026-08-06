@@ -149,8 +149,19 @@ def test_show_all_transactions_resets_search_and_type_filters():
     screen.render_advanced_filter_state.assert_called_once_with()
 
 
+def test_transaction_history_toggles_advanced_filters():
+    screen = SimpleNamespace(advanced_filters_expanded=False)
+
+    TransactionsScreen.toggle_advanced_filters(screen)
+    assert screen.advanced_filters_expanded is True
+
+    TransactionsScreen.toggle_advanced_filters(screen)
+    assert screen.advanced_filters_expanded is False
+
+
 def test_transaction_history_resets_filters_on_pre_enter():
     screen = SimpleNamespace(
+        advanced_filters_expanded=True,
         filter_state=TransactionFilterState(
             search_text="lunch",
             transaction_type="expense",
@@ -169,6 +180,7 @@ def test_transaction_history_resets_filters_on_pre_enter():
     TransactionsScreen.on_pre_enter(screen)
 
     assert screen.filter_state == TransactionFilterState()
+    assert screen.advanced_filters_expanded is False
     screen.cancel_pending_search_refresh.assert_called_once_with()
     screen.render_filter_state.assert_called_once_with()
     screen.set_search_field_text.assert_called_once_with("")

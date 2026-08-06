@@ -344,7 +344,7 @@ def test_dashboard_and_history_separate_primary_and_secondary_filters():
     assert "else 2" in secondary_filters
 
 
-def test_activity_history_has_static_expanded_advanced_filters_section():
+def test_activity_history_has_collapsible_advanced_filters_section():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
         project_root / "kv" / "transactions.kv"
@@ -357,21 +357,60 @@ def test_activity_history_has_static_expanded_advanced_filters_section():
         "id: active_filter_summary",
         maxsplit=1,
     )[0]
-    title_block = advanced_section.split(
-        "id: advanced_filters_title",
+    toggle_block = advanced_section.split(
+        "id: advanced_filters_toggle",
         maxsplit=1,
     )[1].split(
         "id: secondary_activity_filters",
         maxsplit=1,
     )[0]
+    secondary_filters = advanced_section.split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "id: advanced_filter_scroll",
+        maxsplit=1,
+    )[0]
+    field_filters = advanced_section.split(
+        "id: advanced_filter_scroll",
+        maxsplit=1,
+    )[1]
 
     assert "orientation: 'vertical'" in advanced_section
     assert "height: self.minimum_height" in advanced_section
-    assert "text: 'Advanced Filters'" in title_block
-    assert "on_release:" not in title_block
+    assert "spacing:" in advanced_section
+    assert (
+        "dp(8) if root.advanced_filters_expanded else 0"
+        in advanced_section
+    )
+
+    assert "text: 'HIDE ADVANCED FILTERS'" in toggle_block
+    assert "'SHOW ADVANCED FILTERS'" in toggle_block
+    assert "root.toggle_advanced_filters()" in toggle_block
+    assert "size_hint: 1, None" in toggle_block
+    assert "height: '48dp'" in toggle_block
+    assert "elevation: 0" in toggle_block
+    assert "padding: '16dp'" in advanced_section
+    assert "size_hint_x: None" in advanced_section
+    assert "width: self.parent.width - dp(20)" in advanced_section
+    assert "pos_hint: {'center_x': .5}" in advanced_section
+
+    for block in (secondary_filters, field_filters):
+        assert (
+            "root.advanced_filters_expanded else 0"
+            in block
+        )
+        assert (
+            "opacity: 1 if root.advanced_filters_expanded else 0"
+            in block
+        )
+        assert (
+            "disabled: not root.advanced_filters_expanded"
+            in block
+        )
 
     expected_order = (
-        "id: advanced_filters_title",
+        "id: advanced_filters_toggle",
         "id: secondary_activity_filters",
         "id: advanced_filter_scroll",
         "id: account_filter",

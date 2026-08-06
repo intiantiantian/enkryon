@@ -119,30 +119,34 @@
         OutlinedCard:
             id: advanced_filters_section
             orientation: 'vertical'
+            size_hint_x: None
+            width: self.parent.width - dp(20)
+            pos_hint: {'center_x': .5}
             size_hint_y: None
             height: self.minimum_height
-            padding: '10dp'
-            spacing: '8dp'
+            padding: '16dp'
+            spacing:
+                dp(8) if root.advanced_filters_expanded else 0
             radius: [12]
             elevation: 1
 
-            MDLabel:
-                id: advanced_filters_title
-                text: 'Advanced Filters'
-                size_hint_y: None
-                height: '32dp'
-                font_size: '16sp'
-                valign: 'middle'
-                text_size: self.width, self.height
-                theme_text_color: 'Custom'
-                text_color:
-                    get_color_from_hex(Colors.TEXT_SECONDARY)
+            EnkryonSecondaryButton:
+                id: advanced_filters_toggle
+                text: 'HIDE ADVANCED FILTERS' if root.advanced_filters_expanded else 'SHOW ADVANCED FILTERS'
+                size_hint: 1, None
+                height: '48dp'
+                elevation: 0
+                on_release:
+                    root.toggle_advanced_filters()
 
             GridLayout:
                 id: secondary_activity_filters
                 cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
                 size_hint_y: None
-                height: self.minimum_height
+                height:
+                    self.minimum_height if root.advanced_filters_expanded else 0
+                opacity: 1 if root.advanced_filters_expanded else 0
+                disabled: not root.advanced_filters_expanded
                 padding: '10dp', '0dp'
                 spacing: '10dp'
                 row_default_height: '44dp'
@@ -165,7 +169,10 @@
             ScrollView:
                 id: advanced_filter_scroll
                 size_hint_y: None
-                height: '64dp'
+                height:
+                    dp(64) if root.advanced_filters_expanded else 0
+                opacity: 1 if root.advanced_filters_expanded else 0
+                disabled: not root.advanced_filters_expanded
                 do_scroll_x: True
                 do_scroll_y: False
                 bar_width: '4dp'
