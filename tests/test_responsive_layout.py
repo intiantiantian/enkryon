@@ -344,6 +344,49 @@ def test_dashboard_and_history_separate_primary_and_secondary_filters():
     assert "else 2" in secondary_filters
 
 
+def test_activity_history_has_static_expanded_advanced_filters_section():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+
+    advanced_section = layout.split(
+        "id: advanced_filters_section",
+        maxsplit=1,
+    )[1].split(
+        "id: active_filter_summary",
+        maxsplit=1,
+    )[0]
+    title_block = advanced_section.split(
+        "id: advanced_filters_title",
+        maxsplit=1,
+    )[1].split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[0]
+
+    assert "orientation: 'vertical'" in advanced_section
+    assert "height: self.minimum_height" in advanced_section
+    assert "text: 'Advanced Filters'" in title_block
+    assert "on_release:" not in title_block
+
+    expected_order = (
+        "id: advanced_filters_title",
+        "id: secondary_activity_filters",
+        "id: advanced_filter_scroll",
+        "id: account_filter",
+        "id: group_filter",
+        "id: category_filter",
+        "id: start_date_filter",
+        "id: end_date_filter",
+    )
+    positions = [
+        advanced_section.index(marker)
+        for marker in expected_order
+    ]
+    assert positions == sorted(positions)
+
+
 def test_settings_content_remains_scrollable_and_contained():
     project_root = Path(__file__).resolve().parents[1]
     layout = (
