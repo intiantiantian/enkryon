@@ -85,7 +85,8 @@
                     root.clear_search()
 
         GridLayout:
-            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 5
+            id: primary_activity_filters
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
             size_hint_y: None
             height: self.minimum_height
             padding: '10dp'
@@ -114,6 +115,16 @@
                 size_hint_x: 1
                 on_release:
                     root.set_transaction_filter('expense')
+
+        GridLayout:
+            id: secondary_activity_filters
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+            size_hint_y: None
+            height: self.minimum_height
+            padding: '10dp', '0dp'
+            spacing: '10dp'
+            row_default_height: '44dp'
+            row_force_default: True
 
             EnkryonFilterButton:
                 id: transfer_filter

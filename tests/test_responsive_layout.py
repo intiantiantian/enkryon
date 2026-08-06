@@ -175,7 +175,7 @@ def test_transaction_list_uses_responsive_filters_and_cards():
 
     assert transactions_layout.count(
         "should_stack_controls("
-    ) == 1
+    ) == 2
     assert "row_default_height: '44dp'" in transactions_layout
     assert "row_force_default: True" in transactions_layout
 
@@ -299,7 +299,7 @@ def test_transaction_search_controls_fit_small_widths():
     )
 
 
-def test_dashboard_uses_primary_filters_and_history_keeps_extended_filters():
+def test_dashboard_and_history_separate_primary_and_secondary_filters():
     project_root = Path(__file__).resolve().parents[1]
     dashboard_layout = (
         project_root / "kv" / "dashboard.kv"
@@ -315,11 +315,34 @@ def test_dashboard_uses_primary_filters_and_history_keeps_extended_filters():
     assert "id: pending_filter" not in dashboard_layout
     assert "else 3" in dashboard_layout
 
-    assert "id: transfer_filter" in history_layout
-    assert "text: 'TRANSFER'" in history_layout
-    assert "id: pending_filter" in history_layout
-    assert "text: 'PENDING'" in history_layout
-    assert "else 5" in history_layout
+    primary_filters = history_layout.split(
+        "id: primary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[0]
+    secondary_filters = history_layout.split(
+        "id: secondary_activity_filters",
+        maxsplit=1,
+    )[1].split(
+        "ScrollView:",
+        maxsplit=1,
+    )[0]
+
+    assert "id: all_filter" in primary_filters
+    assert "id: income_filter" in primary_filters
+    assert "id: expense_filter" in primary_filters
+    assert "id: transfer_filter" not in primary_filters
+    assert "id: pending_filter" not in primary_filters
+    assert "else 3" in primary_filters
+
+    assert "id: transfer_filter" in secondary_filters
+    assert "text: 'TRANSFER'" in secondary_filters
+    assert "id: pending_filter" in secondary_filters
+    assert "text: 'PENDING'" in secondary_filters
+    assert "else 2" in secondary_filters
+
 
 def test_settings_content_remains_scrollable_and_contained():
     project_root = Path(__file__).resolve().parents[1]
