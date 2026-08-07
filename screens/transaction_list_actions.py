@@ -44,7 +44,22 @@ class TransactionListActionsMixin:
         if transfer_filter is not None:
             transfer_filter.set_selected(
                 transaction_type == "transfer"
+                and self.filter_state.transfer_kind is None
             )
+        internal_transfer_filter = getattr(
+            self.ids,
+            "internal_transfer_filter",
+            None,
+        )
+        if internal_transfer_filter is not None:
+            internal_transfer_filter.set_selected(False)
+        pass_through_filter = getattr(
+            self.ids,
+            "pass_through_filter",
+            None,
+        )
+        if pass_through_filter is not None:
+            pass_through_filter.set_selected(False)
         pending_filter = getattr(
             self.ids,
             "pending_filter",

@@ -522,3 +522,271 @@ is built. The gate verifies:
 
 Task 7B replaces every pending release-evidence field only after the signed APK
 and physical-device checks provide the actual values.
+
+## Update 3 Pass-through Transfer Contract Baseline
+
+Update 3 begins from the clean released `v1.2.0` baseline on the
+`update-3-pass-through-transfers` branch. Before migration or feature code is
+changed, the complete Windows suite reported `746 passed in 32.69s` with `83%`
+total branch coverage on Python `3.13.14`.
+
+The Task 1 contract regression is maintained in `tests/test_update3_contract.py`.
+It locks the Cash-to-Bank direction, exact net-zero financial invariants,
+Internal-versus-Pass-through compatibility, optional counterparty and separate
+fee handling, activity/filter behavior, migration 7 direction, backup format 4
+compatibility, and the 100%-weighted checkpoint plan.
+
+Task 1 changes documentation and contract tests only. Migration 7, repository,
+service, UI, activity, and recovery implementation must wait until this contract
+checkpoint passes and is committed.
+
+
+### Update 3 Task 2 migration and persistence gate
+
+Task 2 extends the existing account-transfer ledger instead of creating a
+second financial subsystem. Run the focused persistence gate before the
+complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_pass_through_transfer_persistence.py ^
+tests/test_transfer_repository.py ^
+tests/test_transfer_services.py ^
+tests/test_transfer_balances.py ^
+tests/test_migrations.py ^
+tests/test_phase9_migrations.py ^
+tests/test_recovery_contract.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_restorer.py ^
+tests/test_backup_validator.py ^
+tests/test_pending_backup_recovery.py
+```
+
+The gate verifies migration 7 defaults and constraints, legacy Internal
+compatibility, exact transfer-kind persistence, trimmed/blank counterparty
+normalization, invalid-kind rejection, stable newest-first ordering, combined
+account/kind repository filtering, edit/delete/undo restoration, migration
+repeat-run and rollback behavior, unchanged legacy financial totals, recovery
+schema history, and continued format-3 development compatibility with database
+version 7.
+
+No dedicated `transfer_kind` index is expected at this checkpoint. Query-plan
+coverage confirms the existing `account_transfers_history_order_index` remains
+the ordering access path; later activity/filter work may add an index only if
+its real query plans justify one.
+
+After the focused gate, run the complete suite and branch coverage, Python
+compilation, and `git diff --check`. Task 2 changes persistence only and does not
+yet expose Pass-through controls in the real application, so no manual UI gate
+is required before this checkpoint commit.
+
+
+### Update 3 Task 3 pass-through service workflow gate
+
+Task 3 extends the existing transfer service and form-state path without adding
+visible Pass-through controls yet. Run this focused gate before the complete
+suite:
+
+```bat
+python -m pytest -q ^
+tests/test_pass_through_transfer_workflows.py ^
+tests/test_transfer_services.py ^
+tests/test_transfer_form_state.py ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transfer_balances.py ^
+tests/test_pass_through_transfer_persistence.py
+```
+
+The gate verifies exact-centavo create/edit/delete/restore behavior, canonical
+Cash-to-Bank effects, all-account net-zero invariants, unchanged Income and
+Expense totals, same-account and metadata validation, stable repository-failure
+results, preserved Pass-through kind/counterparty during edit state, and legacy
+Internal-transfer defaults.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Task 3 changes workflows/state only; the
+real-app transfer-mode and counterparty controls belong to Task 4.
+
+
+### Update 3 Task 4 pass-through interface gate
+
+Task 4 exposes Pass-through controls on the existing Transfer screen. Run this
+focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transfer_form_state.py ^
+tests/test_pass_through_transfer_workflows.py ^
+tests/test_transfer_services.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The gate verifies explicit Internal-versus-Pass-through selection, canonical
+FROM/TO direction guidance, `Cash → Bank` copy for the cash-out example,
+Pass-through-only optional counterparty entry, metadata preservation while
+editing, Internal metadata cleanup, responsive mode stacking, font-scaled touch
+targets, and non-color-only text cues.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Because Task 4 changes visible behavior,
+also complete this short real-app gate before committing:
+
+1. Open Transfer and confirm `INTERNAL` is selected by default and the
+   counterparty control is hidden.
+2. Select `PASS-THROUGH`; confirm the visible copy says FROM decreases, TO
+   increases, includes the `Cash → Bank` example, and states the principal is
+   not Income or Expense.
+3. Enter an optional counterparty, select Cash as FROM and Bank as TO, save a
+   small controlled amount, then reopen it for editing and confirm kind,
+   direction, counterparty, amount, date/time, and notes are preserved.
+4. Check the form at a narrow phone-sized window and with enlarged system text;
+   the mode buttons must stack when constrained, guidance must wrap without
+   clipping, and the counterparty row must remain usable.
+
+Task 4 does not yet add Activity History labels/search/filters; those belong to
+Task 5.
+
+
+### Update 3 Task 5 activity, search, and filter gate
+
+Task 5 integrates Pass-through records into unified activity while preserving
+all financial invariants. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_activity_services.py ^
+tests/test_transaction_filter_state.py ^
+tests/test_transaction_list.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_pending_activity_integration.py ^
+tests/test_transfer_balances.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The gate verifies that the general Transfer filter includes both transfer kinds,
+Advanced Filters split Internal and Pass-through, counterparty/kind text is
+searchable, account/date filters compose with kind, newest-first ordering is
+stable, Dashboard and Activity History share visible Pass-through card semantics,
+and recycled cards do not retain stale kind/counterparty state. Existing posted
+Income, posted Expenses, Pending behavior, and transfer-aware account balances
+must remain unchanged.
+
+The UI portability check also requires plain `Cash to Bank` wording and an ASCII
+` | ` active-filter separator instead of decorative arrow/bullet glyphs. Currency
+formatting remains unchanged because the peso symbol is part of the app's money
+presentation contract.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Then complete this short real-app gate:
+
+1. Create one Internal and one Pass-through transfer with recognizable notes;
+   give the Pass-through record a counterparty.
+2. Confirm Dashboard recent activity and Activity History show the Pass-through
+   record with visible `PASS-THROUGH` text and `Cash to Bank` style direction.
+3. Confirm primary `TRANSFER` shows both records; Advanced `INTERNAL` shows only
+   Internal and Advanced `PASS-THROUGH` shows only Pass-through.
+4. Search by counterparty and by `pass-through`; confirm only the expected record
+   matches. Combine Pass-through with an account and date filter once.
+5. Confirm Income, Expenses, category totals, and all-account balance do not
+   change from the Pass-through principal; only the two participating account
+   balances move equally and oppositely.
+6. Edit, delete, undo, and switch filters once; confirm labels refresh without a
+   recycled card showing stale Internal/Pass-through metadata.
+
+
+### Update 3 Task 6 backup, recovery, and performance gate
+
+Task 6 raises new exports to backup format 4 and makes Pass-through metadata
+release-safe. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_backup_format.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_validator.py ^
+tests/test_backup_restorer.py ^
+tests/test_pending_backup_recovery.py ^
+tests/test_pass_through_backup_recovery.py ^
+tests/test_recovery_contract.py ^
+tests/test_document_transfer.py ^
+tests/test_settings_screen_workflows.py ^
+tests/test_update2_contract.py ^
+tests/test_update3_contract.py
+```
+
+The gate verifies exact format-4 `transfer_kind`/`counterparty` export and
+restore, preserved Pending/posting status, format-1 empty-transfer behavior,
+format-2 and format-3 transfer normalization to Internal, malformed current-kind
+and counterparty rejection before replacement, record counts, IDs, sequences,
+foreign keys, integrity, Clear All Data, document-transfer compatibility, and a
+10,000-transfer mixed-history round trip.
+
+The large-history plan must continue using
+`account_transfers_history_order_index` for newest-first Pass-through access
+without `USE TEMP B-TREE FOR ORDER BY`. Do not add a transfer-kind index unless
+the measured plan demonstrates a regression that the index fixes.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Then complete one short real-app recovery
+gate before committing:
+
+1. Keep one posted transaction, one Pending transaction, one Internal transfer,
+   and one Pass-through transfer with a counterparty. Record both account
+   balances plus Income and Expenses.
+2. Export the backup. Restore preview must show the expected record counts.
+3. Clear All Data using the normal Settings workflow, then restore the export.
+4. Confirm Internal remains Internal; Pass-through remains Pass-through; its
+   counterparty, amount, direction, date/time, and notes are exact.
+5. Confirm Pending remains Pending and posted remains posted.
+6. Confirm both account balances, all-account balance, Income, and Expenses match
+   the values recorded before export. Relaunch once and verify the same state.
+
+## Update 3 Task 7 release-candidate gate
+
+Task 7 starts only after Tasks 1 through 6 are committed and the working tree is
+clean. The source version becomes `1.3.0`, release documentation is prepared, and
+Pass-through UI wording is finalized as linked account effects rather than an
+Internal Transfer description.
+
+Run the focused release-document and UI-semantic gate first:
+
+```bat
+python -m pytest -q ^
+tests/test_update3_closeout.py ^
+tests/test_update3_contract.py ^
+tests/test_phase_release_version.py ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transaction_list.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_responsive_layout.py
+```
+
+Then run the complete suite with coverage, Python compilation, and
+`git diff --check`. A passing desktop gate prepares the release candidate but
+does not complete Task 7.
+
+The final v1.3.0 Android gate requires all of the following:
+
+1. Green GitHub Actions for the release-candidate commit.
+2. WSL synchronization from the canonical Windows source and a signed release
+   build using `scripts/build-android-release.sh`.
+3. Permanent signing-certificate verification, zip alignment, checksum, and
+   `android:allowBackup="false"` verification.
+4. Clean installation and launch on a supported Android device.
+5. Official v1.2.0-to-v1.3.0 in-place upgrade with representative posted,
+   Pending, and Internal-transfer data already present.
+6. After upgrade, create one Pass-through exchange with a recognizable
+   counterparty and confirm the exact outflow/inflow effects while Income,
+   Expenses, categories, and all-account balance remain unchanged.
+7. Export backup format 4, perform replacement recovery on disposable data,
+   relaunch, and confirm exact kind/counterparty/status preservation.
+8. Record APK size, SHA-256, versionCode, device/API, CI result, upgrade result,
+   and recovery result in the release notes and verification audit.
+
+Task 7 advances the remaining 10% only after those final artifact and device
+checks pass.

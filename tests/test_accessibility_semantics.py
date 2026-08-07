@@ -180,3 +180,56 @@ def test_pending_activity_filter_uses_explicit_text_in_activity_history():
     assert "id: pending_filter" in history_layout
     assert "text: 'PENDING'" in history_layout
     assert "root.set_transaction_filter('pending')" in history_layout
+
+
+def test_pass_through_form_uses_explicit_non_color_text_cues():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        project_root / "screens" / "transfer.py"
+    ).read_text(encoding="utf-8")
+
+    assert "text: 'TRANSFER TYPE'" in layout
+    assert "text: 'INTERNAL'" in layout
+    assert "text: 'PASS-THROUGH'" in layout
+    assert "id: transfer_kind_label" in layout
+    assert "id: transfer_guidance_label" in layout
+    assert "text: 'Counterparty (optional)'" in layout
+    assert '"PASS-THROUGH TRANSFER"' in screen_source
+    assert '"INTERNAL TRANSFER"' in screen_source
+    assert "PAID FROM" in layout
+    assert "RECEIVED INTO" in layout
+    assert "complete exchange" in screen_source
+    assert "neither account balance changes" in screen_source
+    assert "not Income or Expense" in screen_source
+
+
+def test_pass_through_activity_has_visible_text_filters_and_card_label():
+    project_root = Path(__file__).resolve().parents[1]
+    history_layout = (
+        project_root / "kv" / "transactions.kv"
+    ).read_text(encoding="utf-8")
+    card_source = (
+        project_root / "widgets" / "transaction_card.py"
+    ).read_text(encoding="utf-8")
+
+    assert "id: transfer_filter" in history_layout
+    assert "text: 'TRANSFER'" in history_layout
+    assert "id: internal_transfer_filter" in history_layout
+    assert "text: 'INTERNAL'" in history_layout
+    assert "id: pass_through_filter" in history_layout
+    assert "text: 'PASS-THROUGH'" in history_layout
+    assert 'presentation["label"] = "PASS-THROUGH"' in card_source
+    assert 'group_name = "Pass-through Transfer"' in card_source
+
+
+def test_activity_filter_summary_avoids_decorative_unicode_separator():
+    project_root = Path(__file__).resolve().parents[1]
+    screen_source = (
+        project_root / "screens" / "transactions.py"
+    ).read_text(encoding="utf-8")
+
+    assert '" | ".join(active_filter_labels)' in screen_source
+    assert '" • ".join(active_filter_labels)' not in screen_source

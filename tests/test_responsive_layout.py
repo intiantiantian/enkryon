@@ -43,11 +43,45 @@ def test_transfer_controls_stack_and_grow_for_enlarged_fonts():
         project_root / "kv" / "transfer.kv"
     ).read_text(encoding="utf-8")
 
-    assert layout.count("should_stack_controls(") == 2
-    assert layout.count("row_force_default: True") == 2
-    assert layout.count("max(1, Metrics.fontscale)") >= 5
+    assert layout.count("should_stack_controls(") == 3
+    assert layout.count("row_force_default: True") == 3
+    assert layout.count("max(1, Metrics.fontscale)") >= 7
     assert "height: self.minimum_height" in layout
     assert "do_scroll_x: False" in layout
+
+
+def test_transfer_mode_and_counterparty_controls_are_responsive():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+
+    mode_grid = layout.split(
+        "id: transfer_mode_selectors",
+        maxsplit=1,
+    )[1].split(
+        "id: internal_transfer_button",
+        maxsplit=1,
+    )[0]
+    counterparty = layout.split(
+        "id: counterparty_card",
+        maxsplit=1,
+    )[1].split(
+        "text: 'Notes'",
+        maxsplit=1,
+    )[0]
+
+    assert "should_stack_controls(" in mode_grid
+    assert "row_default_height: dp(48) * max(1, Metrics.fontscale)" in mode_grid
+    assert "row_force_default: True" in mode_grid
+    assert "height: self.texture_size[1]" in layout.split(
+        "id: transfer_guidance_label", maxsplit=1
+    )[1].split("OutlinedCard:", maxsplit=1)[0]
+    assert "height: self.minimum_height if root.is_pass_through else 0" in counterparty
+    assert "disabled: not root.is_pass_through" in counterparty
+    assert "height: dp(56) * max(1, Metrics.fontscale)" in counterparty
+    assert "max_lines: 1" in counterparty
+    assert "shorten: True" in counterparty
 
 
 def test_transfer_account_selectors_constrain_long_names():
@@ -333,15 +367,18 @@ def test_dashboard_and_history_separate_primary_and_secondary_filters():
     assert "id: all_filter" in primary_filters
     assert "id: income_filter" in primary_filters
     assert "id: expense_filter" in primary_filters
-    assert "id: transfer_filter" not in primary_filters
+    assert "id: transfer_filter" in primary_filters
+    assert "text: 'TRANSFER'" in primary_filters
     assert "id: pending_filter" not in primary_filters
-    assert "else 3" in primary_filters
+    assert "else 4" in primary_filters
 
-    assert "id: transfer_filter" in secondary_filters
-    assert "text: 'TRANSFER'" in secondary_filters
+    assert "id: internal_transfer_filter" in secondary_filters
+    assert "text: 'INTERNAL'" in secondary_filters
+    assert "id: pass_through_filter" in secondary_filters
+    assert "text: 'PASS-THROUGH'" in secondary_filters
     assert "id: pending_filter" in secondary_filters
     assert "text: 'PENDING'" in secondary_filters
-    assert "else 2" in secondary_filters
+    assert "else 3" in secondary_filters
 
 
 def test_activity_history_has_collapsible_advanced_filters_section():

@@ -168,6 +168,8 @@ def test_virtualized_history_tracks_all_recycled_card_state():
         "transaction_type_label",
         "transaction_type_color",
         "posting_status",
+        "transfer_kind",
+        "counterparty",
         "is_temporary",
         "posting_status_label",
         "posting_status_color",
@@ -401,3 +403,46 @@ def test_empty_virtualized_history_renders_recovery_action(
     empty_state_container.add_widget.assert_called_once_with(
         empty_state_widget
     )
+
+
+def test_pass_through_card_has_visible_kind_and_counterparty_text():
+    card_module = import_module("widgets.transaction_card")
+    transfer = SimpleNamespace(
+        record_id=9,
+        record_type="transfer",
+        transaction_id=9,
+        activity_type="transfer",
+        transaction_type="transfer",
+        account_name="Cash",
+        group_name="Account Transfer",
+        category_name="Bank",
+        source_account_name="Cash",
+        destination_account_name="Bank",
+        amount_centavos=100_025,
+        direction="neutral",
+        date_time="2026-08-07 18:30:00",
+        transfer_kind="pass_through",
+        counterparty="Alex Rivera",
+    )
+
+    data = card_module.create_transaction_card_data(transfer, object())
+
+    assert data["account_name"] == "Cash paid from | Bank received into"
+    assert data["group_name"] == "Pass-through Transfer"
+    assert data["category_name"] == "Counterparty: Alex Rivera"
+    assert data["transaction_type_label"] == "PASS-THROUGH"
+    assert data["transfer_kind"] == "pass_through"
+    assert data["counterparty"] == "Alex Rivera"
+    assert data["amount_text"] == "₱ 1,000.25"
+
+
+def test_recycled_card_data_clears_transfer_metadata_for_transactions():
+    card_module = import_module("widgets.transaction_card")
+
+    data = card_module.create_transaction_card_data(
+        make_transaction(22, "expense"),
+        object(),
+    )
+
+    assert data["transfer_kind"] == ""
+    assert data["counterparty"] == ""

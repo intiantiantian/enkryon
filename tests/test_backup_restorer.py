@@ -6,8 +6,10 @@ import pytest
 from database import migrations
 import services.backup_restorer as backup_restorer
 from services.backup_format import (
+    BACKUP_FORMAT_VERSION,
     BACKUP_RECORD_COLUMNS,
     LEGACY_BACKUP_FORMAT_VERSION,
+    POSTING_STATUS_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
@@ -92,7 +94,9 @@ def make_backup_document():
                     "destination_account_id": 3,
                     "amount_centavos": 10025,
                     "date_time": "2026-07-03 09:15:00",
-                    "notes": "Move to wallet",
+                    "notes": "Cash-out for Alex",
+                    "transfer_kind": "pass_through",
+                    "counterparty": "Alex Rivera",
                 },
             ],
         },
@@ -103,8 +107,14 @@ def make_backup_document():
 def convert_to_format(document, format_version):
     document["format_version"] = format_version
 
-    for transaction in document["records"]["transactions"]:
-        transaction.pop("posting_status", None)
+    if format_version < POSTING_STATUS_BACKUP_FORMAT_VERSION:
+        for transaction in document["records"]["transactions"]:
+            transaction.pop("posting_status", None)
+
+    if format_version < BACKUP_FORMAT_VERSION:
+        for transfer in document["records"]["account_transfers"]:
+            transfer.pop("transfer_kind", None)
+            transfer.pop("counterparty", None)
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -353,6 +363,9 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
         (6, "transaction_posting_status"),
+        (7, "account_transfer_kinds"),
+        (8, "pass_through_movements"),
+        (9, "pass_through_balance_neutrality"),
     ]
 
 
@@ -386,15 +399,43 @@ def test_restore_transfer_backup_defaults_transactions_to_posted():
     restore_backup_json(serialize_backup_document(document))
 
     restored_records = read_current_records()
-    assert restored_records["account_transfers"] == (
-        document["records"]["account_transfers"]
-    )
+    assert restored_records["account_transfers"] == [
+        {
+            **transfer,
+            "transfer_kind": "internal",
+            "counterparty": None,
+        }
+        for transfer in document["records"]["account_transfers"]
+    ]
     assert restored_records["transactions"] == [
         {
             **transaction,
             "posting_status": "posted",
         }
         for transaction in document["records"]["transactions"]
+    ]
+
+
+def test_restore_format_3_preserves_status_and_defaults_transfer_metadata():
+    seed_current_records()
+    document = convert_to_format(
+        make_backup_document(),
+        POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    )
+
+    restore_backup_json(serialize_backup_document(document))
+
+    restored_records = read_current_records()
+    assert restored_records["transactions"] == document["records"][
+        "transactions"
+    ]
+    assert restored_records["account_transfers"] == [
+        {
+            **transfer,
+            "transfer_kind": "internal",
+            "counterparty": None,
+        }
+        for transfer in document["records"]["account_transfers"]
     ]
 
 

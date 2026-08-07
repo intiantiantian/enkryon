@@ -7,6 +7,7 @@ def get_empty_activity_state(
     compact=False,
     account_filtered=False,
     advanced_filters_active=False,
+    transfer_kind=None,
 ):
     if advanced_filters_active:
         return {
@@ -35,6 +36,20 @@ def get_empty_activity_state(
         }
 
     if activity_type == "transfer":
+        if transfer_kind == "internal":
+            return {
+                "title": "No internal transfers",
+                "message": (
+                    "No internal transfers match the current view."
+                ),
+            }
+        if transfer_kind == "pass_through":
+            return {
+                "title": "No pass-through transfers",
+                "message": (
+                    "No pass-through transfers match the current view."
+                ),
+            }
         return {
             "title": "No transfers",
             "message": "No transfers match the current view.",
@@ -68,6 +83,7 @@ def get_activity_for_view(
     account_id=None,
     activity_type=None,
     posting_status=None,
+    transfer_kind=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -79,6 +95,7 @@ def get_activity_for_view(
         account_id=account_id,
         activity_type=activity_type,
         posting_status=posting_status,
+        transfer_kind=transfer_kind,
         search_text=search_text,
         group_id=group_id,
         category_id=category_id,
@@ -92,6 +109,7 @@ def get_activity_list_data(
     account_id=None,
     activity_type=None,
     posting_status=None,
+    transfer_kind=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -104,6 +122,7 @@ def get_activity_list_data(
         account_id=account_id,
         activity_type=activity_type,
         posting_status=posting_status,
+        transfer_kind=transfer_kind,
         search_text=search_text,
         group_id=group_id,
         category_id=category_id,
@@ -114,6 +133,7 @@ def get_activity_list_data(
     advanced_filters_active = any(
         (
             search_text,
+            transfer_kind is not None,
             group_id is not None,
             category_id is not None,
             start_date is not None,
@@ -126,6 +146,7 @@ def get_activity_list_data(
         compact_empty_state,
         account_filtered=account_id is not None,
         advanced_filters_active=advanced_filters_active,
+        transfer_kind=transfer_kind,
     )
     return {
         "activities": activities,

@@ -19,6 +19,7 @@ def test_activity_view_forwards_every_repository_filter(monkeypatch):
         account_id=2,
         activity_type="transfer",
         posting_status=None,
+        transfer_kind="pass_through",
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -32,6 +33,7 @@ def test_activity_view_forwards_every_repository_filter(monkeypatch):
         account_id=2,
         activity_type="transfer",
         posting_status=None,
+        transfer_kind="pass_through",
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -71,6 +73,7 @@ def test_activity_list_data_combines_records_and_empty_state(monkeypatch):
         account_id=2,
         activity_type="transfer",
         posting_status=None,
+        transfer_kind=None,
         search_text="fund",
         group_id=None,
         category_id=None,
@@ -84,6 +87,7 @@ def test_activity_list_data_combines_records_and_empty_state(monkeypatch):
         True,
         account_filtered=True,
         advanced_filters_active=True,
+        transfer_kind=None,
     )
 
 
@@ -129,6 +133,7 @@ def test_pending_status_is_forwarded_to_repository(monkeypatch):
         account_id=None,
         activity_type="expense",
         posting_status="temporary",
+        transfer_kind=None,
         search_text=None,
         group_id=None,
         category_id=None,
@@ -136,3 +141,13 @@ def test_pending_status_is_forwarded_to_repository(monkeypatch):
         end_date=None,
         limit=None,
     )
+
+
+def test_pass_through_empty_state_is_specific_without_other_advanced_filters():
+    assert activity_services.get_empty_activity_state(
+        "transfer",
+        transfer_kind="pass_through",
+    ) == {
+        "title": "No pass-through transfers",
+        "message": "No pass-through transfers match the current view.",
+    }

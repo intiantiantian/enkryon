@@ -12,6 +12,7 @@ def test_empty_filter_state_has_all_filter_defaults():
         search_text="",
         transaction_type=None,
         posting_status=None,
+        transfer_kind=None,
         account_id=None,
         account_name="All Accounts",
         group_id=None,
@@ -161,6 +162,7 @@ def test_filter_state_builds_complete_query_arguments():
         "account_id": 7,
         "activity_type": "expense",
         "posting_status": "posted",
+        "transfer_kind": None,
         "group_id": 8,
         "category_id": 9,
         "start_date": date(2026, 7, 1),
@@ -191,6 +193,7 @@ def test_reset_restores_full_unfiltered_state():
         "account_id": None,
         "activity_type": None,
         "posting_status": None,
+        "transfer_kind": None,
         "group_id": None,
         "category_id": None,
         "start_date": None,
@@ -256,3 +259,44 @@ def test_switching_from_pending_to_posted_filter_clears_category_scope():
     assert state.posting_status == "posted"
     assert state.group_id is None
     assert state.category_id is None
+
+
+def test_transfer_kind_filter_selects_pass_through_scope():
+    state = TransactionFilterState()
+
+    state.select_transfer_kind("pass_through")
+
+    assert state.transaction_type == "transfer"
+    assert state.posting_status is None
+    assert state.transfer_kind == "pass_through"
+    assert state.active_filter_labels == ["Transfer: Pass-through"]
+    assert state.to_query_arguments()["transfer_kind"] == "pass_through"
+
+
+def test_general_transfer_filter_clears_transfer_kind_scope():
+    state = TransactionFilterState(transfer_kind="internal")
+
+    state.select_activity_filter("transfer")
+
+    assert state.transaction_type == "transfer"
+    assert state.transfer_kind is None
+    assert state.active_filter_labels == ["Transfer"]
+
+
+def test_transfer_kind_filter_rejects_unknown_kind():
+    state = TransactionFilterState()
+
+    with pytest.raises(ValueError, match="Unsupported transfer kind"):
+        state.select_transfer_kind("external")
+
+
+def test_transfer_kind_constructor_normalizes_to_transfer_activity():
+    state = TransactionFilterState(
+        transaction_type="expense",
+        posting_status="temporary",
+        transfer_kind="internal",
+    )
+
+    assert state.transaction_type == "transfer"
+    assert state.posting_status is None
+    assert state.transfer_kind == "internal"

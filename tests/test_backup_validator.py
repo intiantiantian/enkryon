@@ -5,6 +5,7 @@ import pytest
 from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
+    POSTING_STATUS_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
@@ -75,7 +76,9 @@ def make_valid_document():
                     "destination_account_id": 8,
                     "amount_centavos": 10025,
                     "date_time": "2026-07-02 09:15:00",
-                    "notes": "Move to wallet",
+                    "notes": "Cash-out for Alex",
+                    "transfer_kind": "pass_through",
+                    "counterparty": "Alex Rivera",
                 },
             ],
         },
@@ -86,8 +89,14 @@ def make_valid_document():
 def convert_to_format(document, format_version):
     document["format_version"] = format_version
 
-    for transaction in document["records"]["transactions"]:
-        transaction.pop("posting_status", None)
+    if format_version < POSTING_STATUS_BACKUP_FORMAT_VERSION:
+        for transaction in document["records"]["transactions"]:
+            transaction.pop("posting_status", None)
+
+    if format_version < BACKUP_FORMAT_VERSION:
+        for transfer in document["records"]["account_transfers"]:
+            transfer.pop("transfer_kind", None)
+            transfer.pop("counterparty", None)
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -163,18 +172,45 @@ def test_accepts_transfer_backup_and_defaults_transactions_to_posted():
     assert validated_backup.document["format_version"] == (
         BACKUP_FORMAT_VERSION
     )
-    assert validated_backup.document["records"]["account_transfers"] == (
-        document["records"]["account_transfers"]
-    )
     assert validated_backup.document["records"]["transactions"] == [
         {
             **document["records"]["transactions"][0],
             "posting_status": "posted",
         }
     ]
+    assert validated_backup.document["records"]["account_transfers"] == [
+        {
+            **document["records"]["account_transfers"][0],
+            "transfer_kind": "internal",
+            "counterparty": None,
+        }
+    ]
 
 
-@pytest.mark.parametrize("database_version", (4, 5, 6))
+def test_accepts_format_3_and_defaults_transfer_metadata_to_internal():
+    document = convert_to_format(
+        make_valid_document(),
+        POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    )
+
+    validated_backup = validate_document(document)
+
+    assert validated_backup.document["format_version"] == (
+        BACKUP_FORMAT_VERSION
+    )
+    assert validated_backup.document["records"]["transactions"] == (
+        document["records"]["transactions"]
+    )
+    assert validated_backup.document["records"]["account_transfers"] == [
+        {
+            **document["records"]["account_transfers"][0],
+            "transfer_kind": "internal",
+            "counterparty": None,
+        }
+    ]
+
+
+@pytest.mark.parametrize("database_version", (4, 5, 6, 7))
 def test_accepts_compatible_database_migrations(database_version):
     document = make_valid_document()
     document["metadata"]["database_version"] = database_version
@@ -203,8 +239,8 @@ def test_rejects_invalid_identity_and_metadata():
 
     for path, value in (
         (("format",), "other-backup"),
-        (("format_version",), 4),
-        (("metadata", "database_version"), 7),
+        (("format_version",), 5),
+        (("metadata", "database_version"), 10),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):
@@ -271,6 +307,10 @@ def test_rejects_invalid_record_values():
             "2026-02-30 08:30:00",
         ),
         ("account_transfers", 0, "notes", 42),
+        ("account_transfers", 0, "transfer_kind", "other"),
+        ("account_transfers", 0, "counterparty", " Alex "),
+        ("account_transfers", 0, "counterparty", ""),
+        ("account_transfers", 0, "counterparty", 42),
     ):
         document = make_valid_document()
         document["records"][table_name][row_number][field_name] = value
@@ -324,6 +364,8 @@ def test_rejects_duplicate_or_conflicting_records():
                 "amount_centavos": 1,
                 "date_time": "2026-07-03 12:00:00",
                 "notes": "",
+                "transfer_kind": "internal",
+                "counterparty": None,
             },
         ),
     )

@@ -22,6 +22,8 @@ def test_empty_transfer_form_state_has_prompts_and_current_labels():
         time_label="02:30 PM",
         notes="",
         transfer_id=None,
+        transfer_kind="internal",
+        counterparty="",
     )
 
 
@@ -35,6 +37,8 @@ def test_transfer_form_state_maps_transfer_for_editing():
         notes=None,
         source_account_name="Cash",
         destination_account_name="Savings",
+        transfer_kind="pass_through",
+        counterparty="Alex Rivera",
     )
 
     state = TransferFormState.from_transfer(transfer)
@@ -49,6 +53,8 @@ def test_transfer_form_state_maps_transfer_for_editing():
         time_label="07:30 PM",
         notes="",
         transfer_id=17,
+        transfer_kind="pass_through",
+        counterparty="Alex Rivera",
     )
 
 
@@ -88,6 +94,8 @@ def test_transfer_form_state_builds_save_arguments():
         "time_label": "07:30 PM",
         "notes_label": "Emergency fund",
         "transfer_id": 17,
+        "transfer_kind": "internal",
+        "counterparty": "",
     }
 
 
@@ -136,3 +144,42 @@ def test_transfer_form_state_normalizes_blank_notes():
 
     state.set_notes(" Emergency fund ")
     assert state.notes == " Emergency fund "
+
+
+def test_transfer_form_state_preserves_pass_through_metadata_for_save():
+    transfer = TransferRecord(
+        transfer_id=17,
+        source_account_id=2,
+        destination_account_id=3,
+        amount_centavos=12345,
+        date_time="2026-08-04 19:30:00",
+        notes="Cash-out",
+        source_account_name="Cash",
+        destination_account_name="Bank",
+        transfer_kind="pass_through",
+        counterparty="Alex Rivera",
+    )
+
+    arguments = TransferFormState.from_transfer(transfer).to_save_arguments()
+
+    assert arguments["transfer_kind"] == "pass_through"
+    assert arguments["counterparty"] == "Alex Rivera"
+
+
+def test_transfer_form_state_sets_kind_and_counterparty():
+    state = TransferFormState()
+
+    state.set_transfer_kind("pass_through")
+    state.set_counterparty("Alex Rivera")
+
+    assert state.transfer_kind == "pass_through"
+    assert state.counterparty == "Alex Rivera"
+
+
+def test_transfer_form_state_rejects_unknown_kind():
+    state = TransferFormState()
+
+    import pytest
+
+    with pytest.raises(ValueError):
+        state.set_transfer_kind("unknown")

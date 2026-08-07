@@ -296,6 +296,25 @@ transaction repository:
 6. Backup format, validation, and restore preserve status in format 3 while
    normalizing older formats before replacement recovery.
 
+Update 3 extends the existing transfer path rather than adding a second ledger:
+
+1. Migration 7 adds constrained `internal` and `pass_through` kinds plus optional
+   counterparty metadata to `account_transfers`.
+2. `database/transfer_repository.py` and `services/transfer_services.py` keep
+   create, edit, delete, restore, exact-centavo validation, and failure handling
+   shared between both kinds.
+3. `screens/transfer_form_state.py` preserves transfer kind and counterparty
+   independently of Kivy, while `screens/transfer.py` owns the visible mode and
+   linked outflow/inflow explanation.
+4. `database/activity_repository.py` carries kind and counterparty through the
+   unified history so Transfer includes both kinds and Advanced Filters can
+   distinguish them without affecting Income, Expense, or Pending semantics.
+5. Shared activity cards present Pass-through as linked account effects, for
+   example `Cash outflow | Bank inflow`, instead of implying an Internal
+   Transfer of the same physical money.
+6. Backup format 4 preserves kind and counterparty; formats 1 through 3 normalize
+   older transfers to Internal during validated replacement restore.
+
 ## Rule for Future Commits
 
 Each refactor commit should be small and reversible.

@@ -82,6 +82,25 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         if transfer_filter is not None:
             transfer_filter.set_selected(
                 transaction_type == "transfer"
+                and self.filter_state.transfer_kind is None
+            )
+        internal_transfer_filter = getattr(
+            self.ids,
+            "internal_transfer_filter",
+            None,
+        )
+        if internal_transfer_filter is not None:
+            internal_transfer_filter.set_selected(
+                self.filter_state.transfer_kind == "internal"
+            )
+        pass_through_filter = getattr(
+            self.ids,
+            "pass_through_filter",
+            None,
+        )
+        if pass_through_filter is not None:
+            pass_through_filter.set_selected(
+                self.filter_state.transfer_kind == "pass_through"
             )
         pending_filter = getattr(
             self.ids,
@@ -126,7 +145,7 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
 
         active_filter_labels = state.active_filter_labels
         self.ids.active_filters_label.text = (
-            "Active: " + " • ".join(active_filter_labels)
+            "Active: " + " | ".join(active_filter_labels)
             if active_filter_labels
             else "No active filters"
         )
@@ -135,6 +154,12 @@ class TransactionsScreen(TransactionListActionsMixin, Screen):
         self.ids.reset_all_filters.opacity = (
             1 if state.is_active else .38
         )
+
+
+    def set_transfer_kind_filter(self, transfer_kind):
+        self.filter_state.select_transfer_kind(transfer_kind)
+        self.render_filter_state()
+        self.refresh_transaction_list()
 
 
     def set_search_field_text(self, search_text):

@@ -83,7 +83,9 @@ def seed_export_data():
                 destination_account_id,
                 amount_centavos,
                 date_time,
-                notes
+                notes,
+                transfer_kind,
+                counterparty
             )
             VALUES (
                 30,
@@ -91,7 +93,9 @@ def seed_export_data():
                 3,
                 10025,
                 '2026-07-03 09:15:00',
-                'Move to wallet'
+                'Cash-out for Alex',
+                'pass_through',
+                'Alex Rivera'
             );
             """
         )
@@ -110,7 +114,7 @@ def test_export_backup_document_reads_exact_relational_rows():
 
     assert document["metadata"] == {
         "app_version": "0.6.0",
-        "database_version": 6,
+        "database_version": 9,
         "exported_at": "2026-07-24T12:30:00Z",
         "record_counts": {
             "accounts": 2,
@@ -176,7 +180,9 @@ def test_export_backup_document_reads_exact_relational_rows():
                 "destination_account_id": 3,
                 "amount_centavos": 10025,
                 "date_time": "2026-07-03 09:15:00",
-                "notes": "Move to wallet",
+                "notes": "Cash-out for Alex",
+                "transfer_kind": "pass_through",
+                "counterparty": "Alex Rivera",
             },
         ],
     }
@@ -188,7 +194,7 @@ def test_export_backup_document_includes_empty_tables():
         exported_at=EXPORTED_AT,
     )
 
-    assert document["metadata"]["database_version"] == 6
+    assert document["metadata"]["database_version"] == 9
     assert document["metadata"]["record_counts"] == {
         table_name: 0
         for table_name in BACKUP_TABLES
@@ -224,6 +230,8 @@ def test_export_backup_json_serializes_database_records():
             "destination_account_id": 3,
             "amount_centavos": 10025,
             "date_time": "2026-07-03 09:15:00",
-            "notes": "Move to wallet",
+            "notes": "Cash-out for Alex",
+            "transfer_kind": "pass_through",
+            "counterparty": "Alex Rivera",
         }
     ]

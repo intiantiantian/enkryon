@@ -31,10 +31,26 @@ class TransferRestoreResult(NamedTuple):
     message: str
 
 
+VALID_TRANSFER_KINDS = {"internal", "pass_through"}
+
+
+def normalize_counterparty(counterparty):
+    if counterparty is None:
+        return None
+
+    if not isinstance(counterparty, str):
+        raise ValueError("counterparty must be text or None")
+
+    normalized_counterparty = counterparty.strip()
+    return normalized_counterparty or None
+
+
 def validate_transfer_form(
     source_account_id,
     destination_account_id,
     amount,
+    transfer_kind="internal",
+    counterparty=None,
 ):
     if source_account_id is None:
         return False, "Please select a source account."
@@ -59,6 +75,17 @@ def validate_transfer_form(
     if amount_centavos <= 0:
         return False, "Amount cannot be less than or equal to zero."
 
+    if (
+        not isinstance(transfer_kind, str)
+        or transfer_kind not in VALID_TRANSFER_KINDS
+    ):
+        return False, "Please select a valid transfer type."
+
+    try:
+        normalize_counterparty(counterparty)
+    except ValueError:
+        return False, "Please enter a valid counterparty."
+
     return True, None
 
 
@@ -69,6 +96,8 @@ def build_transfer_payload(
     date_label,
     time_label,
     notes_label,
+    transfer_kind="internal",
+    counterparty=None,
 ):
     return {
         "source_account_id": source_account_id,
@@ -76,6 +105,8 @@ def build_transfer_payload(
         "amount_centavos": pesos_to_centavos(amount),
         "date_time": combine_date_time_labels(date_label, time_label),
         "notes": normalize_transaction_notes(notes_label or ""),
+        "transfer_kind": transfer_kind,
+        "counterparty": normalize_counterparty(counterparty),
     }
 
 
@@ -88,11 +119,15 @@ def save_transfer(
     time_label,
     notes_label,
     transfer_id=None,
+    transfer_kind="internal",
+    counterparty=None,
 ):
     is_valid, message = validate_transfer_form(
         source_account_id,
         destination_account_id,
         amount,
+        transfer_kind,
+        counterparty,
     )
 
     if not is_valid:
@@ -106,6 +141,8 @@ def save_transfer(
             date_label,
             time_label,
             notes_label,
+            transfer_kind,
+            counterparty,
         )
     except ValueError:
         return TransferSaveResult(
@@ -130,6 +167,8 @@ def save_transfer(
                 payload["amount_centavos"],
                 payload["date_time"],
                 payload["notes"],
+                payload["transfer_kind"],
+                payload["counterparty"],
             )
         else:
             saved = update_transfer(
@@ -139,6 +178,8 @@ def save_transfer(
                 payload["date_time"],
                 payload["notes"],
                 transfer_id,
+                payload["transfer_kind"],
+                payload["counterparty"],
             )
     except sqlite3.Error:
         saved = False

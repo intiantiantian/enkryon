@@ -245,6 +245,9 @@ def test_upgrades_v0_3_0_database_file_without_data_loss(
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
         (6, "transaction_posting_status"),
+        (7, "account_transfer_kinds"),
+        (8, "pass_through_movements"),
+        (9, "pass_through_balance_neutrality"),
     ]
     assert "amount" not in transaction_columns
     assert transaction_columns["amount_centavos"] == "INTEGER"
@@ -347,6 +350,9 @@ def test_run_migrations_is_idempotent():
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
         (6, "transaction_posting_status"),
+        (7, "account_transfer_kinds"),
+        (8, "pass_through_movements"),
+        (9, "pass_through_balance_neutrality"),
     ]
 
 
@@ -361,7 +367,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
         migrations,
         "MIGRATIONS",
         migrations.MIGRATIONS
-        + ((7, "failing_migration", failing_migration),),
+        + ((10, "failing_migration", failing_migration),),
     )
 
     with pytest.raises(RuntimeError, match="migration failed"):
@@ -374,7 +380,7 @@ def test_failed_migration_is_rolled_back(monkeypatch):
             '''
             SELECT version
             FROM schema_migrations
-            WHERE version = 7
+            WHERE version = 10
             '''
         ).fetchone()
         rolled_back_table = connection.execute(

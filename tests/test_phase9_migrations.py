@@ -201,6 +201,9 @@ def test_upgrades_v0_7_0_database_file_without_data_loss(
         (4, "transaction_history_indexes"),
         (5, "account_transfers"),
         (6, "transaction_posting_status"),
+        (7, "account_transfer_kinds"),
+        (8, "pass_through_movements"),
+        (9, "pass_through_balance_neutrality"),
     ]
     assert migrated_state == original_state
     assert transfer_count == 0

@@ -72,6 +72,8 @@ USER_TABLES = {
             "amount_centavos",
             "date_time",
             "notes",
+            "transfer_kind",
+            "counterparty",
         ),
         "rows": [
             (
@@ -81,6 +83,8 @@ USER_TABLES = {
                 10025,
                 "2026-07-04 09:15:00",
                 "Move to wallet",
+                "internal",
+                None,
             ),
         ],
     },
@@ -93,6 +97,9 @@ MIGRATION_ROWS = [
     (4, "transaction_history_indexes"),
     (5, "account_transfers"),
     (6, "transaction_posting_status"),
+    (7, "account_transfer_kinds"),
+    (8, "pass_through_movements"),
+    (9, "pass_through_balance_neutrality"),
 ]
 
 

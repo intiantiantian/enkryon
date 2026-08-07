@@ -489,6 +489,156 @@ def add_transaction_posting_status(connection):
     )
 
 
+def add_transfer_kind_and_counterparty(connection):
+    connection.execute(
+        '''
+        ALTER TABLE account_transfers
+        ADD COLUMN transfer_kind TEXT NOT NULL DEFAULT 'internal'
+            CHECK (transfer_kind IN ('internal', 'pass_through'))
+        '''
+    )
+    connection.execute(
+        '''
+        ALTER TABLE account_transfers
+        ADD COLUMN counterparty TEXT
+            CHECK (
+                counterparty IS NULL
+                OR (
+                    length(counterparty) > 0
+                    AND counterparty = trim(counterparty)
+                )
+            )
+        '''
+    )
+
+
+def add_pass_through_movements(connection):
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pass_through_movements (
+            transfer_id INTEGER NOT NULL,
+            direction TEXT NOT NULL
+                CHECK (direction IN ('inflow', 'outflow')),
+            account_id INTEGER NOT NULL,
+            amount_centavos INTEGER NOT NULL
+                CHECK (
+                    typeof(amount_centavos) = 'integer'
+                    AND amount_centavos > 0
+                ),
+            PRIMARY KEY (transfer_id, direction),
+            FOREIGN KEY (transfer_id)
+                REFERENCES account_transfers(id)
+                ON DELETE CASCADE,
+            FOREIGN KEY (account_id)
+                REFERENCES accounts(id)
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS
+            pass_through_movements_account_index
+        ON pass_through_movements (account_id, transfer_id)
+        """
+    )
+
+    connection.execute(
+        """
+        INSERT OR REPLACE INTO pass_through_movements (
+            transfer_id, direction, account_id, amount_centavos
+        )
+        SELECT id, 'outflow', source_account_id, amount_centavos
+        FROM account_transfers
+        WHERE transfer_kind = 'pass_through'
+        """
+    )
+    connection.execute(
+        """
+        INSERT OR REPLACE INTO pass_through_movements (
+            transfer_id, direction, account_id, amount_centavos
+        )
+        SELECT id, 'inflow', destination_account_id, amount_centavos
+        FROM account_transfers
+        WHERE transfer_kind = 'pass_through'
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TRIGGER IF NOT EXISTS
+            pass_through_movements_after_insert
+        AFTER INSERT ON account_transfers
+        FOR EACH ROW
+        WHEN NEW.transfer_kind = 'pass_through'
+        BEGIN
+            INSERT INTO pass_through_movements (
+                transfer_id, direction, account_id, amount_centavos
+            )
+            VALUES (
+                NEW.id, 'outflow', NEW.source_account_id,
+                NEW.amount_centavos
+            );
+
+            INSERT INTO pass_through_movements (
+                transfer_id, direction, account_id, amount_centavos
+            )
+            VALUES (
+                NEW.id, 'inflow', NEW.destination_account_id,
+                NEW.amount_centavos
+            );
+        END
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TRIGGER IF NOT EXISTS
+            pass_through_movements_after_update
+        AFTER UPDATE OF
+            source_account_id,
+            destination_account_id,
+            amount_centavos,
+            transfer_kind
+        ON account_transfers
+        FOR EACH ROW
+        BEGIN
+            DELETE FROM pass_through_movements
+            WHERE transfer_id = NEW.id;
+
+            INSERT INTO pass_through_movements (
+                transfer_id, direction, account_id, amount_centavos
+            )
+            SELECT
+                NEW.id, 'outflow', NEW.source_account_id,
+                NEW.amount_centavos
+            WHERE NEW.transfer_kind = 'pass_through';
+
+            INSERT INTO pass_through_movements (
+                transfer_id, direction, account_id, amount_centavos
+            )
+            SELECT
+                NEW.id, 'inflow', NEW.destination_account_id,
+                NEW.amount_centavos
+            WHERE NEW.transfer_kind = 'pass_through';
+        END
+        """
+    )
+
+
+
+def remove_pass_through_movements(connection):
+    connection.execute(
+        "DROP TRIGGER IF EXISTS pass_through_movements_after_insert"
+    )
+    connection.execute(
+        "DROP TRIGGER IF EXISTS pass_through_movements_after_update"
+    )
+    connection.execute(
+        "DROP INDEX IF EXISTS pass_through_movements_account_index"
+    )
+    connection.execute("DROP TABLE IF EXISTS pass_through_movements")
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
     (
@@ -515,6 +665,21 @@ MIGRATIONS = (
         6,
         "transaction_posting_status",
         add_transaction_posting_status,
+    ),
+    (
+        7,
+        "account_transfer_kinds",
+        add_transfer_kind_and_counterparty,
+    ),
+    (
+        8,
+        "pass_through_movements",
+        add_pass_through_movements,
+    ),
+    (
+        9,
+        "pass_through_balance_neutrality",
+        remove_pass_through_movements,
     ),
 )
 
