@@ -489,6 +489,29 @@ def add_transaction_posting_status(connection):
     )
 
 
+def add_transfer_kind_and_counterparty(connection):
+    connection.execute(
+        '''
+        ALTER TABLE account_transfers
+        ADD COLUMN transfer_kind TEXT NOT NULL DEFAULT 'internal'
+            CHECK (transfer_kind IN ('internal', 'pass_through'))
+        '''
+    )
+    connection.execute(
+        '''
+        ALTER TABLE account_transfers
+        ADD COLUMN counterparty TEXT
+            CHECK (
+                counterparty IS NULL
+                OR (
+                    length(counterparty) > 0
+                    AND counterparty = trim(counterparty)
+                )
+            )
+        '''
+    )
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
     (
@@ -515,6 +538,11 @@ MIGRATIONS = (
         6,
         "transaction_posting_status",
         add_transaction_posting_status,
+    ),
+    (
+        7,
+        "account_transfer_kinds",
+        add_transfer_kind_and_counterparty,
     ),
 )
 

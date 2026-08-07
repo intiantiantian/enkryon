@@ -174,7 +174,7 @@ def test_accepts_transfer_backup_and_defaults_transactions_to_posted():
     ]
 
 
-@pytest.mark.parametrize("database_version", (4, 5, 6))
+@pytest.mark.parametrize("database_version", (4, 5, 6, 7))
 def test_accepts_compatible_database_migrations(database_version):
     document = make_valid_document()
     document["metadata"]["database_version"] = database_version
@@ -204,7 +204,7 @@ def test_rejects_invalid_identity_and_metadata():
     for path, value in (
         (("format",), "other-backup"),
         (("format_version",), 4),
-        (("metadata", "database_version"), 7),
+        (("metadata", "database_version"), 8),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):

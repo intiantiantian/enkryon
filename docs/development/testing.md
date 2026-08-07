@@ -539,3 +539,43 @@ compatibility, and the 100%-weighted checkpoint plan.
 Task 1 changes documentation and contract tests only. Migration 7, repository,
 service, UI, activity, and recovery implementation must wait until this contract
 checkpoint passes and is committed.
+
+
+### Update 3 Task 2 migration and persistence gate
+
+Task 2 extends the existing account-transfer ledger instead of creating a
+second financial subsystem. Run the focused persistence gate before the
+complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_pass_through_transfer_persistence.py ^
+tests/test_transfer_repository.py ^
+tests/test_transfer_services.py ^
+tests/test_transfer_balances.py ^
+tests/test_migrations.py ^
+tests/test_phase9_migrations.py ^
+tests/test_recovery_contract.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_restorer.py ^
+tests/test_backup_validator.py ^
+tests/test_pending_backup_recovery.py
+```
+
+The gate verifies migration 7 defaults and constraints, legacy Internal
+compatibility, exact transfer-kind persistence, trimmed/blank counterparty
+normalization, invalid-kind rejection, stable newest-first ordering, combined
+account/kind repository filtering, edit/delete/undo restoration, migration
+repeat-run and rollback behavior, unchanged legacy financial totals, recovery
+schema history, and continued format-3 development compatibility with database
+version 7.
+
+No dedicated `transfer_kind` index is expected at this checkpoint. Query-plan
+coverage confirms the existing `account_transfers_history_order_index` remains
+the ordering access path; later activity/filter work may add an index only if
+its real query plans justify one.
+
+After the focused gate, run the complete suite and branch coverage, Python
+compilation, and `git diff --check`. Task 2 changes persistence only and does not
+yet expose Pass-through controls in the real application, so no manual UI gate
+is required before this checkpoint commit.

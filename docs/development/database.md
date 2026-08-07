@@ -61,6 +61,7 @@ The current migrations are:
 | 4 | `transaction_history_indexes` | Add indexed newest-first transaction-history access paths. |
 | 5 | `account_transfers` | Add atomic transfer records plus newest-first, outgoing, and incoming indexes. |
 | 6 | `transaction_posting_status` | Add constrained posted/Pending state and the status-history index. |
+| 7 | `account_transfer_kinds` | Add constrained Internal/Pass-through transfer kind plus optional counterparty metadata. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -105,6 +106,8 @@ The current schema enforces these core rules:
 - Transfer source and destination accounts must both exist and must differ.
 - Transfer amounts must be positive integer centavos.
 - Transfer date/time values must use the supported valid format.
+- Transfer kind must be exactly `internal` or `pass_through`.
+- Counterparty is optional; persisted non-empty values must be trimmed text.
 
 Application validation should provide friendly messages, while database
 rules remain the final protection against invalid stored data.
@@ -155,6 +158,13 @@ selected source account sees a negative transfer effect, a selected
 destination sees a positive effect, and the all-accounts transfer contribution
 is always zero. Transfers never change Income, Expenses, or category totals.
 
+Migration 7 keeps the same transfer ledger and adds `transfer_kind` with a safe
+`internal` default plus optional `counterparty`. Existing transfer-history,
+source-account, and destination-account indexes remain unchanged. No dedicated
+kind index is added at this checkpoint because a new access path must first be
+justified by focused query-plan evidence rather than by the presence of a
+low-cardinality field alone.
+
 ## Adding a Future Migration
 
 When the schema changes:
@@ -198,6 +208,11 @@ database versions, export metadata, record counts, and the account, category
 group, category, and transaction records needed for recovery. Version 1.1 uses
 backup format 2, which adds `account_transfers` as a fifth record collection.
 Update 2 uses backup format 3, which adds `posting_status` to each transaction.
+During Update 3 persistence work, database migration 7 is accepted by the
+format-3 validator so development backups remain structurally valid, but format
+3 still contains only the v1.2.0 transfer fields. Pass-through kind and
+counterparty must not be considered release-safe for backup until Task 6 adds
+backup format 4 and its recovery coverage.
 Compatible format-1 documents from version 1.0 normalize to an empty transfer
 collection, and transactions from both format 1 and format 2 normalize to
 `posted` before validation and replacement restore.

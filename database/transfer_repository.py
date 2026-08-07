@@ -13,7 +13,9 @@ TRANSFER_SELECT = '''
         account_transfers.date_time,
         account_transfers.notes,
         source_accounts.name,
-        destination_accounts.name
+        destination_accounts.name,
+        account_transfers.transfer_kind,
+        account_transfers.counterparty
     FROM account_transfers
     INNER JOIN accounts AS source_accounts
         ON account_transfers.source_account_id = source_accounts.id
@@ -87,14 +89,28 @@ def create_account_transfers_table(connection=None):
             connection.close()
 
 
+def _normalize_counterparty(counterparty):
+    if counterparty is None:
+        return None
+
+    if not isinstance(counterparty, str):
+        raise ValueError("counterparty must be text or None")
+
+    normalized_counterparty = counterparty.strip()
+    return normalized_counterparty or None
+
+
 def insert_transfer(
     source_account_id,
     destination_account_id,
     amount_centavos,
     date_time,
     notes,
+    transfer_kind="internal",
+    counterparty=None,
 ):
     try:
+        counterparty = _normalize_counterparty(counterparty)
         with managed_connection() as connection:
             connection.execute(
                 '''
@@ -103,9 +119,11 @@ def insert_transfer(
                     destination_account_id,
                     amount_centavos,
                     date_time,
-                    notes
+                    notes,
+                    transfer_kind,
+                    counterparty
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''',
                 (
                     source_account_id,
@@ -113,25 +131,36 @@ def insert_transfer(
                     amount_centavos,
                     date_time,
                     notes,
+                    transfer_kind,
+                    counterparty,
                 ),
             )
             connection.commit()
             return True
-    except sqlite3.Error:
+    except (sqlite3.Error, ValueError):
         return False
 
 
-def get_transfers(limit=None, account_id=None):
+def get_transfers(limit=None, account_id=None, transfer_kind=None):
     with managed_connection() as connection:
         query = TRANSFER_SELECT
         params = []
 
+        conditions = []
+
         if account_id is not None:
-            query += '''
-                WHERE account_transfers.source_account_id = ?
-                   OR account_transfers.destination_account_id = ?
-            '''
+            conditions.append(
+                "(account_transfers.source_account_id = ? "
+                "OR account_transfers.destination_account_id = ?)"
+            )
             params.extend((account_id, account_id))
+
+        if transfer_kind is not None:
+            conditions.append("account_transfers.transfer_kind = ?")
+            params.append(transfer_kind)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
 
         query += '''
             ORDER BY account_transfers.date_time DESC,
@@ -198,8 +227,11 @@ def update_transfer(
     date_time,
     notes,
     transfer_id,
+    transfer_kind="internal",
+    counterparty=None,
 ):
     try:
+        counterparty = _normalize_counterparty(counterparty)
         with managed_connection() as connection:
             cursor = connection.execute(
                 '''
@@ -208,7 +240,9 @@ def update_transfer(
                     destination_account_id = ?,
                     amount_centavos = ?,
                     date_time = ?,
-                    notes = ?
+                    notes = ?,
+                    transfer_kind = ?,
+                    counterparty = ?
                 WHERE id = ?
                 ''',
                 (
@@ -217,6 +251,8 @@ def update_transfer(
                     amount_centavos,
                     date_time,
                     notes,
+                    transfer_kind,
+                    counterparty,
                     transfer_id,
                 ),
             )
@@ -226,7 +262,7 @@ def update_transfer(
 
             connection.commit()
             return True
-    except sqlite3.Error:
+    except (sqlite3.Error, ValueError):
         return False
 
 
@@ -258,9 +294,11 @@ def restore_transfer(transfer):
                     destination_account_id,
                     amount_centavos,
                     date_time,
-                    notes
+                    notes,
+                    transfer_kind,
+                    counterparty
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
                 (
                     transfer.transfer_id,
@@ -269,9 +307,11 @@ def restore_transfer(transfer):
                     transfer.amount_centavos,
                     transfer.date_time,
                     transfer.notes,
+                    transfer.transfer_kind,
+                    _normalize_counterparty(transfer.counterparty),
                 ),
             )
             connection.commit()
             return True
-    except sqlite3.Error:
+    except (sqlite3.Error, ValueError):
         return False

@@ -56,6 +56,8 @@ class TransferRecord(NamedTuple):
     notes: str | None
     source_account_name: str
     destination_account_name: str
+    transfer_kind: str = "internal"
+    counterparty: str | None = None
 
 
 class ActivityRecord(NamedTuple):
