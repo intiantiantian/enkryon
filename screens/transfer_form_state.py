@@ -7,6 +7,8 @@ from utils.transaction_datetime import split_database_datetime
 
 SOURCE_ACCOUNT_PROMPT = "Select Source Account"
 DESTINATION_ACCOUNT_PROMPT = "Select Destination Account"
+INTERNAL_TRANSFER_KIND = "internal"
+PASS_THROUGH_TRANSFER_KIND = "pass_through"
 
 
 @dataclass
@@ -20,6 +22,8 @@ class TransferFormState:
     time_label: str = ""
     notes: str = ""
     transfer_id: int | None = None
+    transfer_kind: str = INTERNAL_TRANSFER_KIND
+    counterparty: str = ""
 
 
     @classmethod
@@ -46,6 +50,8 @@ class TransferFormState:
             time_label=time_label,
             notes=transfer.notes or "",
             transfer_id=transfer.transfer_id,
+            transfer_kind=transfer.transfer_kind,
+            counterparty=transfer.counterparty or "",
         )
 
 
@@ -58,6 +64,8 @@ class TransferFormState:
             "time_label": self.time_label,
             "notes_label": self.notes,
             "transfer_id": self.transfer_id,
+            "transfer_kind": self.transfer_kind,
+            "counterparty": self.counterparty,
         }
 
 
@@ -83,3 +91,16 @@ class TransferFormState:
 
     def set_notes(self, notes):
         self.notes = notes if notes and notes.strip() else ""
+
+
+    def set_transfer_kind(self, transfer_kind):
+        if transfer_kind not in {
+            INTERNAL_TRANSFER_KIND,
+            PASS_THROUGH_TRANSFER_KIND,
+        }:
+            raise ValueError(f"Unknown transfer kind: {transfer_kind}")
+        self.transfer_kind = transfer_kind
+
+
+    def set_counterparty(self, counterparty):
+        self.counterparty = counterparty or ""

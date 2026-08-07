@@ -579,3 +579,30 @@ After the focused gate, run the complete suite and branch coverage, Python
 compilation, and `git diff --check`. Task 2 changes persistence only and does not
 yet expose Pass-through controls in the real application, so no manual UI gate
 is required before this checkpoint commit.
+
+
+### Update 3 Task 3 pass-through service workflow gate
+
+Task 3 extends the existing transfer service and form-state path without adding
+visible Pass-through controls yet. Run this focused gate before the complete
+suite:
+
+```bat
+python -m pytest -q ^
+tests/test_pass_through_transfer_workflows.py ^
+tests/test_transfer_services.py ^
+tests/test_transfer_form_state.py ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transfer_balances.py ^
+tests/test_pass_through_transfer_persistence.py
+```
+
+The gate verifies exact-centavo create/edit/delete/restore behavior, canonical
+Cash-to-Bank effects, all-account net-zero invariants, unchanged Income and
+Expense totals, same-account and metadata validation, stable repository-failure
+results, preserved Pass-through kind/counterparty during edit state, and legacy
+Internal-transfer defaults.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Task 3 changes workflows/state only; the
+real-app transfer-mode and counterparty controls belong to Task 4.

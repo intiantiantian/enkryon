@@ -383,6 +383,8 @@ def test_save_transfer_renders_result_and_navigates_only_on_success(
         time_label="07:30 PM",
         notes_label="Monthly savings",
         transfer_id=17,
+        transfer_kind="internal",
+        counterparty="",
     )
     render_action_result.assert_called_once_with(result)
     assert manager.current == expected_destination

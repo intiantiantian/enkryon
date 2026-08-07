@@ -14,13 +14,13 @@
 | Task | Weight | State |
 |---|---:|---|
 | 1. Lock pass-through contract and baseline | 9% | Completed — `c7d0fd1` |
-| 2. Add migration and transfer-kind persistence | 18% | In progress — Windows verification pending |
-| 3. Add pass-through service workflows | 17% | Not started |
+| 2. Add migration and transfer-kind persistence | 18% | Completed — `1354c5a` |
+| 3. Add pass-through service workflows | 17% | In progress — Windows verification pending |
 | 4. Build pass-through transfer interface | 18% | Not started |
 | 5. Integrate balances, activity, search, and filters | 16% | Not started |
 | 6. Extend backup, recovery, and performance | 12% | Not started |
 | 7. Close and release Update 3 | 10% | Not started |
-| **Total** | **100%** | **9% verified** |
+| **Total** | **100%** | **27% verified** |
 
 ## Task 1 Contract Decisions
 
@@ -70,3 +70,26 @@ migration version 7 so existing development export/restore tests remain valid,
 but format 3 intentionally does not claim to preserve Pass-through metadata.
 Task 6 remains responsible for backup format 4 and exact kind/counterparty
 round-trip recovery before v1.3.0 can ship.
+
+Task 2 Windows verification reported `124 passed` for the focused gate and
+`761 passed` for the complete suite with `84%` total branch coverage. Python
+compilation and `git diff --check` passed. The checkpoint was committed as
+`1354c5a` (`Add pass-through transfer persistence`).
+
+## Task 3 Service Workflow Work
+
+Task 3 carries `transfer_kind` and optional `counterparty` through the existing
+transfer service and form-state path. New saves remain Internal by default, while
+Pass-through create/edit operations explicitly preserve `pass_through` metadata
+and trim blank/whitespace counterparty input to no counterparty. Invalid transfer
+kinds and non-text counterparty values fail before repository access.
+
+`TransferFormState.from_transfer()` and `to_save_arguments()` preserve kind and
+counterparty during editing. This prevents a Pass-through record from silently
+becoming Internal while the Task 4 interface controls are still being added.
+
+Focused workflow coverage locks exact centavos, the canonical Cash-to-Bank
+direction, equal-and-opposite participating-account effects, zero all-account
+change, zero Income/Expense change, edit reversal/reapplication, delete/undo
+restore, stable failed updates, same-account rejection, missing/invalid metadata,
+and ordinary Internal-transfer compatibility.

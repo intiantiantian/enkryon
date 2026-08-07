@@ -113,6 +113,8 @@ def test_build_transfer_payload_preserves_exact_centavos_and_notes():
         "amount_centavos": 12345,
         "date_time": "2026-08-04 19:30:00",
         "notes": "Emergency fund",
+        "transfer_kind": "internal",
+        "counterparty": None,
     }
 
 
@@ -290,6 +292,8 @@ def test_save_transfer_returns_create_result(
         12345,
         "2026-08-04 19:30:00",
         "Emergency fund",
+        "internal",
+        None,
     )
     update_transfer.assert_not_called()
 
@@ -386,6 +390,8 @@ def test_save_transfer_returns_update_result(
         "2026-08-04 19:30:00",
         "Emergency fund",
         17,
+        "internal",
+        None,
     )
 
 
