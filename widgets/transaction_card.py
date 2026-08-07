@@ -82,22 +82,26 @@ def create_transaction_card_data(transaction, screen):
     counterparty = getattr(transaction, "counterparty", None)
 
     if record_type == "transfer":
-        account_name = (
-            f"{transaction.source_account_name} to "
-            f"{transaction.destination_account_name}"
-        )
         transfer_kind = transfer_kind or "internal"
         direction = getattr(transaction, "direction", "neutral")
         if transfer_kind == "pass_through":
+            account_name = (
+                f"{transaction.source_account_name} outflow | "
+                f"{transaction.destination_account_name} inflow"
+            )
             group_name = "Pass-through Transfer"
             presentation = dict(presentation)
             presentation["label"] = "PASS-THROUGH"
             category_name = (
                 f"Counterparty: {counterparty}"
                 if counterparty
-                else "Between accounts"
+                else "Linked account exchange"
             )
         else:
+            account_name = (
+                f"{transaction.source_account_name} to "
+                f"{transaction.destination_account_name}"
+            )
             group_name = "Account Transfer"
             category_name = {
                 "incoming": "Incoming transfer",

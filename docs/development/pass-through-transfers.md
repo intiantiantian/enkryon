@@ -26,10 +26,14 @@ The canonical cash-out example is:
 
 - a friend sends `₱1,000.25` to the user's Bank account;
 - the user gives that friend `₱1,000.25` from Cash; and
-- Enkryon records one Pass-through Transfer of `₱1,000.25` from `Cash → Bank`.
+- Enkryon stores one linked Pass-through record with Cash as the outflow leg
+  and Bank as the inflow leg.
 
-The source is always the user-owned account whose balance decreases. The
-destination is always the user-owned account whose balance increases.
+The source field is the user-owned account whose balance decreases and therefore
+represents the account outflow. The destination field is the user-owned account
+whose balance increases and therefore represents the account inflow. This stored
+source/destination mapping must not be described to the user as though the same
+physical money was internally transferred between those accounts.
 
 ## Transfer Kind
 
@@ -164,7 +168,7 @@ Bank = ₱10,000.00
 All accounts = ₱15,000.00
 ```
 
-After one `₱1,000.25` Pass-through Transfer from `Cash → Bank`:
+After one `₱1,000.25` Pass-through exchange with Cash as outflow and Bank as inflow:
 
 ```text
 Cash = ₱3,999.75
@@ -189,6 +193,7 @@ automatic fee inference. Those require separate accounting contracts.
 ## UI text portability
 
 User-facing Kivy copy should prefer plain text when a decorative symbol is not
-required. In particular, direction examples use `Cash to Bank` rather than an
-arrow glyph, and Activity History uses an ASCII separator for active filters.
-The peso symbol remains part of monetary formatting.
+required. Pass-through records describe the two linked effects explicitly, such
+as `Cash outflow | Bank inflow`, instead of using an arrow or wording that looks
+like an Internal Transfer. Activity History uses an ASCII separator for active
+filters. The peso symbol remains part of monetary formatting.

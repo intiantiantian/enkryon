@@ -187,10 +187,11 @@ class TransferScreen(Screen):
         if is_pass_through:
             self.ids.transfer_kind_label.text = "PASS-THROUGH TRANSFER"
             self.ids.transfer_guidance_label.text = (
-                "Cash-out or forwarding: FROM decreases and TO increases. "
-                "If someone sends money to your Bank and receives your "
-                "Cash, record Cash to Bank. The principal is not Income "
-                "or Expense."
+                "Pass-through exchange: FROM records the account outflow "
+                "and TO records the account inflow. If someone sends money "
+                "to your Bank and receives your Cash, Cash is the outflow "
+                "and Bank is the inflow. The principal is not Income or "
+                "Expense."
             )
         else:
             self.ids.transfer_kind_label.text = "INTERNAL TRANSFER"

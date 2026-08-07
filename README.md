@@ -4,8 +4,9 @@ A modern **offline-first personal finance tracker** built with **Python**, **Kiv
 
 Enkryon is an offline-first personal finance tracker that helps users record
 income and expenses, hold planned activity as Pending until it is posted,
-move funds between accounts, organize accounts and categories, and monitor
-financial activity through a clean and intuitive interface.
+move funds between accounts, record linked Pass-through exchanges, organize
+accounts and categories, and monitor financial activity through a clean and
+intuitive interface.
 
 The application focuses on simplicity, local data privacy, and responsive mobile design.
 
@@ -67,11 +68,13 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Account Transfers
 
-- Transfer an exact amount between two accounts
-- Edit, delete, and undo deleted transfers
+- Move an exact amount of your own money between two accounts
+- Record Pass-through exchanges as one linked account outflow and account inflow
+- Keep Internal and Pass-through principal out of Income and Expenses
 - Keep combined-account income and expenses unchanged
-- Show outgoing and incoming effects in per-account balances
-- Search and filter transfer activity by account, date, notes, and type
+- Add an optional counterparty to Pass-through activity
+- Edit, delete, and undo deleted transfers
+- Search and filter transfer activity by account, date, notes, kind, and counterparty
 
 ### Accounts
 
@@ -107,9 +110,9 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Settings
 
-- Export a versioned JSON backup including account transfers and Pending status
+- Export a versioned JSON backup including transfer kind, counterparty, and Pending status
 - Preview and restore a validated backup
-- Restore compatible format-1 and format-2 backups as fully posted transactions
+- Restore formats 1 through 3 with older transfers normalized to Internal
 - Clear all application data
 - Export a backup before clearing data
 - View application, local-data, and privacy information
@@ -125,6 +128,12 @@ The verified version 1.2 Android release uses this artifact name:
 
 ```
 Enkryon-v1.2.0.apk
+```
+
+The version 1.3 release candidate uses:
+
+```
+Enkryon-v1.3.0.apk
 ```
 
 ---
@@ -189,7 +198,7 @@ connections protect commits, rollbacks, and cleanup, while account,
 category, transaction, transfer, and unified-activity services own workflow
 rules and return explicit, testable results to the interface.
 
-User-created backups are stored as versioned JSON documents. Backup format 3
+User-created backups are stored as versioned JSON documents. Backup format 4
 preserves each transaction's posted or Pending status and includes account
 transfers. Compatible format-1 and format-2 documents remain restorable; their
 transactions normalize to posted because those formats predate posting status.

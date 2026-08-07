@@ -9,6 +9,34 @@ version reference.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-07
+
+### Added
+
+- Pass-through Transfers for completed cash-out or money-forwarding exchanges,
+  stored as linked account outflow/inflow effects rather than Income or Expense.
+- Optional counterparty metadata plus dedicated Internal and Pass-through
+  Advanced Filters and searchable activity semantics.
+- Database migration 7 with constrained `internal` and `pass_through` transfer
+  kinds.
+- Backup format 4 with exact transfer-kind and counterparty preservation.
+
+### Changed
+
+- General Transfer filtering now includes both Internal and Pass-through records.
+- Pass-through activity presents explicit linked effects such as
+  `Cash outflow | Bank inflow` so it is not mistaken for movement of the same
+  physical money between the user's accounts.
+- Application and Android release-candidate identity now use version `1.3.0`.
+
+### Fixed
+
+- Pass-through edit, delete, undo, restore, and backup workflows preserve both
+  account effects atomically and cannot change Income, Expenses, category totals,
+  or the all-account balance.
+- User-facing transfer copy avoids decorative direction glyphs where plain text
+  is more portable.
+
 ## [1.2.0] - 2026-08-06
 
 ### Added

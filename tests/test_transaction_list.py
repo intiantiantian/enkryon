@@ -427,7 +427,7 @@ def test_pass_through_card_has_visible_kind_and_counterparty_text():
 
     data = card_module.create_transaction_card_data(transfer, object())
 
-    assert data["account_name"] == "Cash to Bank"
+    assert data["account_name"] == "Cash outflow | Bank inflow"
     assert data["group_name"] == "Pass-through Transfer"
     assert data["category_name"] == "Counterparty: Alex Rivera"
     assert data["transaction_type_label"] == "PASS-THROUGH"

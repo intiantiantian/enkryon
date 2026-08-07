@@ -73,6 +73,22 @@ the evidence in the release notes or the phase verification report.
 - [ ] Repeating application startup does not repeat completed migrations.
 - [ ] Data remains correct after force-stop and relaunch.
 
+### Current v1.3.0 upgrade additions
+
+- [ ] An official v1.2.0 installation upgrades through migration 7 exactly once.
+- [ ] Pre-upgrade posted and Pending transactions retain their exact statuses and
+  financial effects.
+- [ ] Existing v1.2.0 account transfers remain `Internal` after upgrade.
+- [ ] A new Pass-through exchange can be created after upgrade with a
+  counterparty and exact account outflow/inflow effects.
+- [ ] Pass-through principal leaves Income, Expenses, category totals, and the
+  all-account balance unchanged.
+- [ ] Activity History shows visible `PASS-THROUGH` text and explicit linked
+  outflow/inflow wording without relying on a decorative direction glyph.
+- [ ] Backup format 4 export, Clear All Data, replacement restore, and relaunch
+  preserve transfer kind, counterparty, posted/Pending status, IDs, amounts,
+  notes, dates, relationships, and exact totals.
+
 ## 7. Core workflow smoke test
 
 - [ ] Dashboard balances and income/expense totals are correct.

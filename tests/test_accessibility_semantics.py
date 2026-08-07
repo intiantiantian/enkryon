@@ -199,8 +199,10 @@ def test_pass_through_form_uses_explicit_non_color_text_cues():
     assert "text: 'Counterparty (optional)'" in layout
     assert '"PASS-THROUGH TRANSFER"' in screen_source
     assert '"INTERNAL TRANSFER"' in screen_source
-    assert "FROM decreases and TO increases" in screen_source
-    assert "Cash to Bank" in screen_source
+    assert "FROM records the account outflow" in screen_source
+    assert "TO records the account inflow" in screen_source
+    assert "Cash is the outflow" in screen_source
+    assert "Bank is the inflow" in screen_source
     assert "not Income" in screen_source
 
 

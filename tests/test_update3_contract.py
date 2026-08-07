@@ -8,12 +8,15 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_update_3_contract_locks_cash_to_bank_direction_and_financial_rules():
+def test_update_3_contract_locks_linked_outflow_inflow_and_financial_rules():
     contract = read_project_file("docs/development/pass-through-transfers.md")
     normalized_contract = " ".join(contract.split())
 
-    assert "Cash → Bank" in contract
-    assert "The source is always the user-owned account whose balance decreases" in normalized_contract
+    assert "Cash as the outflow leg" in contract
+    assert "Bank as the inflow leg" in contract
+    assert "The source field is the user-owned account whose balance decreases" in normalized_contract
+    assert "represents the account outflow" in normalized_contract
+    assert "represents the account inflow" in normalized_contract
     for invariant in (
         "all-account balance change = 0",
         "Income change = 0",

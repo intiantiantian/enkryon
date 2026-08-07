@@ -745,3 +745,48 @@ gate before committing:
 5. Confirm Pending remains Pending and posted remains posted.
 6. Confirm both account balances, all-account balance, Income, and Expenses match
    the values recorded before export. Relaunch once and verify the same state.
+
+## Update 3 Task 7 release-candidate gate
+
+Task 7 starts only after Tasks 1 through 6 are committed and the working tree is
+clean. The source version becomes `1.3.0`, release documentation is prepared, and
+Pass-through UI wording is finalized as linked account effects rather than an
+Internal Transfer description.
+
+Run the focused release-document and UI-semantic gate first:
+
+```bat
+python -m pytest -q ^
+tests/test_update3_closeout.py ^
+tests/test_update3_contract.py ^
+tests/test_phase_release_version.py ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transaction_list.py ^
+tests/test_accessibility_semantics.py ^
+tests/test_responsive_layout.py
+```
+
+Then run the complete suite with coverage, Python compilation, and
+`git diff --check`. A passing desktop gate prepares the release candidate but
+does not complete Task 7.
+
+The final v1.3.0 Android gate requires all of the following:
+
+1. Green GitHub Actions for the release-candidate commit.
+2. WSL synchronization from the canonical Windows source and a signed release
+   build using `scripts/build-android-release.sh`.
+3. Permanent signing-certificate verification, zip alignment, checksum, and
+   `android:allowBackup="false"` verification.
+4. Clean installation and launch on a supported Android device.
+5. Official v1.2.0-to-v1.3.0 in-place upgrade with representative posted,
+   Pending, and Internal-transfer data already present.
+6. After upgrade, create one Pass-through exchange with a recognizable
+   counterparty and confirm the exact outflow/inflow effects while Income,
+   Expenses, categories, and all-account balance remain unchanged.
+7. Export backup format 4, perform replacement recovery on disposable data,
+   relaunch, and confirm exact kind/counterparty/status preservation.
+8. Record APK size, SHA-256, versionCode, device/API, CI result, upgrade result,
+   and recovery result in the release notes and verification audit.
+
+Task 7 advances the remaining 10% only after those final artifact and device
+checks pass.

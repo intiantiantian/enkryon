@@ -18,14 +18,14 @@
 | 3. Add pass-through service workflows | 17% | Completed — `2814e98` |
 | 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
 | 5. Integrate balances, activity, search, and filters | 16% | Completed — `05b635c` |
-| 6. Extend backup, recovery, and performance | 12% | In progress — verification pending |
-| 7. Close and release Update 3 | 10% | Not started |
-| **Total** | **100%** | **78% verified** |
+| 6. Extend backup, recovery, and performance | 12% | Completed - `01299eb` |
+| 7. Close and release Update 3 | 10% | In progress - release candidate |
+| **Total** | **100%** | **90% verified** |
 
 ## Task 1 Contract Decisions
 
 - Canonical exchange: friend deposits to Bank while the user gives equivalent
-  Cash; record the user-owned balance direction as `Cash → Bank`.
+  Cash; store Cash as the account outflow and Bank as the account inflow.
 - Pass-through principal is equal and opposite across the two accounts and is
   net zero across all accounts.
 - Pass-through principal never changes Income, Expenses, category totals, or
@@ -104,8 +104,8 @@ compilation and `git diff --check` passed. The checkpoint was committed as
 Task 4 exposes the already-verified transfer kind through explicit `INTERNAL`
 and `PASS-THROUGH` controls on the existing Transfer screen. The selected kind
 is communicated with visible text as well as button styling. Pass-through mode
-shows directional guidance that locks the canonical `Cash → Bank` cash-out
-example and explicitly states that principal is not Income or Expense.
+shows explicit linked account outflow/inflow guidance and states that principal
+is not Income or Expense.
 
 The optional counterparty control is shown only for Pass-through mode. Its
 dialog preserves user-entered text in form state while the visible label is
@@ -141,16 +141,16 @@ rather than a decorative Unicode bullet so UI text is less dependent on glyph
 coverage.
 
 Shared activity cards label Pass-through records with visible `PASS-THROUGH`
-text and `Pass-through Transfer`, preserve `Cash to Bank` direction wording, and
-show `Counterparty: <name>` when present. Because Dashboard recent activity uses
+text and `Pass-through Transfer`, present the linked effects as account outflow
+and inflow, and show `Counterparty: <name>` when present. Because Dashboard recent activity uses
 the same activity/card path, the same non-color-only Pass-through treatment is
 shown there without adding extra Dashboard filter controls. Recycled transaction
 cards explicitly clear transfer-kind/counterparty state.
 
-The Task 4 cash-out guidance also changes the UI example from `Cash → Bank` to
-`Cash to Bank`. Documentation may retain mathematical or directional symbols,
-but user-facing Kivy copy should prefer plain ASCII wording when the symbol is
-not necessary.
+Release closeout further clarifies the Task 4/5 copy: Pass-through should not
+look like an Internal Transfer of the same physical money. User-facing Kivy copy
+uses explicit linked effects such as `Cash outflow | Bank inflow` and otherwise
+prefers plain ASCII wording when a decorative symbol is unnecessary.
 
 No transfer-kind index is added in Task 5. Task 6 remains responsible for the
 large-history/query-plan gate and may add an index only if measured plans justify
@@ -191,3 +191,26 @@ The 10,000-transfer query-plan check continues to use the existing
 `account_transfers_history_order_index` for newest-first Pass-through results
 without a temporary ORDER BY B-tree. No dedicated transfer-kind index is added
 because the measured access path remains adequate at this checkpoint.
+
+## Task 6 Verification Evidence
+
+Windows verification reported `103 passed` for the focused backup/recovery gate.
+After a documentation-compatibility correction, the complete suite reported
+`820 passed in 22.63s` with `84%` total branch coverage. Python compilation and
+`git diff --check` passed.
+
+The controlled real-app recovery gate also passed: format-4 export, Clear All
+Data, replacement restore, exact posted/Pending/Internal/Pass-through recovery,
+counterparty preservation, exact account balances and Income/Expenses, and
+relaunch persistence. The verified checkpoint was committed as `01299eb`
+(`Extend recovery for pass-through transfers`).
+
+## Task 7 Release-Candidate Direction
+
+Task 7 begins at 90% verified progress. The release candidate bumps the source
+identity to `1.3.0`, updates release documentation, and clarifies Pass-through
+presentation as linked account outflow/inflow rather than an Internal Transfer.
+No persistence or financial invariant changes are introduced by that wording
+clarification. Final progress remains at 90% until the complete regression,
+GitHub Actions, signed Android build, clean install, official v1.2.0-to-v1.3.0
+upgrade, final backup/recovery check, and publication evidence all pass.

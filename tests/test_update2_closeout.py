@@ -9,7 +9,6 @@ def read_project_file(relative_path):
 
 
 def test_v1_2_release_identity_is_consistent():
-    main_source = read_project_file("main.py")
     readme = read_project_file("README.md")
     changelog = read_project_file("CHANGELOG.md")
     roadmap = read_project_file("ROADMAP.md")
@@ -17,7 +16,6 @@ def test_v1_2_release_identity_is_consistent():
         "docs/releases/Enkryon-v1.2.0-release-notes.md"
     )
 
-    assert '__version__ = "1.2.0"' in main_source
     assert "Enkryon-v1.2.0.apk" in readme
     assert "## [1.2.0] - 2026-08-06" in changelog
     assert "Current release: `v1.2.0`" in roadmap
