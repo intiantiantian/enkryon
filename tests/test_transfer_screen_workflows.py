@@ -7,7 +7,11 @@ import pytest
 
 from database.records import AccountRecord, TransferRecord
 from screens.transfer import TransferScreen
-from screens.transfer_form_state import TransferFormState
+from screens.transfer_form_state import (
+    INTERNAL_TRANSFER_KIND,
+    PASS_THROUGH_TRANSFER_KIND,
+    TransferFormState,
+)
 from services.transfer_services import TransferSaveResult
 
 
@@ -38,6 +42,14 @@ def make_form_ids():
             text="",
             theme_text_color="Custom",
         ),
+        counterparty_label=SimpleNamespace(
+            text="",
+            theme_text_color="Custom",
+        ),
+        internal_transfer_button=SimpleNamespace(set_selected=Mock()),
+        pass_through_transfer_button=SimpleNamespace(set_selected=Mock()),
+        transfer_kind_label=SimpleNamespace(text=""),
+        transfer_guidance_label=SimpleNamespace(text=""),
     )
 
 
@@ -96,6 +108,8 @@ def test_transfer_render_form_state_updates_every_visible_value():
         form_state=state,
         ids=ids,
         update_amount_label=Mock(),
+        render_transfer_kind_ui=Mock(),
+        set_counterparty=Mock(),
         set_notes=Mock(),
     )
 
@@ -106,6 +120,8 @@ def test_transfer_render_form_state_updates_every_visible_value():
     assert ids.date_label.text == "2026-07-19"
     assert ids.time_label.text == "07:30 PM"
     screen.update_amount_label.assert_called_once_with()
+    screen.render_transfer_kind_ui.assert_called_once_with()
+    screen.set_counterparty.assert_called_once_with("")
     screen.set_notes.assert_called_once_with("Monthly savings")
 
 
@@ -399,6 +415,47 @@ def test_save_transfer_renders_result_and_navigates_only_on_success(
         manager.get_screen.assert_not_called()
 
 
+def test_save_pass_through_forwards_kind_and_counterparty(monkeypatch):
+    transfer_module = import_module("screens.transfer")
+    result = TransferSaveResult(True, "Transfer added successfully.")
+    save_transfer_workflow = Mock(return_value=result)
+    monkeypatch.setattr(
+        transfer_module,
+        "save_transfer_workflow",
+        save_transfer_workflow,
+    )
+    monkeypatch.setattr(
+        transfer_module,
+        "render_action_result",
+        Mock(),
+    )
+    dashboard = SimpleNamespace(load_dashboard=Mock())
+    manager = SimpleNamespace(
+        current="transfer",
+        get_screen=Mock(return_value=dashboard),
+    )
+    state = make_transfer_state(
+        transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+        counterparty="  Alex Rivera  ",
+    )
+    screen = SimpleNamespace(form_state=state, manager=manager)
+
+    TransferScreen.save_transfer(screen)
+
+    save_transfer_workflow.assert_called_once_with(
+        source_account_id=2,
+        destination_account_id=4,
+        amount="123.45",
+        date_label="2026-07-19",
+        time_label="07:30 PM",
+        notes_label="Monthly savings",
+        transfer_id=None,
+        transfer_kind="pass_through",
+        counterparty="  Alex Rivera  ",
+    )
+    assert manager.current == "dashboard"
+
+
 def test_load_transfer_populates_edit_form(monkeypatch):
     transfer_module = import_module("screens.transfer")
     transfer = TransferRecord(
@@ -442,6 +499,176 @@ def test_transfer_date_time_and_notes_update_form():
     assert ids.time_label.text == "05:45 PM"
     assert ids.notes_label.text == "  Emergency savings  "
     assert ids.notes_label.theme_text_color == "Primary"
+
+
+def test_transfer_kind_ui_defaults_to_internal():
+    ids = make_form_ids()
+    screen = SimpleNamespace(
+        form_state=make_transfer_state(
+            transfer_kind=INTERNAL_TRANSFER_KIND,
+        ),
+        ids=ids,
+        is_pass_through=True,
+    )
+
+    TransferScreen.render_transfer_kind_ui(screen)
+
+    assert screen.is_pass_through is False
+    ids.internal_transfer_button.set_selected.assert_called_once_with(True)
+    ids.pass_through_transfer_button.set_selected.assert_called_once_with(False)
+    assert ids.transfer_kind_label.text == "INTERNAL TRANSFER"
+    assert "Move your own money" in ids.transfer_guidance_label.text
+    assert "not Income or Expense" in ids.transfer_guidance_label.text
+
+
+def test_transfer_kind_ui_explains_cash_to_bank_direction():
+    ids = make_form_ids()
+    screen = SimpleNamespace(
+        form_state=make_transfer_state(
+            transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+            counterparty="Alex Rivera",
+        ),
+        ids=ids,
+        is_pass_through=False,
+    )
+
+    TransferScreen.render_transfer_kind_ui(screen)
+
+    assert screen.is_pass_through is True
+    ids.internal_transfer_button.set_selected.assert_called_once_with(False)
+    ids.pass_through_transfer_button.set_selected.assert_called_once_with(True)
+    assert ids.transfer_kind_label.text == "PASS-THROUGH TRANSFER"
+    assert "FROM decreases and TO increases" in ids.transfer_guidance_label.text
+    assert "Cash → Bank" in ids.transfer_guidance_label.text
+    assert "not Income or Expense" in ids.transfer_guidance_label.text
+
+
+def test_select_pass_through_kind_preserves_counterparty_state():
+    state = make_transfer_state(counterparty="Alex Rivera")
+    screen = SimpleNamespace(
+        form_state=state,
+        render_transfer_kind_ui=Mock(),
+    )
+
+    TransferScreen.select_transfer_kind(screen, PASS_THROUGH_TRANSFER_KIND)
+
+    assert state.transfer_kind == PASS_THROUGH_TRANSFER_KIND
+    assert state.counterparty == "Alex Rivera"
+    screen.render_transfer_kind_ui.assert_called_once_with()
+
+
+def test_select_internal_kind_clears_pass_through_counterparty():
+    state = make_transfer_state(
+        transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+        counterparty="Alex Rivera",
+    )
+    screen = SimpleNamespace(
+        form_state=state,
+        render_transfer_kind_ui=Mock(),
+    )
+
+    TransferScreen.select_transfer_kind(screen, INTERNAL_TRANSFER_KIND)
+
+    assert state.transfer_kind == INTERNAL_TRANSFER_KIND
+    assert state.counterparty == ""
+    screen.render_transfer_kind_ui.assert_called_once_with()
+
+
+def test_add_counterparty_opens_optional_input_for_pass_through(monkeypatch):
+    transfer_module = import_module("screens.transfer")
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    monkeypatch.setattr(transfer_module, "InputDialog", dialog_factory)
+    screen = SimpleNamespace(
+        form_state=make_transfer_state(
+            transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+            counterparty="Alex Rivera",
+        ),
+        set_counterparty=Mock(),
+    )
+
+    TransferScreen.add_counterparty(screen)
+
+    dialog_factory.assert_called_once_with(
+        title="Counterparty",
+        hint_text="Person or organization (optional)",
+        text="Alex Rivera",
+        callback=screen.set_counterparty,
+    )
+    dialog.open.assert_called_once_with()
+
+
+def test_add_counterparty_is_inactive_for_internal_transfer(monkeypatch):
+    transfer_module = import_module("screens.transfer")
+    dialog_factory = Mock()
+    monkeypatch.setattr(transfer_module, "InputDialog", dialog_factory)
+    screen = SimpleNamespace(
+        form_state=make_transfer_state(
+            transfer_kind=INTERNAL_TRANSFER_KIND,
+        ),
+    )
+
+    TransferScreen.add_counterparty(screen)
+
+    dialog_factory.assert_not_called()
+
+
+def test_set_counterparty_displays_trimmed_value_but_preserves_input():
+    ids = make_form_ids()
+    state = make_transfer_state(
+        transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+        counterparty="",
+    )
+    screen = SimpleNamespace(form_state=state, ids=ids)
+
+    TransferScreen.set_counterparty(screen, "  Alex Rivera  ")
+
+    assert state.counterparty == "  Alex Rivera  "
+    assert ids.counterparty_label.text == "Alex Rivera"
+    assert ids.counterparty_label.theme_text_color == "Primary"
+
+
+def test_set_blank_counterparty_restores_optional_prompt():
+    ids = make_form_ids()
+    state = make_transfer_state(
+        transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+        counterparty="Alex Rivera",
+    )
+    screen = SimpleNamespace(form_state=state, ids=ids)
+
+    TransferScreen.set_counterparty(screen, "   ")
+
+    assert state.counterparty == "   "
+    assert ids.counterparty_label.text == "Add counterparty"
+    assert ids.counterparty_label.theme_text_color == "Custom"
+
+
+def test_load_pass_through_transfer_renders_kind_and_counterparty(monkeypatch):
+    transfer_module = import_module("screens.transfer")
+    transfer = TransferRecord(
+        transfer_id=22,
+        source_account_id=2,
+        destination_account_id=4,
+        amount_centavos=100025,
+        date_time="2026-08-07 19:30:00",
+        notes="Cash-out",
+        source_account_name="Cash",
+        destination_account_name="Bank",
+        transfer_kind=PASS_THROUGH_TRANSFER_KIND,
+        counterparty="Alex Rivera",
+    )
+    monkeypatch.setattr(
+        transfer_module,
+        "get_transfer_for_edit",
+        Mock(return_value=transfer),
+    )
+    screen = SimpleNamespace(render_form_state=Mock())
+
+    TransferScreen.load_transfer(screen, 22)
+
+    assert screen.form_state.transfer_kind == PASS_THROUGH_TRANSFER_KIND
+    assert screen.form_state.counterparty == "Alex Rivera"
+    screen.render_form_state.assert_called_once_with()
 
 
 def test_transfer_back_resets_form_and_returns_to_dashboard():

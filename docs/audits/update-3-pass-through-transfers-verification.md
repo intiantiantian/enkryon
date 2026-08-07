@@ -15,12 +15,12 @@
 |---|---:|---|
 | 1. Lock pass-through contract and baseline | 9% | Completed — `c7d0fd1` |
 | 2. Add migration and transfer-kind persistence | 18% | Completed — `1354c5a` |
-| 3. Add pass-through service workflows | 17% | In progress — Windows verification pending |
-| 4. Build pass-through transfer interface | 18% | Not started |
+| 3. Add pass-through service workflows | 17% | Completed — `2814e98` |
+| 4. Build pass-through transfer interface | 18% | In progress — Windows and real-app verification pending |
 | 5. Integrate balances, activity, search, and filters | 16% | Not started |
 | 6. Extend backup, recovery, and performance | 12% | Not started |
 | 7. Close and release Update 3 | 10% | Not started |
-| **Total** | **100%** | **27% verified** |
+| **Total** | **100%** | **44% verified** |
 
 ## Task 1 Contract Decisions
 
@@ -93,3 +93,28 @@ direction, equal-and-opposite participating-account effects, zero all-account
 change, zero Income/Expense change, edit reversal/reapplication, delete/undo
 restore, stable failed updates, same-account rejection, missing/invalid metadata,
 and ordinary Internal-transfer compatibility.
+
+Task 3 Windows verification reported `91 passed` for the focused gate and
+`777 passed` for the complete suite with `84%` total branch coverage. Python
+compilation and `git diff --check` passed. The checkpoint was committed as
+`2814e98` (`Add pass-through transfer workflows`).
+
+## Task 4 Interface Work
+
+Task 4 exposes the already-verified transfer kind through explicit `INTERNAL`
+and `PASS-THROUGH` controls on the existing Transfer screen. The selected kind
+is communicated with visible text as well as button styling. Pass-through mode
+shows directional guidance that locks the canonical `Cash → Bank` cash-out
+example and explicitly states that principal is not Income or Expense.
+
+The optional counterparty control is shown only for Pass-through mode. Its
+dialog preserves user-entered text in form state while the visible label is
+trimmed for presentation; persistence remains responsible for final
+normalization. Switching to Internal clears Pass-through-only counterparty state
+so ordinary transfers cannot accidentally inherit that metadata through the
+interface.
+
+The mode selector stacks on constrained widths and enlarged font settings,
+guidance text grows vertically instead of truncating, and the counterparty
+control uses the shared 56dp/font-scaled touch target. Edit loading continues to
+preserve and visibly restore Pass-through kind and counterparty metadata.

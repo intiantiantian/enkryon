@@ -606,3 +606,44 @@ Internal-transfer defaults.
 After the focused gate, run the complete suite with branch coverage, Python
 compilation, and `git diff --check`. Task 3 changes workflows/state only; the
 real-app transfer-mode and counterparty controls belong to Task 4.
+
+
+### Update 3 Task 4 pass-through interface gate
+
+Task 4 exposes Pass-through controls on the existing Transfer screen. Run this
+focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_transfer_screen_workflows.py ^
+tests/test_transfer_form_state.py ^
+tests/test_pass_through_transfer_workflows.py ^
+tests/test_transfer_services.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The gate verifies explicit Internal-versus-Pass-through selection, canonical
+FROM/TO direction guidance, `Cash → Bank` copy for the cash-out example,
+Pass-through-only optional counterparty entry, metadata preservation while
+editing, Internal metadata cleanup, responsive mode stacking, font-scaled touch
+targets, and non-color-only text cues.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Because Task 4 changes visible behavior,
+also complete this short real-app gate before committing:
+
+1. Open Transfer and confirm `INTERNAL` is selected by default and the
+   counterparty control is hidden.
+2. Select `PASS-THROUGH`; confirm the visible copy says FROM decreases, TO
+   increases, includes the `Cash → Bank` example, and states the principal is
+   not Income or Expense.
+3. Enter an optional counterparty, select Cash as FROM and Bank as TO, save a
+   small controlled amount, then reopen it for editing and confirm kind,
+   direction, counterparty, amount, date/time, and notes are preserved.
+4. Check the form at a narrow phone-sized window and with enlarged system text;
+   the mode buttons must stack when constrained, guidance must wrap without
+   clipping, and the counterparty row must remain usable.
+
+Task 4 does not yet add Activity History labels/search/filters; those belong to
+Task 5.

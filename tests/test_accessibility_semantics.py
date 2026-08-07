@@ -180,3 +180,25 @@ def test_pending_activity_filter_uses_explicit_text_in_activity_history():
     assert "id: pending_filter" in history_layout
     assert "text: 'PENDING'" in history_layout
     assert "root.set_transaction_filter('pending')" in history_layout
+
+
+def test_pass_through_form_uses_explicit_non_color_text_cues():
+    project_root = Path(__file__).resolve().parents[1]
+    layout = (
+        project_root / "kv" / "transfer.kv"
+    ).read_text(encoding="utf-8")
+    screen_source = (
+        project_root / "screens" / "transfer.py"
+    ).read_text(encoding="utf-8")
+
+    assert "text: 'TRANSFER TYPE'" in layout
+    assert "text: 'INTERNAL'" in layout
+    assert "text: 'PASS-THROUGH'" in layout
+    assert "id: transfer_kind_label" in layout
+    assert "id: transfer_guidance_label" in layout
+    assert "text: 'Counterparty (optional)'" in layout
+    assert '"PASS-THROUGH TRANSFER"' in screen_source
+    assert '"INTERNAL TRANSFER"' in screen_source
+    assert "FROM decreases and TO increases" in screen_source
+    assert "Cash → Bank" in screen_source
+    assert "not Income" in screen_source

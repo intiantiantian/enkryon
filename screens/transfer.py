@@ -1,4 +1,5 @@
 from kivy.factory import Factory
+from kivy.properties import BooleanProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 
@@ -20,11 +21,16 @@ from widgets.input_dialog import InputDialog
 from widgets.overlays import EnkryonSelectionPanel
 
 from .action_results import render_action_result
-from .transfer_form_state import TransferFormState
+from .transfer_form_state import (
+    INTERNAL_TRANSFER_KIND,
+    PASS_THROUGH_TRANSFER_KIND,
+    TransferFormState,
+)
 
 
 class TransferScreen(Screen):
 
+    is_pass_through = BooleanProperty(False)
     ACCOUNT_ROLES = {"source", "destination"}
 
     def __init__(self, **kwargs):
@@ -153,7 +159,46 @@ class TransferScreen(Screen):
         self.ids.time_label.text = state.time_label
 
         self.update_amount_label()
+        self.render_transfer_kind_ui()
+        self.set_counterparty(state.counterparty)
         self.set_notes(state.notes)
+
+
+    def select_transfer_kind(self, transfer_kind):
+        self.form_state.set_transfer_kind(transfer_kind)
+        if transfer_kind == INTERNAL_TRANSFER_KIND:
+            self.form_state.set_counterparty("")
+        self.render_transfer_kind_ui()
+
+
+    def render_transfer_kind_ui(self):
+        is_pass_through = (
+            self.form_state.transfer_kind == PASS_THROUGH_TRANSFER_KIND
+        )
+        self.is_pass_through = is_pass_through
+
+        self.ids.internal_transfer_button.set_selected(
+            not is_pass_through
+        )
+        self.ids.pass_through_transfer_button.set_selected(
+            is_pass_through
+        )
+
+        if is_pass_through:
+            self.ids.transfer_kind_label.text = "PASS-THROUGH TRANSFER"
+            self.ids.transfer_guidance_label.text = (
+                "Cash-out or forwarding: FROM decreases and TO increases. "
+                "If someone sends money to your Bank and receives your "
+                "Cash, record Cash → Bank. The principal is not Income "
+                "or Expense."
+            )
+        else:
+            self.ids.transfer_kind_label.text = "INTERNAL TRANSFER"
+            self.ids.transfer_guidance_label.text = (
+                "Move your own money from FROM to TO. This changes only "
+                "the participating account balances and is not Income "
+                "or Expense."
+            )
 
 
     def open_source_account_menu(self):
@@ -346,6 +391,30 @@ class TransferScreen(Screen):
         transfer = get_transfer_for_edit(transfer_id)
         self.form_state = TransferFormState.from_transfer(transfer)
         self.render_form_state()
+
+
+    def add_counterparty(self):
+        if self.form_state.transfer_kind != PASS_THROUGH_TRANSFER_KIND:
+            return
+
+        InputDialog(
+            title="Counterparty",
+            hint_text="Person or organization (optional)",
+            text=self.form_state.counterparty,
+            callback=self.set_counterparty,
+        ).open()
+
+
+    def set_counterparty(self, counterparty):
+        self.form_state.set_counterparty(counterparty)
+        display_counterparty = self.form_state.counterparty.strip()
+
+        if display_counterparty:
+            self.ids.counterparty_label.text = display_counterparty
+            self.ids.counterparty_label.theme_text_color = "Primary"
+        else:
+            self.ids.counterparty_label.text = "Add counterparty"
+            self.ids.counterparty_label.theme_text_color = "Custom"
 
 
     def add_notes(self):
