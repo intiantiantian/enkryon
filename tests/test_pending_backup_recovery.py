@@ -195,7 +195,7 @@ def test_format_3_export_preserves_exact_posting_status():
     document = export_mixed_document()
 
     assert document["format_version"] == BACKUP_FORMAT_VERSION
-    assert document["metadata"]["database_version"] == 8
+    assert document["metadata"]["database_version"] == 9
     assert document["metadata"]["record_counts"] == {
         "accounts": 2,
         "category_groups": 2,

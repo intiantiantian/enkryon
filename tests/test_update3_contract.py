@@ -8,25 +8,24 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_update_3_contract_locks_explicit_movement_accounting():
+def test_update_3_contract_locks_balance_neutral_accounting():
     contract = read_project_file("docs/development/pass-through-transfers.md")
     normalized = " ".join(contract.split())
 
-    assert "Pass-through parent has zero direct balance effect" in normalized
-    assert "explicit linked movement records" in normalized
-    assert "one `outflow`" in normalized
-    assert "one `inflow`" in normalized
-    assert "incomplete pair" in normalized
+    assert "one complete counterparty exchange" in normalized
+    assert "zero balance effect on every participating user account" in normalized
     for invariant in (
-        "all-account balance change = 0",
+        "Pass-through source account balance change = 0",
+        "Pass-through destination account balance change = 0",
+        "Pass-through all-account balance change = 0",
         "Income change = 0",
         "Expenses change = 0",
         "category-total change = 0",
         "posted net-cash-flow change = 0",
     ):
         assert invariant in contract
-    assert "All stored and calculated money remains integer centavos" in normalized
-
+    assert "must never change either participating account balance" in normalized
+    assert "All stored money remains integer centavos" in normalized
 
 def test_update_3_contract_locks_transfer_kind_and_compatibility_direction():
     contract = read_project_file("docs/development/pass-through-transfers.md")
@@ -35,7 +34,8 @@ def test_update_3_contract_locks_transfer_kind_and_compatibility_direction():
     assert "`internal` means the ordinary first-class Account Transfer" in normalized
     assert "`pass_through` identifies the cash-out/money-forwarding parent" in normalized
     assert "Every transfer that exists before migration 7 becomes `internal`" in normalized
-    assert "Migration 8 adds `pass_through_movements`" in normalized
+    assert "Migration 8 is superseded development history" in normalized
+    assert "Migration 9 removes those temporary movement artifacts" in normalized
     assert "Backup format 4 preserves `transfer_kind`" in normalized
     assert "Formats 1 through 3 remain supported" in normalized
     assert "normalize older transfers to `internal`" in normalized

@@ -12,7 +12,7 @@ from services.backup_format import (
     BACKUP_TABLES,
 )
 
-SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4, 5, 6, 7, 8})
+SUPPORTED_BACKUP_DATABASE_VERSIONS = frozenset({3, 4, 5, 6, 7, 8, 9})
 
 
 class BackupValidationError(ValueError):

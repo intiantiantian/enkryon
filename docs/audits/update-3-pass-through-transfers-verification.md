@@ -253,3 +253,31 @@ effect. Internal Transfers remain unchanged.
 The previous APK evidence is historical only. The corrected source must repeat
 the full Windows, CI, signed APK, clean-install, official v1.2.0 upgrade,
 backup/restore, and relaunch gates before v1.3.0 is approved.
+
+
+## Balance-Neutrality Correction
+
+A later physical-device review invalidated the movement-accounting candidate.
+The Pass-through record must represent the complete counterparty exchange, not
+only the visible external receive/pay legs.
+
+Controlled example:
+
+- Bank starts at 3,000 and Cash starts at 9,000.
+- The counterparty sends 1,000 into Bank.
+- That 1,000 is moved from Bank to Cash.
+- The counterparty receives 1,000 from Cash.
+- Bank ends at 3,000 and Cash ends at 9,000.
+
+Final invariant: a Pass-through changes neither participating account balance
+and never changes Income, Expenses, category totals, or posted net cash flow.
+Internal Transfer behavior remains unchanged.
+
+Migration 8 is retained as superseded development history so databases that
+already recorded it remain upgradeable. Migration 9 removes the temporary
+`pass_through_movements` table, triggers, and index. The final balance query
+ignores Pass-through rows completely.
+
+All previous v1.3.0 APK hashes, clean-install results, upgrade results, and
+release-approval statements are superseded. Release remains blocked until the
+balance-neutral source passes the complete automated and Android gates.

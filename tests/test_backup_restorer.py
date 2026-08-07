@@ -365,6 +365,7 @@ def test_restore_replaces_user_records_and_keeps_schema_history():
         (6, "transaction_posting_status"),
         (7, "account_transfer_kinds"),
         (8, "pass_through_movements"),
+        (9, "pass_through_balance_neutrality"),
     ]
 
 

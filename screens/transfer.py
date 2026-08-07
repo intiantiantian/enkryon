@@ -172,6 +172,7 @@ class TransferScreen(Screen):
 
 
     def render_transfer_kind_ui(self):
+        state = self.form_state
         is_pass_through = (
             self.form_state.transfer_kind == PASS_THROUGH_TRANSFER_KIND
         )
@@ -184,14 +185,26 @@ class TransferScreen(Screen):
             is_pass_through
         )
 
+        if state.source_account_id is None:
+            self.ids.source_account_label.text = (
+                "Select Paid-from Account"
+                if is_pass_through
+                else "Select Source Account"
+            )
+        if state.destination_account_id is None:
+            self.ids.destination_account_label.text = (
+                "Select Received-into Account"
+                if is_pass_through
+                else "Select Destination Account"
+            )
+
         if is_pass_through:
             self.ids.transfer_kind_label.text = "PASS-THROUGH TRANSFER"
             self.ids.transfer_guidance_label.text = (
-                "Pass-through exchange: FROM records the account outflow "
-                "and TO records the account inflow. If someone sends money "
-                "to your Bank and receives your Cash, Cash is the outflow "
-                "and Bank is the inflow. The principal is not Income or "
-                "Expense."
+                "Record the account you paid the counterparty from and the "
+                "account that received their matching funds. This represents "
+                "the complete exchange, so neither account balance changes "
+                "and the principal is not Income or Expense."
             )
         else:
             self.ids.transfer_kind_label.text = "INTERNAL TRANSFER"
@@ -257,12 +270,21 @@ class TransferScreen(Screen):
             }
         )
 
-        menu = EnkryonSelectionPanel(
-            title=(
+        if state.transfer_kind == PASS_THROUGH_TRANSFER_KIND:
+            menu_title = (
+                "Select Paid-from Account"
+                if role == "source"
+                else "Select Received-into Account"
+            )
+        else:
+            menu_title = (
                 "Select Source Account"
                 if role == "source"
                 else "Select Destination Account"
-            ),
+            )
+
+        menu = EnkryonSelectionPanel(
+            title=menu_title,
             selected_text=selected_text,
             options=menu_items,
         )

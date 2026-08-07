@@ -86,8 +86,8 @@ def create_transaction_card_data(transaction, screen):
         direction = getattr(transaction, "direction", "neutral")
         if transfer_kind == "pass_through":
             account_name = (
-                f"{transaction.source_account_name} outflow | "
-                f"{transaction.destination_account_name} inflow"
+                f"{transaction.source_account_name} paid from | "
+                f"{transaction.destination_account_name} received into"
             )
             group_name = "Pass-through Transfer"
             presentation = dict(presentation)
@@ -95,7 +95,7 @@ def create_transaction_card_data(transaction, screen):
             category_name = (
                 f"Counterparty: {counterparty}"
                 if counterparty
-                else "Linked account exchange"
+                else "Balance-neutral exchange"
             )
         else:
             account_name = (

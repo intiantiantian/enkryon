@@ -521,7 +521,7 @@ def test_transfer_kind_ui_defaults_to_internal():
     assert "not Income or Expense" in ids.transfer_guidance_label.text
 
 
-def test_transfer_kind_ui_explains_linked_outflow_and_inflow():
+def test_transfer_kind_ui_explains_balance_neutral_exchange():
     ids = make_form_ids()
     screen = SimpleNamespace(
         form_state=make_transfer_state(
@@ -538,10 +538,8 @@ def test_transfer_kind_ui_explains_linked_outflow_and_inflow():
     ids.internal_transfer_button.set_selected.assert_called_once_with(False)
     ids.pass_through_transfer_button.set_selected.assert_called_once_with(True)
     assert ids.transfer_kind_label.text == "PASS-THROUGH TRANSFER"
-    assert "FROM records the account outflow" in ids.transfer_guidance_label.text
-    assert "TO records the account inflow" in ids.transfer_guidance_label.text
-    assert "Cash is the outflow" in ids.transfer_guidance_label.text
-    assert "Bank is the inflow" in ids.transfer_guidance_label.text
+    assert "complete exchange" in ids.transfer_guidance_label.text
+    assert "neither account balance changes" in ids.transfer_guidance_label.text
     assert "not Income or Expense" in ids.transfer_guidance_label.text
 
 

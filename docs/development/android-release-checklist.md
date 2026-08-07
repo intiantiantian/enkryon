@@ -75,16 +75,16 @@ the evidence in the release notes or the phase verification report.
 
 ### Current v1.3.0 upgrade additions
 
-- [ ] An official v1.2.0 installation upgrades through migration 7 exactly once.
+- [ ] An official v1.2.0 installation upgrades through migrations 7, 8, and 9 exactly once.
 - [ ] Pre-upgrade posted and Pending transactions retain their exact statuses and
   financial effects.
 - [ ] Existing v1.2.0 account transfers remain `Internal` after upgrade.
 - [ ] A new Pass-through exchange can be created after upgrade with a
-  counterparty and exact account outflow/inflow effects.
-- [ ] Pass-through principal leaves Income, Expenses, category totals, and the
-  all-account balance unchanged.
-- [ ] Activity History shows visible `PASS-THROUGH` text and explicit linked
-  outflow/inflow wording without relying on a decorative direction glyph.
+  counterparty while both participating account balances remain unchanged.
+- [ ] Pass-through principal leaves both participating account balances, Income,
+  Expenses, category totals, and the all-account balance unchanged.
+- [ ] Activity History shows visible `PASS-THROUGH` text and clear `PAID FROM` /
+  `RECEIVED INTO` roles without implying a ledger balance change.
 - [ ] Backup format 4 export, Clear All Data, replacement restore, and relaunch
   preserve transfer kind, counterparty, posted/Pending status, IDs, amounts,
   notes, dates, relationships, and exact totals.

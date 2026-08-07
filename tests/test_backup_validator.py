@@ -240,7 +240,7 @@ def test_rejects_invalid_identity_and_metadata():
     for path, value in (
         (("format",), "other-backup"),
         (("format_version",), 5),
-        (("metadata", "database_version"), 9),
+        (("metadata", "database_version"), 10),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
     ):

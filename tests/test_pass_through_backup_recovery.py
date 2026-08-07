@@ -230,7 +230,7 @@ def test_format_4_export_preserves_transfer_kind_and_counterparty():
     document = export_mixed_document()
 
     assert document["format_version"] == BACKUP_FORMAT_VERSION == 4
-    assert document["metadata"]["database_version"] == 8
+    assert document["metadata"]["database_version"] == 9
     assert document["metadata"]["record_counts"]["account_transfers"] == 2
     assert document["records"]["account_transfers"] == [
         {
@@ -260,7 +260,7 @@ def test_format_4_round_trip_preserves_financial_and_transfer_semantics():
     document = export_mixed_document()
     before_financial = financial_snapshot()
 
-    assert before_financial == (700000, 0, 595025, 104975, 700000)
+    assert before_financial == (700000, 0, 495000, 205000, 700000)
     assert clear_database() is True
 
     restore_backup_json(serialize_backup_document(document))

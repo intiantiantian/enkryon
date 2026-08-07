@@ -625,6 +625,20 @@ def add_pass_through_movements(connection):
     )
 
 
+
+def remove_pass_through_movements(connection):
+    connection.execute(
+        "DROP TRIGGER IF EXISTS pass_through_movements_after_insert"
+    )
+    connection.execute(
+        "DROP TRIGGER IF EXISTS pass_through_movements_after_update"
+    )
+    connection.execute(
+        "DROP INDEX IF EXISTS pass_through_movements_account_index"
+    )
+    connection.execute("DROP TABLE IF EXISTS pass_through_movements")
+
+
 MIGRATIONS = (
     (1, "initial_schema", create_initial_schema),
     (
@@ -661,6 +675,11 @@ MIGRATIONS = (
         8,
         "pass_through_movements",
         add_pass_through_movements,
+    ),
+    (
+        9,
+        "pass_through_balance_neutrality",
+        remove_pass_through_movements,
     ),
 )
 

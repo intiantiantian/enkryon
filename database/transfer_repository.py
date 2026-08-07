@@ -195,7 +195,7 @@ def get_transfer_balance_centavos(account_id=None):
 
     try:
         with managed_connection() as connection:
-            internal_row = connection.execute(
+            row = connection.execute(
                 """
                 SELECT COALESCE(
                     SUM(
@@ -219,62 +219,7 @@ def get_transfer_balance_centavos(account_id=None):
                 (account_id, account_id, account_id, account_id),
             ).fetchone()
 
-            pass_through_row = connection.execute(
-                """
-                WITH valid_pass_through AS (
-                    SELECT account_transfers.id AS transfer_id
-                    FROM account_transfers
-                    INNER JOIN pass_through_movements
-                        ON pass_through_movements.transfer_id =
-                           account_transfers.id
-                    WHERE account_transfers.transfer_kind = 'pass_through'
-                    GROUP BY account_transfers.id
-                    HAVING COUNT(*) = 2
-                       AND SUM(
-                            CASE
-                                WHEN
-                                    pass_through_movements.direction = 'outflow'
-                                    AND pass_through_movements.account_id =
-                                        account_transfers.source_account_id
-                                    AND pass_through_movements.amount_centavos =
-                                        account_transfers.amount_centavos
-                                    THEN 1
-                                ELSE 0
-                            END
-                       ) = 1
-                       AND SUM(
-                            CASE
-                                WHEN
-                                    pass_through_movements.direction = 'inflow'
-                                    AND pass_through_movements.account_id =
-                                        account_transfers.destination_account_id
-                                    AND pass_through_movements.amount_centavos =
-                                        account_transfers.amount_centavos
-                                    THEN 1
-                                ELSE 0
-                            END
-                       ) = 1
-                )
-                SELECT COALESCE(
-                    SUM(
-                        CASE pass_through_movements.direction
-                            WHEN 'inflow'
-                                THEN pass_through_movements.amount_centavos
-                            ELSE -pass_through_movements.amount_centavos
-                        END
-                    ),
-                    0
-                )
-                FROM pass_through_movements
-                INNER JOIN valid_pass_through
-                    ON valid_pass_through.transfer_id =
-                       pass_through_movements.transfer_id
-                WHERE pass_through_movements.account_id = ?
-                """,
-                (account_id,),
-            ).fetchone()
-
-        return int(internal_row[0]) + int(pass_through_row[0])
+        return int(row[0])
     except sqlite3.Error:
         return False
 

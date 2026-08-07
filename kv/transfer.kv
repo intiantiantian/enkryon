@@ -143,7 +143,7 @@
                     spacing: '12dp'
 
                     MDLabel:
-                        text: 'Move money between accounts'
+                        text: 'Record exchange accounts' if root.is_pass_through else 'Move money between accounts'
                         size_hint_y: None
                         height: self.texture_size[1]
                         text_size: self.width, None
@@ -172,7 +172,8 @@
                             on_release: root.open_source_account_menu()
 
                             MDLabel:
-                                text: 'FROM'
+                                id: source_role_label
+                                text: 'PAID FROM' if root.is_pass_through else 'FROM'
                                 size_hint_y: .35
                                 halign: 'center'
                                 valign: 'middle'
@@ -204,7 +205,8 @@
                             on_release: root.open_destination_account_menu()
 
                             MDLabel:
-                                text: 'TO'
+                                id: destination_role_label
+                                text: 'RECEIVED INTO' if root.is_pass_through else 'TO'
                                 size_hint_y: .35
                                 halign: 'center'
                                 valign: 'middle'

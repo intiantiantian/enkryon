@@ -64,7 +64,7 @@ def snapshot_financials():
     }
 
 
-def test_pass_through_create_moves_only_the_two_accounts():
+def test_pass_through_create_keeps_all_account_balances_unchanged():
     seed_accounts_and_posted_totals()
     before = snapshot_financials()
 
@@ -80,12 +80,7 @@ def test_pass_through_create_moves_only_the_two_accounts():
     assert transfer.amount_centavos == 100_025
 
     after = snapshot_financials()
-    assert after["cash"] == before["cash"] - 100_025
-    assert after["bank"] == before["bank"] + 100_025
-    assert after["wallet"] == before["wallet"]
-    assert after["all"] == before["all"]
-    assert after["income"] == before["income"]
-    assert after["expense"] == before["expense"]
+    assert after == before
 
 
 def test_pass_through_preserves_one_centavo_exactly():
@@ -96,11 +91,11 @@ def test_pass_through_preserves_one_centavo_exactly():
     assert result.success is True
     transfer = get_transfer_by_id(1)
     assert transfer.amount_centavos == 1
-    assert get_current_balance_centavos(1) == 194_999
-    assert get_current_balance_centavos(2) == 1
+    assert get_current_balance_centavos(1) == 195_000
+    assert get_current_balance_centavos(2) == 0
 
 
-def test_pass_through_edit_reverses_old_effect_before_new_effect():
+def test_pass_through_edit_remains_balance_neutral_after_account_change():
     seed_accounts_and_posted_totals()
     assert save_pass_through(amount="100.00").success is True
 
@@ -124,8 +119,8 @@ def test_pass_through_edit_reverses_old_effect_before_new_effect():
     assert transfer.transfer_kind == "pass_through"
     assert transfer.counterparty == "Bea Santos"
     assert get_current_balance_centavos(1) == 195_000
-    assert get_current_balance_centavos(2) == -4_050
-    assert get_current_balance_centavos(3) == 4_050
+    assert get_current_balance_centavos(2) == 0
+    assert get_current_balance_centavos(3) == 0
     assert get_current_balance_centavos() == 195_000
     assert get_total_centavos("income") == 200_000
     assert get_total_centavos("expense") == 5_000

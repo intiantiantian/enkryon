@@ -3,10 +3,11 @@
 Updated: August 7, 2026
 Current release: `v1.2.0`
 Next planned release: `v1.3.0`
-Current position: Update 3 Pass-through Transfers is in accounting correction.
-Publication was stopped before merge/tag. The corrected candidate uses migration
-8, a balance-neutral Pass-through parent, and explicit linked inflow/outflow
-movement records. Full automated and Android release gates must be repeated.
+Current position: Update 3 Pass-through Transfers is in balance-neutrality correction.
+Publication remains blocked before merge/tag. Migration 9 removes the temporary
+Pass-through movement model; the final Pass-through record changes neither
+participating account balance. Full automated and Android release gates must be
+repeated.
 
 ## Purpose
 
@@ -30,11 +31,11 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
 | Core product | Accounts, categories, posted income and expenses, Pending Transactions, Internal Transfers, Pass-through Transfers, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add Daily Bank Interest next without weakening posted/Pending or transfer semantics. |
-| Financial accuracy | Transaction and transfer amounts remain integer centavos; Internal and Pass-through transfer effects are exact and net-zero across all accounts while Income and Expenses remain unchanged. | Keep balance movement separate from earned income and spending as interest estimation is added. |
+| Financial accuracy | Transaction and transfer amounts remain integer centavos; Internal transfer effects remain exact while Pass-through changes no participating account balance while Income and Expenses remain unchanged. | Keep balance movement separate from earned income and spending as interest estimation is added. |
 | Database upgrades | A `schema_migrations` table and seven ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and migration 7 adds constrained Internal/Pass-through transfer kind plus optional counterparty metadata. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The final v1.3.0 release gate contains `824` passing tests at `84%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.4.0. |
-| Android release | The permanently signed `v1.3.0` artifact passed checksum, signature, alignment, clean-install, package identity, official v1.2.0-to-v1.3.0 upgrade, Pass-through workflow, backup/restore, and relaunch checks. The older v1.0.0-to-v1.1.0 waiver remains historical. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.4.0. |
+| Automated tests | The previous v1.3.0 release evidence is superseded; the balance-neutral correction must establish a new complete automated gate. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.4.0. |
+| Android release | Previous `v1.3.0` APK evidence is superseded because device testing exposed incorrect Pass-through account-balance changes. The older v1.0.0-to-v1.1.0 waiver remains historical. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.4.0. |
 | Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
 | User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
 | Backup and recovery | Backup format 4 preserves transaction posting status plus Internal/Pass-through transfer kind and counterparty; formats 1 through 3 remain compatible and older transfers normalize to Internal. | Preserve this compatibility through Daily Bank Interest and the next official upgrade. |

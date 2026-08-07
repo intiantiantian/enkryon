@@ -99,6 +99,7 @@ MIGRATION_ROWS = [
     (6, "transaction_posting_status"),
     (7, "account_transfer_kinds"),
     (8, "pass_through_movements"),
+    (9, "pass_through_balance_neutrality"),
 ]
 
 
