@@ -12,6 +12,7 @@ from services.backup_exporter import export_backup_document
 from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
+    POSTING_STATUS_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     serialize_backup_document,
 )
@@ -172,8 +173,14 @@ def export_mixed_document():
 def convert_to_older_format(document, format_version):
     document["format_version"] = format_version
 
-    for transaction in document["records"]["transactions"]:
-        transaction.pop("posting_status")
+    if format_version < POSTING_STATUS_BACKUP_FORMAT_VERSION:
+        for transaction in document["records"]["transactions"]:
+            transaction.pop("posting_status")
+
+    if format_version < BACKUP_FORMAT_VERSION:
+        for transfer in document["records"]["account_transfers"]:
+            transfer.pop("transfer_kind", None)
+            transfer.pop("counterparty", None)
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]

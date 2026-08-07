@@ -79,3 +79,21 @@ def test_update_3_task_1_records_baseline_and_weighted_plan():
     assert sum(weights) == 100
     for weight in weights:
         assert f"| {weight}% |" in verification
+
+
+def test_update_3_task_6_locks_backup_format_4_compatibility():
+    backup_format = read_project_file("services/backup_format.py")
+    backup_validator = read_project_file("services/backup_validator.py")
+    testing = read_project_file("docs/development/testing.md")
+    verification = read_project_file(
+        "docs/audits/update-3-pass-through-transfers-verification.md"
+    )
+
+    assert "POSTING_STATUS_BACKUP_FORMAT_VERSION = 3" in backup_format
+    assert "PASS_THROUGH_BACKUP_FORMAT_VERSION = 4" in backup_format
+    assert '"transfer_kind"' in backup_format
+    assert '"counterparty"' in backup_format
+    assert 'transfer["transfer_kind"] = "internal"' in backup_validator
+    assert 'transfer["counterparty"] = None' in backup_validator
+    assert "10,000-transfer mixed-history round trip" in testing
+    assert "formats 1 through 4" in verification

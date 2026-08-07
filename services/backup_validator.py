@@ -8,6 +8,7 @@ from services.backup_format import (
     BACKUP_FORMAT,
     BACKUP_FORMAT_VERSION,
     BACKUP_RECORD_COLUMNS_BY_VERSION,
+    POSTING_STATUS_BACKUP_FORMAT_VERSION,
     BACKUP_TABLES,
 )
 
@@ -56,6 +57,14 @@ def _is_nullable_text(value):
 
 def _is_posting_status(value):
     return type(value) is str and value in {"posted", "temporary"}
+
+
+def _is_transfer_kind(value):
+    return type(value) is str and value in {"internal", "pass_through"}
+
+
+def _is_counterparty(value):
+    return value is None or _is_trimmed_text(value)
 
 
 def _matches_datetime(value, date_format):
@@ -107,6 +116,8 @@ RECORD_VALUE_RULES = {
             "%Y-%m-%d %H:%M:%S",
         ),
         "notes": _is_nullable_text,
+        "transfer_kind": _is_transfer_kind,
+        "counterparty": _is_counterparty,
     },
 }
 
@@ -346,7 +357,9 @@ def _validate_relational_records(records, record_columns):
 
 
 def _normalize_backup_document(document):
-    if document["format_version"] == BACKUP_FORMAT_VERSION:
+    format_version = document["format_version"]
+
+    if format_version == BACKUP_FORMAT_VERSION:
         return document
 
     normalized_records = {
@@ -357,8 +370,13 @@ def _normalize_backup_document(document):
         for table_name in BACKUP_TABLES
     }
 
-    for transaction in normalized_records["transactions"]:
-        transaction["posting_status"] = "posted"
+    if format_version < POSTING_STATUS_BACKUP_FORMAT_VERSION:
+        for transaction in normalized_records["transactions"]:
+            transaction["posting_status"] = "posted"
+
+    for transfer in normalized_records["account_transfers"]:
+        transfer["transfer_kind"] = "internal"
+        transfer["counterparty"] = None
 
     normalized_metadata = dict(document["metadata"])
     normalized_metadata["record_counts"] = {

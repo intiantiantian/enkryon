@@ -208,14 +208,12 @@ database versions, export metadata, record counts, and the account, category
 group, category, and transaction records needed for recovery. Version 1.1 uses
 backup format 2, which adds `account_transfers` as a fifth record collection.
 Update 2 uses backup format 3, which adds `posting_status` to each transaction.
-During Update 3 persistence work, database migration 7 is accepted by the
-format-3 validator so development backups remain structurally valid, but format
-3 still contains only the v1.2.0 transfer fields. Pass-through kind and
-counterparty must not be considered release-safe for backup until Task 6 adds
-backup format 4 and its recovery coverage.
-Compatible format-1 documents from version 1.0 normalize to an empty transfer
-collection, and transactions from both format 1 and format 2 normalize to
-`posted` before validation and replacement restore.
+Update 3 uses backup format 4, which adds exact `transfer_kind` and optional
+`counterparty` fields to each account-transfer record. Formats 1 through 4 stay
+supported. Compatible format-1 documents from version 1.0 normalize to an empty
+transfer collection; formats 1 and 2 normalize transactions to `posted`; format 3
+preserves posting status; and every pre-format-4 transfer normalizes to `internal`
+with no counterparty.
 
 Before restore begins, the complete document is validated for supported
 versions, structure, field values, record counts, IDs, uniqueness, and

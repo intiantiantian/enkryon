@@ -697,3 +697,51 @@ compilation, and `git diff --check`. Then complete this short real-app gate:
    balances move equally and oppositely.
 6. Edit, delete, undo, and switch filters once; confirm labels refresh without a
    recycled card showing stale Internal/Pass-through metadata.
+
+
+### Update 3 Task 6 backup, recovery, and performance gate
+
+Task 6 raises new exports to backup format 4 and makes Pass-through metadata
+release-safe. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_backup_format.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_validator.py ^
+tests/test_backup_restorer.py ^
+tests/test_pending_backup_recovery.py ^
+tests/test_pass_through_backup_recovery.py ^
+tests/test_recovery_contract.py ^
+tests/test_document_transfer.py ^
+tests/test_settings_screen_workflows.py ^
+tests/test_update2_contract.py ^
+tests/test_update3_contract.py
+```
+
+The gate verifies exact format-4 `transfer_kind`/`counterparty` export and
+restore, preserved Pending/posting status, format-1 empty-transfer behavior,
+format-2 and format-3 transfer normalization to Internal, malformed current-kind
+and counterparty rejection before replacement, record counts, IDs, sequences,
+foreign keys, integrity, Clear All Data, document-transfer compatibility, and a
+10,000-transfer mixed-history round trip.
+
+The large-history plan must continue using
+`account_transfers_history_order_index` for newest-first Pass-through access
+without `USE TEMP B-TREE FOR ORDER BY`. Do not add a transfer-kind index unless
+the measured plan demonstrates a regression that the index fixes.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Then complete one short real-app recovery
+gate before committing:
+
+1. Keep one posted transaction, one Pending transaction, one Internal transfer,
+   and one Pass-through transfer with a counterparty. Record both account
+   balances plus Income and Expenses.
+2. Export the backup. Restore preview must show the expected record counts.
+3. Clear All Data using the normal Settings workflow, then restore the export.
+4. Confirm Internal remains Internal; Pass-through remains Pass-through; its
+   counterparty, amount, direction, date/time, and notes are exact.
+5. Confirm Pending remains Pending and posted remains posted.
+6. Confirm both account balances, all-account balance, Income, and Expenses match
+   the values recorded before export. Relaunch once and verify the same state.

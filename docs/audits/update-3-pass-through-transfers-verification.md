@@ -17,10 +17,10 @@
 | 2. Add migration and transfer-kind persistence | 18% | Completed — `1354c5a` |
 | 3. Add pass-through service workflows | 17% | Completed — `2814e98` |
 | 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
-| 5. Integrate balances, activity, search, and filters | 16% | In progress — verification pending |
-| 6. Extend backup, recovery, and performance | 12% | Not started |
+| 5. Integrate balances, activity, search, and filters | 16% | Completed — `05b635c` |
+| 6. Extend backup, recovery, and performance | 12% | In progress — verification pending |
 | 7. Close and release Update 3 | 10% | Not started |
-| **Total** | **100%** | **62% verified** |
+| **Total** | **100%** | **78% verified** |
 
 ## Task 1 Contract Decisions
 
@@ -155,3 +155,39 @@ not necessary.
 No transfer-kind index is added in Task 5. Task 6 remains responsible for the
 large-history/query-plan gate and may add an index only if measured plans justify
 it.
+
+
+## Task 5 Verification Note
+
+The Task 5 Windows gate, real-app checks, compilation, and whitespace checks were
+reported as passed before commit `05b635c` (`Integrate pass-through activity
+semantics`). The terminal was cleared with `cls` before the exact pytest summary
+was retained, so this audit does not invent a focused/full test count. The clean
+post-commit working tree is the recorded checkpoint state.
+
+## Task 6 Backup, Recovery, and Performance Work
+
+Task 6 advances new exports from backup format 3 to backup format 4. Format 4
+adds exact `transfer_kind` and optional `counterparty` fields to every
+`account_transfers` backup row while preserving the existing format-3
+`posting_status` field on transactions.
+
+The validator continues accepting formats 1 through 4. Formats 1 and 2 normalize
+transactions to `posted`; format 3 preserves its exact posted/Pending status. All
+formats before 4 normalize restored transfers to `transfer_kind = 'internal'`
+and `counterparty = NULL`, so old backups cannot accidentally become
+Pass-through activity. Current format-4 kind values are constrained to
+`internal` or `pass_through`, and a non-null counterparty must be non-empty and
+trimmed before replacement restore begins.
+
+Replacement restore remains atomic and keeps its existing record-count, ID
+sequence, foreign-key, and integrity verification. Focused recovery coverage
+adds exact format-4 Internal/Pass-through round trips, malformed metadata
+rejection before replacement, formats 1/2/3 compatibility, Clear All Data and
+relaunch-safe persistence semantics, and a 10,000-transfer mixed-history
+round-trip.
+
+The 10,000-transfer query-plan check continues to use the existing
+`account_transfers_history_order_index` for newest-first Pass-through results
+without a temporary ORDER BY B-tree. No dedicated transfer-kind index is added
+because the measured access path remains adequate at this checkpoint.
