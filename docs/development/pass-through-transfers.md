@@ -1,82 +1,52 @@
 # Pass-through Transfer Contract
 
-This document locks the product, persistence, calculation, activity, recovery,
-and compatibility rules for Enkryon v1.3.0 Pass-through Transfers before
-migration 7 or feature code is implemented.
+This document defines the corrected Enkryon v1.3.0 Pass-through model.
+
+The key rule is strict: a Pass-through parent has zero direct balance effect.
+The actual external account effects are persisted as explicit linked movement
+records. Only a complete, exact inflow/outflow movement pair may affect account
+balances.
 
 ## Release Baseline
 
-- Development starts from the released `v1.2.0` source baseline.
-- The verified Windows baseline contains `746` passing tests with `83%` total
-  branch coverage on Python `3.13.14`.
-- Development occurs on the `update-3-pass-through-transfers` branch.
-- Database migrations 1 through 6 are released history and must not be edited,
-  deleted, or reordered.
-- Backup formats 1 through 3 remain supported compatibility history.
-- Pass-through Transfers will be introduced by migration 7 and backup format 4.
+- Development starts from released `v1.2.0`.
+- Migrations 1 through 6 are released history and remain unchanged.
+- Migration 7 adds `transfer_kind` and optional counterparty.
+- Migration 8 adds `pass_through_movements`.
+- Formats 1 through 3 remain supported compatibility history.
+- Backup format 4 remains the v1.3.0 backup format.
 
 ## Product Meaning
 
-A Pass-through Transfer represents a completed exchange in which value enters
-one account owned by the user while the same principal leaves another account
-owned by the user. It is not earned Income, spending, a loan, a receivable, or
-a Pending Transaction.
+A Pass-through is a completed cash-out or money-forwarding exchange for another
+person. It is neither earned Income nor spending.
 
-The canonical cash-out example is:
+Canonical example:
 
-- a friend sends `₱1,000.25` to the user's Bank account;
-- the user gives that friend `₱1,000.25` from Cash; and
-- Enkryon stores one linked Pass-through record with Cash as the outflow leg
-  and Bank as the inflow leg.
+- a friend sends `1,000.25` into the user's Bank account;
+- the user gives the friend `1,000.25` from Cash;
+- Enkryon stores one Pass-through parent;
+- Enkryon records an explicit `inflow` of `1,000.25` into Bank; and
+- Enkryon records an explicit `outflow` of `1,000.25` from Cash.
 
-The source field is the user-owned account whose balance decreases and therefore
-represents the account outflow. The destination field is the user-owned account
-whose balance increases and therefore represents the account inflow. This stored
-source/destination mapping must not be described to the user as though the same
-physical money was internally transferred between those accounts.
+The parent itself is not an account movement.
 
-## Transfer Kind
+`internal` means the ordinary first-class Account Transfer introduced in
+v1.1.0. `pass_through` identifies the cash-out/money-forwarding parent.
+Every transfer that exists before migration 7 becomes `internal`.
 
-Pass-through Transfers extend the existing `account_transfers` ledger rather
-than creating a second financial subsystem.
+## Explicit Movement Storage
 
-Migration 7 adds one constrained transfer kind:
-
-- `internal` means the ordinary first-class Account Transfer introduced in
-  v1.1.0; and
-- `pass_through` means the completed cash-out or money-forwarding exchange
-  defined by this contract.
-
-Every transfer that exists before migration 7 becomes `internal`. Unknown or
-blank transfer-kind values are invalid. Ordinary Internal transfers must keep
-all v1.2.0 behavior unchanged.
-
-## Record Fields
-
-Both transfer kinds keep the existing fields:
-
-- one source account;
-- one different destination account;
-- one positive amount stored as exact integer centavos;
-- a date and time using Enkryon's supported database format; and
-- optional notes.
-
-Pass-through records additionally support one optional `counterparty` text
-field. The value is trimmed; blank text normalizes to no counterparty. The
-existing Notes field carries any optional purpose or descriptive detail, so
-v1.3.0 does not add a separate purpose column.
-
-One record represents one completed equal-principal exchange. Partial
-settlement, multiple counterparties, debts, loans, receivables, and multi-leg
-exchanges are outside v1.3.0.
+Every valid Pass-through has exactly one `outflow` and one `inflow` movement.
+Both rows store the same positive integer-centavo principal as the parent.
+Existing development Pass-through parents are backfilled by migration 8.
 
 ## Financial Invariants
 
-For principal amount `P`, source account `S`, and destination account `D`:
-
 ```text
-balance(S) = balance(S) - P
-balance(D) = balance(D) + P
+Pass-through parent direct balance effect = 0
+explicit outflow account change = -P
+explicit inflow account change = +P
 all-account balance change = 0
 Income change = 0
 Expenses change = 0
@@ -84,116 +54,40 @@ category-total change = 0
 posted net-cash-flow change = 0
 ```
 
-The principal must never be represented as an Income/Expense pair. It must not
-enter category or category-group totals. All stored and calculated money remains
-integer centavos.
+If the parent exists without both valid movement rows, the incomplete pair has
+zero balance contribution. The rows must match the parent account roles and
+principal exactly. All stored and calculated money remains integer centavos.
 
-A real service charge or fee is not part of the Pass-through principal. The
-user records the fee separately as a normal posted Expense, so only that fee
-changes Expenses and its selected category totals.
+The principal is never represented as an Income/Expense pair. A real service
+charge or fee is recorded separately as a normal posted Expense.
 
-## Validation and Lifecycle
+## Lifecycle
 
-- Source and destination accounts must both exist.
-- Source and destination accounts must be different.
-- The principal must be greater than zero exact centavos.
-- A source account may become negative, matching existing transfer behavior.
-- Pass-through records support create, view, edit, delete, and undo-restore.
-- Editing changes the one existing record; it does not create compensating
-  Income or Expense transactions.
-- Failed create, edit, delete, or restore operations leave persisted transfer
-  state unchanged.
-- Because balances are derived from the transfer ledger, one successful record
-  mutation produces both equal-and-opposite account effects together.
-- Either participating account remains protected from deletion while referenced
-  by either Internal or Pass-through transfers.
+Create, edit, delete, and undo-restore keep the parent and its movement records
+atomic. Internal Transfer behavior remains unchanged.
 
 ## Activity, Search, and Filters
 
-- Dashboard recent activity and Activity History show Pass-through records as
-  transfer activity with visible `Pass-through` text, not color alone.
-- The primary `Transfer` filter includes both `internal` and `pass_through`
-  records.
-- Advanced transfer-kind filtering must distinguish `Internal` from
-  `Pass-through` without changing the existing Income, Expense, or Pending
-  meanings.
-- `Income` and `Expense` filters exclude all transfers.
-- `Pending` includes only Pending income/expense transactions and excludes all
-  transfers.
-- `All` includes both transfer kinds together with the existing transaction
-  activity kinds.
-- Search for Pass-through activity includes counterparty, notes, source account,
-  and destination account names.
-- Account and inclusive date filters apply to both transfer kinds.
-- Stable newest-first ordering remains `date_time DESC, id DESC`.
-
-## Persistence Direction
-
-Migration 7 extends `account_transfers` rather than adding a new ledger. The
-planned schema direction is:
-
-```sql
-ALTER TABLE account_transfers
-ADD COLUMN transfer_kind TEXT NOT NULL DEFAULT 'internal'
-CHECK (transfer_kind IN ('internal', 'pass_through'));
-
-ALTER TABLE account_transfers
-ADD COLUMN counterparty TEXT;
-```
-
-The exact migration implementation may rebuild the table if SQLite constraint
-or rollback requirements make that safer, but migrations 1 through 6 must
-remain unchanged. Indexes are added only when focused query-plan evidence shows
-a need.
+The primary Transfer filter includes Internal and Pass-through activity.
+Advanced filters distinguish the two kinds. Income, Expense, and Pending
+meanings remain unchanged. Search includes counterparty, notes, and the two
+participating account names. Stable newest-first ordering remains
+`date_time DESC, id DESC`.
 
 ## Backup and Recovery
 
-Backup format 4 preserves `transfer_kind` and optional `counterparty` for every
-transfer. Formats 1 through 3 remain supported:
-
-- transfers from older supported backups normalize to `internal`;
-- absence of `counterparty` normalizes to no counterparty; and
-- existing Pending/posting semantics remain unchanged.
-
-Replacement restore continues to validate all relationships and record kinds
-before changing current data. Any failure rolls back the complete replacement.
+Backup format 4 preserves `transfer_kind` and optional counterparty. The explicit
+movement pair is deterministic from a validated Pass-through parent and is
+reconstructed by migration/restore insertion triggers. Formats 1 through 3
+remain supported and normalize older transfers to `internal`.
 
 ## Controlled Acceptance Example
 
-Starting balances:
-
-```text
-Cash = ₱5,000.00
-Bank = ₱10,000.00
-All accounts = ₱15,000.00
-```
-
-After one `₱1,000.25` Pass-through exchange with Cash as outflow and Bank as inflow:
-
-```text
-Cash = ₱3,999.75
-Bank = ₱11,000.25
-All accounts = ₱15,000.00
-Income change = ₱0.00
-Expenses change = ₱0.00
-Category totals change = ₱0.00
-Posted net cash flow change = ₱0.00
-```
-
-If the exchange also incurs a `₱15.00` service fee, the Pass-through principal
-remains `₱1,000.25`; the `₱15.00` is recorded separately as a posted Expense.
+A Pass-through parent without movement rows changes no account balance.
+With a complete pair for `1,000.25`, Cash outflow is `-1,000.25`, Bank inflow is
+`+1,000.25`, and the combined balance is unchanged.
 
 ## First-release Exclusions
 
-v1.3.0 does not add settlement states, partial fulfillment, loan tracking,
-receivables, credit balances, split counterparties, multi-leg exchanges, or
-automatic fee inference. Those require separate accounting contracts.
-
-
-## UI text portability
-
-User-facing Kivy copy should prefer plain text when a decorative symbol is not
-required. Pass-through records describe the two linked effects explicitly, such
-as `Cash outflow | Bank inflow`, instead of using an arrow or wording that looks
-like an Internal Transfer. Activity History uses an ASCII separator for active
-filters. The peso symbol remains part of monetary formatting.
+Partial settlement, unequal legs, loans, receivables, split counterparties,
+multi-leg exchanges, and automatic fee inference remain outside v1.3.0.

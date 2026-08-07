@@ -20,7 +20,7 @@ def test_v1_3_release_identity_is_consistent():
     assert "Enkryon-v1.3.0.apk" in readme
     assert "## [1.3.0] - 2026-08-07" in changelog
     assert "# Enkryon v1.3.0" in release_notes
-    assert "Release status: `RELEASE APPROVED`" in release_notes
+    assert "Release status: `ACCOUNTING CORRECTION CANDIDATE`" in release_notes
     assert "Enkryon-v1.3.0.apk" in release_notes
 
 
@@ -38,7 +38,7 @@ def test_v1_3_user_copy_describes_linked_account_effects():
     assert "Bank is the inflow" in transfer_screen
     assert "outflow | " in card
     assert " inflow" in card
-    assert "same physical money" in normalized_contract
+    assert "parent itself is not an account movement" in normalized_contract
 
 
 def test_v1_3_release_docs_lock_migration_backup_and_upgrade_gate():
@@ -58,21 +58,18 @@ def test_v1_3_release_docs_lock_migration_backup_and_upgrade_gate():
     assert "Every transfer that exists before migration 7 becomes Internal" in normalized_release_notes
 
 
-def test_v1_3_records_final_release_evidence():
+def test_v1_3_records_accounting_correction_gate():
     verification = read_project_file(
         "docs/audits/update-3-pass-through-transfers-verification.md"
     )
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.3.0-release-notes.md"
     )
+    normalized_notes = " ".join(release_notes.split())
 
-    assert "**100% verified**" in verification
-    assert "`824 passed in 22.65s`" in verification
-    assert "`01299eb`" in verification
-    assert "Release status: `RELEASE APPROVED`" in release_notes
-    assert "GitHub Actions on the release branch: `PASSED`" in release_notes
-    assert "Official v1.2.0-to-v1.3.0 in-place upgrade: `PASSED`" in release_notes
-    assert "Backup format 4 export/Clear All Data/restore/relaunch: `PASSED`" in release_notes
-    assert "`102410300`" in release_notes
-    assert "`45,775,760 bytes`" in release_notes
-    assert "fcb2766b02be8d344e534ae0961f2aedf0e3dbb509c3ce4106f90a19d484289c" in release_notes
+    assert "Release blocked pending corrected build" in verification
+    assert "## Accounting Correction" in verification
+    assert "Release status: `ACCOUNTING CORRECTION CANDIDATE`" in release_notes
+    assert "Publication was stopped before merge/tag" in normalized_notes
+    assert "zero direct balance effect" in normalized_notes
+    assert "explicit outflow/inflow pair" in normalized_notes

@@ -19,8 +19,8 @@
 | 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
 | 5. Integrate balances, activity, search, and filters | 16% | Completed — `05b635c` |
 | 6. Extend backup, recovery, and performance | 12% | Completed - `01299eb` |
-| 7. Close and release Update 3 | 10% | Completed - release verified |
-| **Total** | **100%** | **100% verified** |
+| 7. Close and release Update 3 | 10% | Reopened - accounting correction |
+| **Total** | **100%** | **Release blocked pending corrected build** |
 
 ## Task 1 Contract Decisions
 
@@ -237,3 +237,19 @@ totals. No unresolved critical or high-severity release defect remains.
 The release is approved for merge, final main-branch CI verification, annotated
 `v1.3.0` tagging, and publication. No additional feature change belongs in the
 release source after this evidence checkpoint.
+
+
+## Accounting Correction
+
+The previous release approval is superseded. Publication was stopped before
+merge/tag after identifying that Pass-through balances were derived from the
+parent transfer row without explicit external inflow/outflow records.
+
+The corrected candidate adds migration 8 and `pass_through_movements`. A
+Pass-through parent has zero direct balance effect. A complete exact movement
+pair is required before participating accounts receive a Pass-through balance
+effect. Internal Transfers remain unchanged.
+
+The previous APK evidence is historical only. The corrected source must repeat
+the full Windows, CI, signed APK, clean-install, official v1.2.0 upgrade,
+backup/restore, and relaunch gates before v1.3.0 is approved.

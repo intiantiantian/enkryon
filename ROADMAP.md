@@ -1,12 +1,12 @@
 # Enkryon Development Roadmap
 
 Updated: August 7, 2026
-Current release: `v1.3.0`
-Next planned release: `v1.4.0`
-Current position: Update 3 Pass-through Transfers is fully verified and release
-approved. Migration 7, backup format 4, the complete Windows suite, GitHub
-Actions, signed Android artifact, clean install, official v1.2.0-to-v1.3.0
-upgrade, recovery, and relaunch gates passed.
+Current release: `v1.2.0`
+Next planned release: `v1.3.0`
+Current position: Update 3 Pass-through Transfers is in accounting correction.
+Publication was stopped before merge/tag. The corrected candidate uses migration
+8, a balance-neutral Pass-through parent, and explicit linked inflow/outflow
+movement records. Full automated and Android release gates must be repeated.
 
 ## Purpose
 

@@ -62,6 +62,7 @@ The current migrations are:
 | 5 | `account_transfers` | Add atomic transfer records plus newest-first, outgoing, and incoming indexes. |
 | 6 | `transaction_posting_status` | Add constrained posted/Pending state and the status-history index. |
 | 7 | `account_transfer_kinds` | Add constrained Internal/Pass-through transfer kind plus optional counterparty metadata. |
+| 8 | `pass_through_movements` | Add explicit linked Pass-through inflow/outflow records. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the
@@ -164,6 +165,13 @@ source-account, and destination-account indexes remain unchanged. No dedicated
 kind index is added at this checkpoint because a new access path must first be
 justified by focused query-plan evidence rather than by the presence of a
 low-cardinality field alone.
+
+Migration 8 corrects Pass-through accounting storage. A Pass-through
+parent is balance-neutral by itself. Its actual account effects live in
+`pass_through_movements` as one explicit outflow and one explicit inflow.
+Balance calculation requires a complete pair matching the parent accounts and
+principal exactly; otherwise the parent contributes zero. Internal Transfers
+keep their released behavior.
 
 ## Adding a Future Migration
 

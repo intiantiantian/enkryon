@@ -2,7 +2,15 @@
 
 Release date: `2026-08-07`
 
-Release status: `RELEASE APPROVED`
+Release status: `ACCOUNTING CORRECTION CANDIDATE`
+
+## Accounting correction notice
+
+Publication was stopped before merge/tag. The previous candidate derived
+Pass-through balance effects from the parent without explicit external movement
+records. That APK evidence is superseded. The corrected candidate persists one
+explicit outflow and one explicit inflow and must repeat the Android release
+gate before approval.
 
 ## Summary
 
@@ -29,10 +37,11 @@ activity, or posted net cash flow.
 
 ## Financial behavior
 
-For a Pass-through principal, the source account decreases by the exact amount
-and the destination account increases by the same exact amount. The combined
-all-account balance does not change. Income, Expenses, category totals, and
-posted net cash flow do not change. All amounts remain integer centavos.
+The Pass-through parent has zero direct balance effect. A complete explicit
+outflow/inflow pair changes the participating accounts by equal and opposite
+exact amounts. An incomplete or inconsistent pair contributes zero. The combined
+all-account balance, Income, Expenses, category totals, and posted net cash flow
+remain unchanged. All amounts remain integer centavos.
 
 A real service fee is recorded separately as a normal posted Expense. Pass-through
 principal is never silently reduced by a fee.
