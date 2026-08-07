@@ -2,7 +2,7 @@
 
 Release date: `2026-08-07`
 
-Release status: `RELEASE CANDIDATE`
+Release status: `RELEASE APPROVED`
 
 ## Summary
 
@@ -40,11 +40,10 @@ principal is never silently reduced by a fee.
 ## Upgrade and stored data
 
 - Upgrade source: official `v1.2.0`
-- In-place upgrade result: `PENDING`
-- Database migration result: desktop migration tests `PASSED`; Android upgrade
-  verification `PENDING`
-- User-data preservation result: `PENDING`
-- Post-upgrade force-stop and relaunch result: `PENDING`
+- In-place upgrade result: `PASSED`
+- Database migration result: `PASSED` on desktop and Android
+- User-data preservation result: `PASSED`
+- Post-upgrade force-stop and relaunch result: `PASSED`
 
 Migration 7 extends `account_transfers` with constrained `internal` and
 `pass_through` kinds plus optional counterparty metadata. Every transfer that
@@ -59,11 +58,11 @@ existing Pending/posting compatibility rules remain unchanged.
 
 - Package: `com.intian.enkryon`
 - Version name: `1.3.0`
-- Version code: `PENDING FINAL BUILD`
+- Version code: `102410300`
 - Minimum Android API: `24`
 - Target Android API: `36`
 - Architectures: `arm64-v8a`, `armeabi-v7a`
-- Physical-device verification: `PENDING`
+- Physical-device verification: `PASSED`
 
 ## Known limitations
 
@@ -77,24 +76,29 @@ existing Pending/posting compatibility rules remain unchanged.
 ## Verification
 
 - Task 6 focused backup/recovery tests: `103 passed`
-- Automated tests before release-candidate closeout: `820 passed in 22.63s`
+- Final automated tests: `824 passed in 22.65s`
 - Total branch coverage: `84%`
 - Python compilation: `PASSED`
 - Git whitespace check: `PASSED`
-- Controlled format-4 export/Clear All Data/restore/relaunch: `PASSED`
-- GitHub Actions: `PENDING`
-- APK signature: `PENDING`
-- APK alignment: `PENDING`
-- APK checksum verification: `PENDING`
-- Clean install and launch: `PENDING`
-- Official v1.2.0-to-v1.3.0 in-place upgrade: `PENDING`
-- Final Android Pass-through workflow: `PENDING`
-- Final backup format 4 recovery: `PENDING`
+- GitHub Actions on the release branch: `PASSED`
+- WSL release build: `PASSED`
+- APK package/version identity: `PASSED`
+- APK signature: `PASSED`
+- APK alignment: `PASSED`
+- APK checksum verification: `PASSED`
+- Clean install and launch: `PASSED`
+- Official v1.2.0-to-v1.3.0 in-place upgrade: `PASSED`
+- Existing v1.2.0 transfers remained Internal after migration 7: `PASSED`
+- Posted and Pending transaction status preservation: `PASSED`
+- Final Android Pass-through workflow: `PASSED`
+- Force-stop and relaunch persistence: `PASSED`
+- Backup format 4 export/Clear All Data/restore/relaunch: `PASSED`
 
 ## Artifact
 
 - Filename: `Enkryon-v1.3.0.apk`
-- Size: `PENDING FINAL BUILD`
-- SHA-256: `PENDING FINAL BUILD`
+- Size: `45,775,760 bytes`
+- SHA-256:
+  `fcb2766b02be8d344e534ae0961f2aedf0e3dbb509c3ce4106f90a19d484289c`
 - Signing certificate SHA-256:
   `E3:D2:9B:10:8A:69:4A:ED:75:87:FD:99:5F:00:B0:22:64:97:B5:66:A6:53:3A:E8:47:EF:23:71:A0:12:C4:3D`

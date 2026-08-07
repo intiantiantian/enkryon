@@ -27,7 +27,7 @@ version reference.
 - Pass-through activity presents explicit linked effects such as
   `Cash outflow | Bank inflow` so it is not mistaken for movement of the same
   physical money between the user's accounts.
-- Application and Android release-candidate identity now use version `1.3.0`.
+- Application and Android release identity use version `1.3.0`.
 
 ### Fixed
 

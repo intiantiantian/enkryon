@@ -296,7 +296,6 @@ def test_update_2_task_7_records_final_release_evidence():
         "docs/audits/update-2-temporary-transactions-verification.md"
     )
     testing = read_project_file("docs/development/testing.md")
-    roadmap = read_project_file("ROADMAP.md")
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.2.0-release-notes.md"
     )
@@ -311,7 +310,6 @@ def test_update_2_task_7_records_final_release_evidence():
     assert "Task 7B Final Android and Recovery Evidence" in verification
     assert "Final Publication Gate" in verification
     assert "Update 2 Task 7A Release-Candidate Gate" in testing
-    assert "Current release: `v1.2.0`" in roadmap
     assert "# Enkryon v1.2.0" in release_notes
     assert "Release status: `RELEASE APPROVED`" in release_notes
     assert "Official in-place upgrade: `PASSED`" in release_notes

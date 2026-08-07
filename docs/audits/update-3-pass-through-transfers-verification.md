@@ -19,8 +19,8 @@
 | 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
 | 5. Integrate balances, activity, search, and filters | 16% | Completed — `05b635c` |
 | 6. Extend backup, recovery, and performance | 12% | Completed - `01299eb` |
-| 7. Close and release Update 3 | 10% | In progress - release candidate |
-| **Total** | **100%** | **90% verified** |
+| 7. Close and release Update 3 | 10% | Completed - release verified |
+| **Total** | **100%** | **100% verified** |
 
 ## Task 1 Contract Decisions
 
@@ -205,12 +205,35 @@ counterparty preservation, exact account balances and Income/Expenses, and
 relaunch persistence. The verified checkpoint was committed as `01299eb`
 (`Extend recovery for pass-through transfers`).
 
-## Task 7 Release-Candidate Direction
+## Task 7 Release Evidence
 
-Task 7 begins at 90% verified progress. The release candidate bumps the source
-identity to `1.3.0`, updates release documentation, and clarifies Pass-through
-presentation as linked account outflow/inflow rather than an Internal Transfer.
-No persistence or financial invariant changes are introduced by that wording
-clarification. Final progress remains at 90% until the complete regression,
-GitHub Actions, signed Android build, clean install, official v1.2.0-to-v1.3.0
-upgrade, final backup/recovery check, and publication evidence all pass.
+Task 7 raised verified progress to `100%`. The complete Windows suite reported
+`824 passed in 22.65s` with `84%` total branch coverage. Python compilation and
+`git diff --check` passed, and GitHub Actions on the release branch was green.
+
+The permanent signed Android release artifact is `Enkryon-v1.3.0.apk`, size
+`45,775,760 bytes`, with SHA-256
+`fcb2766b02be8d344e534ae0961f2aedf0e3dbb509c3ce4106f90a19d484289c`.
+`apksigner` verified the permanent Enkryon certificate SHA-256
+`E3:D2:9B:10:8A:69:4A:ED:75:87:FD:99:5F:00:B0:22:64:97:B5:66:A6:53:3A:E8:47:EF:23:71:A0:12:C4:3D`,
+and `zipalign -c -P 16 -v 4` passed. Android package inspection reported
+`com.intian.enkryon`, version name `1.3.0`, version code `102410300`, minimum
+API 24, target API 36, and both `arm64-v8a` and `armeabi-v7a` native
+architectures.
+
+Physical-device verification passed for a clean v1.3.0 install and for the
+official v1.2.0-to-v1.3.0 in-place upgrade using `adb install -r`. Existing
+posted and Pending records retained their exact financial effects, existing
+v1.2.0 transfers remained Internal after migration 7, and a new Pass-through
+exchange produced equal and opposite account outflow/inflow effects without
+changing Income, Expenses, category totals, or the all-account balance.
+Force-stop and relaunch preserved the migrated and new records.
+
+The final recovery gate also passed: backup format 4 export, Clear All Data,
+replacement restore, and relaunch preserved transfer kind, counterparty,
+posted/Pending status, amounts, notes, dates, relationships, balances, and
+totals. No unresolved critical or high-severity release defect remains.
+
+The release is approved for merge, final main-branch CI verification, annotated
+`v1.3.0` tagging, and publication. No additional feature change belongs in the
+release source after this evidence checkpoint.
