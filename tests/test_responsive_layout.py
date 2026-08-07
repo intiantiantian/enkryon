@@ -367,15 +367,18 @@ def test_dashboard_and_history_separate_primary_and_secondary_filters():
     assert "id: all_filter" in primary_filters
     assert "id: income_filter" in primary_filters
     assert "id: expense_filter" in primary_filters
-    assert "id: transfer_filter" not in primary_filters
+    assert "id: transfer_filter" in primary_filters
+    assert "text: 'TRANSFER'" in primary_filters
     assert "id: pending_filter" not in primary_filters
-    assert "else 3" in primary_filters
+    assert "else 4" in primary_filters
 
-    assert "id: transfer_filter" in secondary_filters
-    assert "text: 'TRANSFER'" in secondary_filters
+    assert "id: internal_transfer_filter" in secondary_filters
+    assert "text: 'INTERNAL'" in secondary_filters
+    assert "id: pass_through_filter" in secondary_filters
+    assert "text: 'PASS-THROUGH'" in secondary_filters
     assert "id: pending_filter" in secondary_filters
     assert "text: 'PENDING'" in secondary_filters
-    assert "else 2" in secondary_filters
+    assert "else 3" in secondary_filters
 
 
 def test_activity_history_has_collapsible_advanced_filters_section():

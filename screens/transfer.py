@@ -189,7 +189,7 @@ class TransferScreen(Screen):
             self.ids.transfer_guidance_label.text = (
                 "Cash-out or forwarding: FROM decreases and TO increases. "
                 "If someone sends money to your Bank and receives your "
-                "Cash, record Cash → Bank. The principal is not Income "
+                "Cash, record Cash to Bank. The principal is not Income "
                 "or Expense."
             )
         else:

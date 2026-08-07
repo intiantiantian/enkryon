@@ -539,7 +539,7 @@ def test_transfer_kind_ui_explains_cash_to_bank_direction():
     ids.pass_through_transfer_button.set_selected.assert_called_once_with(True)
     assert ids.transfer_kind_label.text == "PASS-THROUGH TRANSFER"
     assert "FROM decreases and TO increases" in ids.transfer_guidance_label.text
-    assert "Cash → Bank" in ids.transfer_guidance_label.text
+    assert "Cash to Bank" in ids.transfer_guidance_label.text
     assert "not Income or Expense" in ids.transfer_guidance_label.text
 
 

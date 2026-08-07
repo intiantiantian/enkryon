@@ -78,18 +78,31 @@ def create_transaction_card_data(transaction, screen):
         "posting_status",
         POSTED_STATUS,
     )
+    transfer_kind = getattr(transaction, "transfer_kind", None)
+    counterparty = getattr(transaction, "counterparty", None)
 
     if record_type == "transfer":
         account_name = (
             f"{transaction.source_account_name} to "
             f"{transaction.destination_account_name}"
         )
-        group_name = "Account Transfer"
+        transfer_kind = transfer_kind or "internal"
         direction = getattr(transaction, "direction", "neutral")
-        category_name = {
-            "incoming": "Incoming transfer",
-            "outgoing": "Outgoing transfer",
-        }.get(direction, "Between accounts")
+        if transfer_kind == "pass_through":
+            group_name = "Pass-through Transfer"
+            presentation = dict(presentation)
+            presentation["label"] = "PASS-THROUGH"
+            category_name = (
+                f"Counterparty: {counterparty}"
+                if counterparty
+                else "Between accounts"
+            )
+        else:
+            group_name = "Account Transfer"
+            category_name = {
+                "incoming": "Incoming transfer",
+                "outgoing": "Outgoing transfer",
+            }.get(direction, "Between accounts")
         amount_sign_type = {
             "incoming": "income",
             "outgoing": "expense",
@@ -121,6 +134,8 @@ def create_transaction_card_data(transaction, screen):
         "transaction_type_label": presentation["label"],
         "transaction_type_color": presentation["color"],
         "posting_status": posting_status,
+        "transfer_kind": transfer_kind or "",
+        "counterparty": counterparty or "",
         "is_temporary": is_temporary,
         "posting_status_label": (
             "PENDING" if is_temporary else ""
@@ -145,6 +160,8 @@ class TransactionCard(MDCard):
     transaction_type_label = StringProperty("")
     transaction_type_color = ListProperty([0, 0, 0, 1])
     posting_status = StringProperty(POSTED_STATUS)
+    transfer_kind = StringProperty("")
+    counterparty = StringProperty("")
     is_temporary = BooleanProperty(False)
     posting_status_label = StringProperty("")
     posting_status_color = ListProperty([0, 0, 0, 1])

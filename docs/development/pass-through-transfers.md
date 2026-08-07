@@ -184,3 +184,11 @@ remains `₱1,000.25`; the `₱15.00` is recorded separately as a posted Expense
 v1.3.0 does not add settlement states, partial fulfillment, loan tracking,
 receivables, credit balances, split counterparties, multi-leg exchanges, or
 automatic fee inference. Those require separate accounting contracts.
+
+
+## UI text portability
+
+User-facing Kivy copy should prefer plain text when a decorative symbol is not
+required. In particular, direction examples use `Cash to Bank` rather than an
+arrow glyph, and Activity History uses an ASCII separator for active filters.
+The peso symbol remains part of monetary formatting.

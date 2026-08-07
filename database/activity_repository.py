@@ -43,7 +43,9 @@ def _transaction_activity_query(
                 WHEN 'income' THEN 'incoming'
                 ELSE 'outgoing'
             END AS direction,
-            transactions.posting_status AS posting_status
+            transactions.posting_status AS posting_status,
+            NULL AS transfer_kind,
+            NULL AS counterparty
         FROM transactions
         INNER JOIN accounts
             ON transactions.account_id = accounts.id
@@ -109,6 +111,7 @@ def _transaction_activity_query(
 def _transfer_activity_query(
     *,
     account_id,
+    transfer_kind,
     search_text,
     start_date,
     end_date,
@@ -144,7 +147,9 @@ def _transfer_activity_query(
             source_accounts.name AS source_account_name,
             destination_accounts.name AS destination_account_name,
             {direction_expression} AS direction,
-            'posted' AS posting_status
+            'posted' AS posting_status,
+            account_transfers.transfer_kind AS transfer_kind,
+            account_transfers.counterparty AS counterparty
         FROM account_transfers
         INNER JOIN accounts AS source_accounts
             ON account_transfers.source_account_id = source_accounts.id
@@ -160,11 +165,17 @@ def _transfer_activity_query(
         conditions.append(
             '''(
                 COALESCE(account_transfers.notes, '') LIKE ? ESCAPE '\\'
+                OR COALESCE(account_transfers.counterparty, '')
+                    LIKE ? ESCAPE '\\'
                 OR source_accounts.name LIKE ? ESCAPE '\\'
                 OR destination_accounts.name LIKE ? ESCAPE '\\'
+                OR CASE account_transfers.transfer_kind
+                    WHEN 'pass_through' THEN 'Pass-through'
+                    ELSE 'Internal'
+                END LIKE ? ESCAPE '\\'
             )'''
         )
-        params.extend([search_pattern] * 3)
+        params.extend([search_pattern] * 5)
 
     if account_id is not None:
         conditions.append(
@@ -174,6 +185,10 @@ def _transfer_activity_query(
             )'''
         )
         params.extend((account_id, account_id))
+
+    if transfer_kind is not None:
+        conditions.append("account_transfers.transfer_kind = ?")
+        params.append(transfer_kind)
 
     if start_date is not None:
         conditions.append("account_transfers.date_time >= ?")
@@ -197,6 +212,7 @@ def get_activity(
     account_id=None,
     activity_type=None,
     posting_status=None,
+    transfer_kind=None,
     search_text=None,
     group_id=None,
     category_id=None,
@@ -206,7 +222,10 @@ def get_activity(
     queries = []
     params = []
 
-    include_transactions = activity_type != "transfer"
+    include_transactions = (
+        activity_type != "transfer"
+        and transfer_kind is None
+    )
     include_transfers = (
         posting_status is None
         and activity_type not in {"income", "expense"}
@@ -233,6 +252,7 @@ def get_activity(
     if include_transfers:
         transfer_query, transfer_params = _transfer_activity_query(
             account_id=account_id,
+            transfer_kind=transfer_kind,
             search_text=search_text,
             start_date=start_date,
             end_date=end_date,

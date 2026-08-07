@@ -76,6 +76,8 @@ class ActivityRecord(NamedTuple):
     destination_account_name: str | None
     direction: str
     posting_status: str = "posted"
+    transfer_kind: str | None = None
+    counterparty: str | None = None
 
     @property
     def transaction_id(self):

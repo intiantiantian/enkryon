@@ -16,11 +16,11 @@
 | 1. Lock pass-through contract and baseline | 9% | Completed — `c7d0fd1` |
 | 2. Add migration and transfer-kind persistence | 18% | Completed — `1354c5a` |
 | 3. Add pass-through service workflows | 17% | Completed — `2814e98` |
-| 4. Build pass-through transfer interface | 18% | In progress — Windows and real-app verification pending |
-| 5. Integrate balances, activity, search, and filters | 16% | Not started |
+| 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
+| 5. Integrate balances, activity, search, and filters | 16% | In progress — verification pending |
 | 6. Extend backup, recovery, and performance | 12% | Not started |
 | 7. Close and release Update 3 | 10% | Not started |
-| **Total** | **100%** | **44% verified** |
+| **Total** | **100%** | **62% verified** |
 
 ## Task 1 Contract Decisions
 
@@ -118,3 +118,40 @@ The mode selector stacks on constrained widths and enlarged font settings,
 guidance text grows vertically instead of truncating, and the counterparty
 control uses the shared 56dp/font-scaled touch target. Edit loading continues to
 preserve and visibly restore Pass-through kind and counterparty metadata.
+
+
+## Task 5 Activity and Filter Integration Work
+
+Task 5 carries `transfer_kind` and optional `counterparty` through the unified
+activity query and `ActivityRecord`. General Transfer activity continues to
+include both Internal and Pass-through records, while a dedicated kind filter
+can select either `internal` or `pass_through` without creating a second
+activity subsystem. Transaction rows expose no transfer metadata.
+
+Transfer search now includes source account, destination account, notes,
+counterparty, and the visible `Internal`/`Pass-through` kind name. Existing
+account and date filters compose with transfer kind while stable newest-first
+ordering remains unchanged. Category-only filters continue to exclude transfer
+activity.
+
+Activity History moves the general `TRANSFER` control into the primary filter
+row. Advanced Filters provide explicit `INTERNAL` and `PASS-THROUGH` controls
+alongside `PENDING`. The active-filter summary uses the ASCII ` | ` separator
+rather than a decorative Unicode bullet so UI text is less dependent on glyph
+coverage.
+
+Shared activity cards label Pass-through records with visible `PASS-THROUGH`
+text and `Pass-through Transfer`, preserve `Cash to Bank` direction wording, and
+show `Counterparty: <name>` when present. Because Dashboard recent activity uses
+the same activity/card path, the same non-color-only Pass-through treatment is
+shown there without adding extra Dashboard filter controls. Recycled transaction
+cards explicitly clear transfer-kind/counterparty state.
+
+The Task 4 cash-out guidance also changes the UI example from `Cash → Bank` to
+`Cash to Bank`. Documentation may retain mathematical or directional symbols,
+but user-facing Kivy copy should prefer plain ASCII wording when the symbol is
+not necessary.
+
+No transfer-kind index is added in Task 5. Task 6 remains responsible for the
+large-history/query-plan gate and may add an index only if measured plans justify
+it.

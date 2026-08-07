@@ -647,3 +647,53 @@ also complete this short real-app gate before committing:
 
 Task 4 does not yet add Activity History labels/search/filters; those belong to
 Task 5.
+
+
+### Update 3 Task 5 activity, search, and filter gate
+
+Task 5 integrates Pass-through records into unified activity while preserving
+all financial invariants. Run this focused gate before the complete suite:
+
+```bat
+python -m pytest -q ^
+tests/test_activity_repository.py ^
+tests/test_activity_services.py ^
+tests/test_transaction_filter_state.py ^
+tests/test_transaction_list.py ^
+tests/test_transaction_list_actions.py ^
+tests/test_transaction_screen_workflows.py ^
+tests/test_pending_activity_integration.py ^
+tests/test_transfer_balances.py ^
+tests/test_responsive_layout.py ^
+tests/test_accessibility_semantics.py
+```
+
+The gate verifies that the general Transfer filter includes both transfer kinds,
+Advanced Filters split Internal and Pass-through, counterparty/kind text is
+searchable, account/date filters compose with kind, newest-first ordering is
+stable, Dashboard and Activity History share visible Pass-through card semantics,
+and recycled cards do not retain stale kind/counterparty state. Existing posted
+Income, posted Expenses, Pending behavior, and transfer-aware account balances
+must remain unchanged.
+
+The UI portability check also requires plain `Cash to Bank` wording and an ASCII
+` | ` active-filter separator instead of decorative arrow/bullet glyphs. Currency
+formatting remains unchanged because the peso symbol is part of the app's money
+presentation contract.
+
+After the focused gate, run the complete suite with branch coverage, Python
+compilation, and `git diff --check`. Then complete this short real-app gate:
+
+1. Create one Internal and one Pass-through transfer with recognizable notes;
+   give the Pass-through record a counterparty.
+2. Confirm Dashboard recent activity and Activity History show the Pass-through
+   record with visible `PASS-THROUGH` text and `Cash to Bank` style direction.
+3. Confirm primary `TRANSFER` shows both records; Advanced `INTERNAL` shows only
+   Internal and Advanced `PASS-THROUGH` shows only Pass-through.
+4. Search by counterparty and by `pass-through`; confirm only the expected record
+   matches. Combine Pass-through with an account and date filter once.
+5. Confirm Income, Expenses, category totals, and all-account balance do not
+   change from the Pass-through principal; only the two participating account
+   balances move equally and oppositely.
+6. Edit, delete, undo, and switch filters once; confirm labels refresh without a
+   recycled card showing stale Internal/Pass-through metadata.

@@ -64,7 +64,7 @@
             MDTextField:
                 id: transaction_search
                 hint_text: 'Search activity'
-                helper_text: 'Notes, accounts, groups, or categories'
+                helper_text: 'Notes, accounts, categories, counterparties'
                 helper_text_mode: 'on_focus'
                 icon_left: 'magnify'
                 mode: 'rectangle'
@@ -86,7 +86,7 @@
 
         GridLayout:
             id: primary_activity_filters
-            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
+            cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 4
             size_hint_y: None
             height: self.minimum_height
             padding: '10dp'
@@ -116,6 +116,13 @@
                 on_release:
                     root.set_transaction_filter('expense')
 
+            EnkryonFilterButton:
+                id: transfer_filter
+                text: 'TRANSFER'
+                size_hint_x: 1
+                on_release:
+                    root.set_transaction_filter('transfer')
+
         OutlinedCard:
             id: advanced_filters_section
             orientation: 'vertical'
@@ -141,7 +148,7 @@
 
             GridLayout:
                 id: secondary_activity_filters
-                cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 2
+                cols: 1 if should_stack_controls(Window.width / dp(1), Metrics.fontscale) else 3
                 size_hint_y: None
                 height:
                     self.minimum_height if root.advanced_filters_expanded else 0
@@ -153,11 +160,18 @@
                 row_force_default: True
 
                 EnkryonFilterButton:
-                    id: transfer_filter
-                    text: 'TRANSFER'
+                    id: internal_transfer_filter
+                    text: 'INTERNAL'
                     size_hint_x: 1
                     on_release:
-                        root.set_transaction_filter('transfer')
+                        root.set_transfer_kind_filter('internal')
+
+                EnkryonFilterButton:
+                    id: pass_through_filter
+                    text: 'PASS-THROUGH'
+                    size_hint_x: 1
+                    on_release:
+                        root.set_transfer_kind_filter('pass_through')
 
                 EnkryonFilterButton:
                     id: pending_filter

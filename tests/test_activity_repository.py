@@ -295,3 +295,83 @@ def test_pending_filter_combines_with_type_account_category_and_date():
     )
 
     assert [row.notes for row in matches] == ["Pending dinner"]
+
+
+def seed_pass_through_activity():
+    seed_activity()
+    assert insert_transfer(
+        2,
+        3,
+        5_050,
+        "2026-08-04 12:00:00",
+        "Cash-out for Alex",
+        transfer_kind="pass_through",
+        counterparty="Alex Rivera",
+    ) is True
+
+
+def test_transfer_activity_carries_kind_and_counterparty_metadata():
+    seed_pass_through_activity()
+
+    transfers = get_activity(activity_type="transfer")
+
+    assert [row.transfer_kind for row in transfers] == [
+        "pass_through",
+        "internal",
+    ]
+    assert transfers[0].counterparty == "Alex Rivera"
+    assert transfers[1].counterparty is None
+
+
+def test_transfer_kind_filters_split_internal_and_pass_through_activity():
+    seed_pass_through_activity()
+
+    internal = get_activity(
+        activity_type="transfer",
+        transfer_kind="internal",
+    )
+    pass_through = get_activity(
+        activity_type="transfer",
+        transfer_kind="pass_through",
+    )
+
+    assert [row.notes for row in internal] == ["Emergency fund"]
+    assert [row.notes for row in pass_through] == ["Cash-out for Alex"]
+
+
+def test_transfer_search_matches_counterparty_and_visible_kind_name():
+    seed_pass_through_activity()
+
+    by_counterparty = get_activity(search_text="alex rivera")
+    by_kind = get_activity(search_text="pass-through")
+
+    assert [row.notes for row in by_counterparty] == ["Cash-out for Alex"]
+    assert [row.notes for row in by_kind] == ["Cash-out for Alex"]
+
+
+def test_transfer_kind_filter_combines_with_account_and_date():
+    seed_pass_through_activity()
+
+    matches = get_activity(
+        account_id=2,
+        activity_type="transfer",
+        transfer_kind="pass_through",
+        start_date=date(2026, 8, 4),
+        end_date=date(2026, 8, 4),
+    )
+
+    assert [row.notes for row in matches] == ["Cash-out for Alex"]
+    assert matches[0].direction == "outgoing"
+
+
+def test_transaction_activity_has_no_transfer_metadata():
+    seed_activity()
+
+    transactions = [
+        row for row in get_activity()
+        if row.record_type == "transaction"
+    ]
+
+    assert transactions
+    assert all(row.transfer_kind is None for row in transactions)
+    assert all(row.counterparty is None for row in transactions)

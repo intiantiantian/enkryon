@@ -1344,7 +1344,7 @@ def test_transaction_history_renders_advanced_filter_state():
     )
     assert screen.ids.active_filters_label.text == (
         "Active: "
-        + " • ".join(state.active_filter_labels)
+        + " | ".join(state.active_filter_labels)
     )
     assert reset_all_filters.disabled is False
     assert reset_all_filters.opacity == 1
@@ -1598,3 +1598,80 @@ def test_transaction_history_renders_pending_filter_state():
     expense_filter.set_selected.assert_called_once_with(False)
     transfer_filter.set_selected.assert_called_once_with(False)
     pending_filter.set_selected.assert_called_once_with(True)
+
+
+def test_transaction_history_renders_pass_through_kind_filter_state():
+    all_filter = SimpleNamespace(set_selected=Mock())
+    income_filter = SimpleNamespace(set_selected=Mock())
+    expense_filter = SimpleNamespace(set_selected=Mock())
+    transfer_filter = SimpleNamespace(set_selected=Mock())
+    internal_filter = SimpleNamespace(set_selected=Mock())
+    pass_through_filter = SimpleNamespace(set_selected=Mock())
+    pending_filter = SimpleNamespace(set_selected=Mock())
+    screen = SimpleNamespace(
+        filter_state=TransactionFilterState(
+            transfer_kind="pass_through",
+        ),
+        ids=SimpleNamespace(
+            all_filter=all_filter,
+            income_filter=income_filter,
+            expense_filter=expense_filter,
+            transfer_filter=transfer_filter,
+            internal_transfer_filter=internal_filter,
+            pass_through_filter=pass_through_filter,
+            pending_filter=pending_filter,
+        ),
+    )
+
+    TransactionsScreen.render_filter_state(screen)
+
+    transfer_filter.set_selected.assert_called_once_with(False)
+    internal_filter.set_selected.assert_called_once_with(False)
+    pass_through_filter.set_selected.assert_called_once_with(True)
+    pending_filter.set_selected.assert_called_once_with(False)
+
+
+def test_transaction_history_selects_transfer_kind_and_refreshes():
+    state = TransactionFilterState()
+    screen = SimpleNamespace(
+        filter_state=state,
+        render_filter_state=Mock(),
+        refresh_transaction_list=Mock(),
+    )
+
+    TransactionsScreen.set_transfer_kind_filter(
+        screen,
+        "internal",
+    )
+
+    assert state.transaction_type == "transfer"
+    assert state.transfer_kind == "internal"
+    screen.render_filter_state.assert_called_once_with()
+    screen.refresh_transaction_list.assert_called_once_with()
+
+
+def test_active_filter_summary_uses_ascii_separator_for_portability():
+    state = TransactionFilterState(
+        search_text="alex",
+        transfer_kind="pass_through",
+    )
+    screen = SimpleNamespace(
+        filter_state=state,
+        ids=SimpleNamespace(
+            account_filter_label=SimpleNamespace(text=""),
+            group_filter_label=SimpleNamespace(text=""),
+            category_filter_label=SimpleNamespace(text=""),
+            group_filter=SimpleNamespace(disabled=False, opacity=1),
+            category_filter=SimpleNamespace(disabled=False, opacity=1),
+            start_date_filter_label=SimpleNamespace(text=""),
+            end_date_filter_label=SimpleNamespace(text=""),
+            active_filters_label=SimpleNamespace(text=""),
+            reset_all_filters=SimpleNamespace(disabled=True, opacity=.38),
+        ),
+    )
+
+    TransactionsScreen.render_advanced_filter_state(screen)
+
+    assert screen.ids.active_filters_label.text == (
+        'Active: Search: "alex" | Transfer: Pass-through'
+    )
