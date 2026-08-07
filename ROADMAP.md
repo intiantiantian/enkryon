@@ -555,7 +555,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress — Update 2 release candidate
+**Status:** In progress — Update 3 contract baseline
 
 ### Objective
 
@@ -564,7 +564,7 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 ### Candidate order after version 1.0
 
 1. Account transfers (`v1.1.0`) — released.
-2. Pending Transactions (`v1.2.0`) — release candidate.
+2. Pending Transactions (`v1.2.0`) — released.
 3. Pass-through Transfers (`v1.3.0`) — the originally requested cash-out or money-forwarding workflow.
 4. Daily Bank Interest (`v1.4.0`) — planned after transfer semantics are stable.
 5. Statistical Visualizations (`v1.5.0`) — planned after pending, pass-through, and interest records are defined.
@@ -603,12 +603,20 @@ backup and recovery (11%), and release closeout (10%). The locked rules are in
 
 ### Update 3 — Pass-through Transfers (`v1.3.0`)
 
-Pass-through Transfers will cover cases such as a friend sending money into the
-user's bank account while the user gives the same amount from Cash. The two
-account balances change directionally, but Income, Expenses, category totals,
-and net cash flow do not change. The feature should build on first-class
-transfers and may add counterparty, purpose, settlement, and optional separate
-fee handling.
+Pass-through Transfers cover cases such as a friend sending money into the
+user's Bank account while the user gives the same principal from Cash. The
+canonical ledger direction is `Cash → Bank`: source decreases, destination
+increases, and the all-account balance remains unchanged. The principal never
+changes Income, Expenses, category totals, or posted net cash flow.
+
+Task 1 locks migration 7 to extend the existing `account_transfers` ledger with
+`internal` and `pass_through` kinds. Existing transfers normalize to `internal`.
+Pass-through records add an optional counterparty; purpose/details stay in Notes,
+and any real service fee is recorded separately as a posted Expense. The primary
+Transfer filter includes both kinds while Advanced Filters distinguish Internal
+from Pass-through. Backup format 4 will preserve the new kind and counterparty
+while older supported backups normalize transfers to Internal. The locked rules
+are in `docs/development/pass-through-transfers.md`.
 
 ### Update 4 — Daily Bank Interest (`v1.4.0`)
 
@@ -651,9 +659,10 @@ The next work should be completed in this order:
    GitHub Actions, the signed Android artifact, clean installation, official
    v1.1.0 upgrade, and final artifact evidence remain.
 
-Do not begin Pass-through Transfers, Daily Bank Interest, or Statistical
-Visualizations until Pending Transaction posting semantics are implemented and
-verified.
+Pending Transaction posting semantics are released and verified. Begin
+Pass-through Transfers with Task 1 only; do not begin Daily Bank Interest or
+Statistical Visualizations until the Pass-through contract and release are
+complete.
 
 ## Rule for Completing Every Phase
 

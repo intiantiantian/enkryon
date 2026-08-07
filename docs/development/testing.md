@@ -522,3 +522,20 @@ is built. The gate verifies:
 
 Task 7B replaces every pending release-evidence field only after the signed APK
 and physical-device checks provide the actual values.
+
+## Update 3 Pass-through Transfer Contract Baseline
+
+Update 3 begins from the clean released `v1.2.0` baseline on the
+`update-3-pass-through-transfers` branch. Before migration or feature code is
+changed, the complete Windows suite reported `746 passed in 32.69s` with `83%`
+total branch coverage on Python `3.13.14`.
+
+The Task 1 contract regression is maintained in `tests/test_update3_contract.py`.
+It locks the Cash-to-Bank direction, exact net-zero financial invariants,
+Internal-versus-Pass-through compatibility, optional counterparty and separate
+fee handling, activity/filter behavior, migration 7 direction, backup format 4
+compatibility, and the 100%-weighted checkpoint plan.
+
+Task 1 changes documentation and contract tests only. Migration 7, repository,
+service, UI, activity, and recovery implementation must wait until this contract
+checkpoint passes and is committed.
