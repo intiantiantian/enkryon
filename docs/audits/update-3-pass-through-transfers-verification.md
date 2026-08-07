@@ -19,8 +19,8 @@
 | 4. Build pass-through transfer interface | 18% | Completed — `e6c68d7` |
 | 5. Integrate balances, activity, search, and filters | 16% | Completed — `05b635c` |
 | 6. Extend backup, recovery, and performance | 12% | Completed - `01299eb` |
-| 7. Close and release Update 3 | 10% | Reopened - accounting correction |
-| **Total** | **100%** | **Release blocked pending corrected build** |
+| 7. Close and release Update 3 | 10% | Completed - balance-neutral release |
+| **Total** | **100%** | **Released as v1.3.0** |
 
 ## Task 1 Contract Decisions
 
@@ -281,3 +281,27 @@ ignores Pass-through rows completely.
 All previous v1.3.0 APK hashes, clean-install results, upgrade results, and
 release-approval statements are superseded. Release remains blocked until the
 balance-neutral source passes the complete automated and Android gates.
+
+
+## Final v1.3.0 Release Evidence
+
+The balance-neutral correction completed the full release gate.
+
+- Windows: `830 passed in 23.65s` at `84%` total branch coverage.
+- Main-branch sanity: `830 passed in 23.32s`.
+- Python compilation and `git diff --check`: passed.
+- Desktop real-app Pass-through balance-neutrality check: passed.
+- Corrected signed Android clean install and launch: passed.
+- Official v1.2.0-to-v1.3.0 in-place upgrade: passed.
+- Pass-through workflow after upgrade: both participating account balances,
+  Income, and Expenses remained unchanged.
+- Backup format 4 export, Clear All Data, replacement restore, and relaunch:
+  passed.
+- Balance-neutral correction commit: `e6cb735`.
+- Main merge commit: `1a0867c45ab7922c0d304cbc47331e485319e2b6`.
+- Final artifact: `Enkryon-v1.3.0.apk`.
+- Artifact size: `45,776,720 bytes`.
+- Artifact SHA-256: `EBEBFD56F1FFE55785E5C289D945F4C85BB8375FB81F0CF7A185142B904FBE78`.
+
+All earlier v1.3.0 APK hashes and movement-accounting approvals remain
+superseded. This final evidence is the release record for v1.3.0.

@@ -21,8 +21,9 @@ APK. Phase 9 prepares the first stable release, `v1.0.0`, from official
 `v0.8.0`. Update 1 prepares `v1.1.0` from official `v1.0.0` and adds the
 first database migration and backup-format expansion after the stable release.
 Update 2 prepares `v1.2.0` from official `v1.1.0`, adds Pending Transactions,
-migration 6, and backup format 3. Update 3 prepares `v1.3.0` from official
-`v1.2.0`, adds Pass-through Transfers, migration 7, and backup format 4.
+migration 6, and backup format 3. Update 3 releases `v1.3.0` from official
+`v1.2.0`, adds Pass-through Transfers, migrations 7 through 9, and backup
+format 4.
 
 `main.py` is the version source. The secure release helper reads that value,
 verifies the permanent Enkryon certificate and APK alignment, then creates

@@ -68,10 +68,9 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Account Transfers
 
-- Move an exact amount of your own money between two accounts
-- Record Pass-through exchanges as one linked account outflow and account inflow
+- Move an exact amount of your own money between two accounts with Internal Transfers
+- Record Pass-through exchanges without changing either participating account balance
 - Keep Internal and Pass-through principal out of Income and Expenses
-- Keep combined-account income and expenses unchanged
 - Add an optional counterparty to Pass-through activity
 - Edit, delete, and undo deleted transfers
 - Search and filter transfer activity by account, date, notes, kind, and counterparty
@@ -130,7 +129,7 @@ The verified version 1.2 Android release uses this artifact name:
 Enkryon-v1.2.0.apk
 ```
 
-The version 1.3 release candidate uses:
+The verified version 1.3 Android release uses:
 
 ```
 Enkryon-v1.3.0.apk
@@ -199,9 +198,10 @@ category, transaction, transfer, and unified-activity services own workflow
 rules and return explicit, testable results to the interface.
 
 User-created backups are stored as versioned JSON documents. Backup format 4
-preserves each transaction's posted or Pending status and includes account
-transfers. Compatible format-1 and format-2 documents remain restorable; their
-transactions normalize to posted because those formats predate posting status.
+preserves each transaction's posted or Pending status plus transfer kind and
+counterparty metadata. Compatible formats 1 through 3 remain restorable; older
+transfers normalize to Internal and formats predating posting status normalize
+their transactions to posted.
 Enkryon validates the complete backup, shows its metadata and record counts,
 and requires explicit confirmation before replacing current data inside a
 database transaction.

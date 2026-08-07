@@ -1,13 +1,12 @@
 # Enkryon Development Roadmap
 
-Updated: August 7, 2026
-Current release: `v1.2.0`
-Next planned release: `v1.3.0`
-Current position: Update 3 Pass-through Transfers is in balance-neutrality correction.
-Publication remains blocked before merge/tag. Migration 9 removes the temporary
-Pass-through movement model; the final Pass-through record changes neither
-participating account balance. Full automated and Android release gates must be
-repeated.
+Updated: August 8, 2026
+Current release: `v1.3.0`
+Next planned release: `v1.4.0`
+Current position: Update 3 Pass-through Transfers is released. The final model
+represents the complete counterparty exchange and changes neither participating
+account balance, Income, Expenses, nor category totals. Update 4 Daily Bank
+Interest is next.
 
 ## Purpose
 
@@ -32,10 +31,10 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 |---|---|---|
 | Core product | Accounts, categories, posted income and expenses, Pending Transactions, Internal Transfers, Pass-through Transfers, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add Daily Bank Interest next without weakening posted/Pending or transfer semantics. |
 | Financial accuracy | Transaction and transfer amounts remain integer centavos; Internal transfer effects remain exact while Pass-through changes no participating account balance while Income and Expenses remain unchanged. | Keep balance movement separate from earned income and spending as interest estimation is added. |
-| Database upgrades | A `schema_migrations` table and seven ordered, transactional migrations are present; migration 6 adds constrained transaction posting status and migration 7 adds constrained Internal/Pass-through transfer kind plus optional counterparty metadata. | Automated migration and query-plan coverage passed; the waived official v1.0.0-to-v1.1.0 Android upgrade remains explicitly unverified. |
+| Database upgrades | A `schema_migrations` table and nine ordered, transactional migrations are present; migration 7 adds Internal/Pass-through kind, migration 8 is superseded development history, and migration 9 removes its temporary movement artifacts. | Preserve the released migration history while adding future features. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The previous v1.3.0 release evidence is superseded; the balance-neutral correction must establish a new complete automated gate. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.4.0. |
-| Android release | Previous `v1.3.0` APK evidence is superseded because device testing exposed incorrect Pass-through account-balance changes. The older v1.0.0-to-v1.1.0 waiver remains historical. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.4.0. |
+| Automated tests | The final v1.3.0 Windows gate contains `830` passing tests at `84%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.4.0. |
+| Android release | The corrected signed `v1.3.0` artifact passed clean-install, official v1.2.0 upgrade, balance-neutral Pass-through, backup/restore, and relaunch checks. The older v1.0.0-to-v1.1.0 waiver remains historical. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.4.0. |
 | Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
 | User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
 | Backup and recovery | Backup format 4 preserves transaction posting status plus Internal/Pass-through transfer kind and counterparty; formats 1 through 3 remain compatible and older transfers normalize to Internal. | Preserve this compatibility through Daily Bank Interest and the next official upgrade. |
@@ -557,7 +556,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress - Update 3 release closeout
+**Status:** In progress - Update 4 planned
 
 ### Objective
 
@@ -567,7 +566,7 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 
 1. Account transfers (`v1.1.0`) — released.
 2. Pending Transactions (`v1.2.0`) — released.
-3. Pass-through Transfers (`v1.3.0`) — the originally requested cash-out or money-forwarding workflow.
+3. Pass-through Transfers (`v1.3.0`) — released.
 4. Daily Bank Interest (`v1.4.0`) — planned after transfer semantics are stable.
 5. Statistical Visualizations (`v1.5.0`) — planned after pending, pass-through, and interest records are defined.
 6. Budget tracking, recurring transactions, CSV import/export, dark mode, and optional synchronization.
@@ -605,21 +604,23 @@ backup and recovery (11%), and release closeout (10%). The locked rules are in
 
 ### Update 3 — Pass-through Transfers (`v1.3.0`)
 
-Pass-through Transfers cover cases such as a friend sending money into the
-user's Bank account while the user gives the same principal from Cash. One
-record stores the two linked user-owned effects: Cash is the account outflow and
-Bank is the account inflow. The all-account balance remains unchanged, and the
-principal never changes Income, Expenses, category totals, or posted net cash
-flow.
+Pass-through Transfers cover completed cash-out or money-forwarding exchanges.
+One record stores the participating account references, exact principal,
+counterparty, notes, and date/time for history and recovery. The complete
+exchange is balance-neutral: neither participating account balance changes, and
+the principal never changes Income, Expenses, category totals, or posted net
+cash flow.
 
-Tasks 1 through 6 are complete. Migration 7 extends the existing
-`account_transfers` ledger with constrained `internal` and `pass_through` kinds;
-existing transfers normalize to `internal`. Pass-through records support an
-optional counterparty, searchable activity, dedicated Advanced Filters, exact
-edit/delete/undo workflows, and backup format 4 recovery. Older supported
-backups normalize transfers to Internal. Task 7 is the remaining v1.3.0 release
-closeout: version identity, final regression, CI, signed Android artifact, clean
-install, official v1.2.0-to-v1.3.0 upgrade, and final recovery evidence.
+Migration 7 adds constrained `internal` and `pass_through` kinds. Migration 8
+is retained as superseded development history, while migration 9 removes its
+temporary Pass-through movement artifacts and locks the final balance-neutral
+model. Backup format 4 preserves transfer kind and counterparty, while formats
+1 through 3 remain compatible.
+
+The v1.3.0 release passed `830` automated tests at `84%` coverage, desktop
+workflow verification, signed Android clean installation, official v1.2.0
+in-place upgrade, balance-neutral Pass-through verification, backup/restore,
+and relaunch checks.
 
 ### Update 4 — Daily Bank Interest (`v1.4.0`)
 
@@ -666,12 +667,12 @@ roadmaps must not erase previously verified release evidence:
 5. Completed: integrate balances, unified activity, search, and filters.
 6. Completed: add backup format 4, old-format normalization, controlled recovery,
    relaunch persistence, and 10,000-transfer performance evidence.
-7. In progress: complete the v1.3.0 release candidate, full regression, GitHub
-   Actions, signed Android build, clean installation, official v1.2.0-to-v1.3.0
-   upgrade, final recovery, release evidence, merge, tag, and publication.
+7. Completed: v1.3.0 final regression, signed Android build, clean
+   installation, official v1.2.0-to-v1.3.0 upgrade, balance-neutral
+   Pass-through workflow, backup/restore, relaunch, and main-branch merge.
 
-Do not begin Daily Bank Interest or Statistical Visualizations until the
-Pass-through release gate is complete.
+Next: begin Update 4 Daily Bank Interest planning. Statistical Visualizations
+remain after the interest model is defined.
 
 ## Rule for Completing Every Phase
 
