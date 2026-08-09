@@ -7,8 +7,10 @@ bank accounts and an explicit reconciliation workflow for interest actually
 credited by the bank. Estimates are informational derived records. They never
 create money, Income, category totals, or account-balance effects by themselves.
 
-This document locks the Task 1 financial contract before migration 10,
-repositories, calculation services, or user-interface code are added.
+This document records the Task 1 financial contract that was locked before
+implementation began. Migration 10 and persistence were added in Task 2, and
+the exact calculation engine was added in Task 3. User-interface,
+reconciliation-posting, backup-format-5, and release work remain later tasks.
 
 ## Rate meaning and storage
 
@@ -191,14 +193,11 @@ transaction.
 
 ## Persistence and recovery direction
 
-Task 1 reserves, but does not implement, these release changes:
-
-- the first Update 4 schema change is migration **10**;
-- persistence must keep effective-dated rate history and exact daily accrual
-  components/snapshots;
-- backup format **5** is introduced only after the migration-10 interest schema
-  is finalized; and
-- restore compatibility for existing formats 1 through 4 remains required.
+Task 2 implemented migration **10** with effective-dated APR profile history
+and exact daily accrual snapshots. Task 3 uses those records without creating
+posting effects. The planned backup format **5** remains intentionally deferred until
+the interest records and reconciliation workflow are finalized; restore
+compatibility for existing formats 1 through 4 remains required.
 
 ## Out of scope for v1.4.0
 

@@ -854,3 +854,13 @@ Then run Python compilation and `git diff --check`. The complete regression and
 coverage suite is reserved for major integration/release gates unless a broad
 cross-cutting failure makes it necessary earlier. Task 2 advances 18% only after
 this focused persistence gate passes and the checkpoint is committed.
+
+### Update 4 Task 3 focused interest-engine gate
+
+The Daily Bank Interest calculation checkpoint verifies exact integer arithmetic,
+Actual/365 behavior including February 29, prior-end-of-day posted balance
+selection, Pending exclusion, Internal Transfer directionality, Pass-through
+neutrality, effective-dated APR snapshots, disabled periods, missed-date
+idempotency, exact sub-centavo accumulation, and presentation-only
+`ROUND_HALF_UP` rounding. Intermediate checkpoints use this focused gate rather
+than repeating the complete regression suite.

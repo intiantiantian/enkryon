@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, timedelta
 
 from .connection import connect_database, managed_connection
 from .records import InterestAccrualRecord, InterestProfileRecord
@@ -305,6 +306,73 @@ def insert_interest_accrual(
     except (sqlite3.Error, OverflowError):
         return False
 
+
+
+def get_posted_closing_balance_centavos(account_id, closing_date):
+    try:
+        closing_date = date.fromisoformat(closing_date)
+        cutoff_exclusive = (closing_date + timedelta(days=1)).isoformat()
+        cutoff_exclusive += " 00:00:00"
+
+        with managed_connection() as connection:
+            transaction_row = connection.execute(
+                """
+                SELECT COALESCE(
+                    SUM(
+                        CASE category_groups.transaction_type
+                            WHEN 'income' THEN transactions.amount_centavos
+                            WHEN 'expense' THEN -transactions.amount_centavos
+                            ELSE 0
+                        END
+                    ),
+                    0
+                )
+                FROM transactions
+                INNER JOIN categories
+                    ON transactions.category_id = categories.category_id
+                INNER JOIN category_groups
+                    ON categories.group_id = category_groups.group_id
+                WHERE transactions.account_id = ?
+                  AND transactions.posting_status = 'posted'
+                  AND transactions.date_time < ?
+                """,
+                (account_id, cutoff_exclusive),
+            ).fetchone()
+
+            transfer_row = connection.execute(
+                """
+                SELECT COALESCE(
+                    SUM(
+                        CASE
+                            WHEN destination_account_id = ?
+                                THEN amount_centavos
+                            WHEN source_account_id = ?
+                                THEN -amount_centavos
+                            ELSE 0
+                        END
+                    ),
+                    0
+                )
+                FROM account_transfers
+                WHERE transfer_kind = 'internal'
+                  AND date_time < ?
+                  AND (
+                      source_account_id = ?
+                      OR destination_account_id = ?
+                  )
+                """,
+                (
+                    account_id,
+                    account_id,
+                    cutoff_exclusive,
+                    account_id,
+                    account_id,
+                ),
+            ).fetchone()
+
+        return int(transaction_row[0]) + int(transfer_row[0])
+    except (sqlite3.Error, TypeError, ValueError, OverflowError):
+        return False
 
 def get_interest_accrual(account_id, accrual_date):
     with managed_connection() as connection:
