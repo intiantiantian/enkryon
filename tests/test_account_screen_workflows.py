@@ -78,10 +78,22 @@ def test_load_accounts_renders_account_cards(monkeypatch):
         SimpleNamespace(screen=None, set_account=Mock()),
     ]
     account_card_factory = Mock(side_effect=cards)
+    interest_states = [
+        SimpleNamespace(summary_text="Interest: Off"),
+        SimpleNamespace(summary_text="Interest: 3.65% APR · accrued ₱ 1.00"),
+    ]
+    load_interest = Mock(side_effect=interest_states)
+    for card in cards:
+        card.set_interest_summary = Mock()
     monkeypatch.setattr(
         accounts_module,
         "get_accounts_for_view",
         get_accounts_for_view,
+    )
+    monkeypatch.setattr(
+        accounts_module,
+        "load_account_interest_view",
+        load_interest,
     )
     monkeypatch.setattr(
         accounts_module,
@@ -101,9 +113,13 @@ def test_load_accounts_renders_account_cards(monkeypatch):
     get_accounts_for_view.assert_called_once_with()
     container.clear_widgets.assert_called_once_with()
     assert account_card_factory.call_count == 2
-    for card, account in zip(cards, accounts):
+    for card, account, interest_state in zip(cards, accounts, interest_states):
         assert card.screen is screen
         card.set_account.assert_called_once_with(account)
+        card.set_interest_summary.assert_called_once_with(
+            interest_state.summary_text
+        )
+    assert load_interest.call_args_list == [call(1), call(2)]
     assert container.add_widget.call_args_list == [
         call(cards[0]),
         call(cards[1]),

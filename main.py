@@ -95,6 +95,7 @@ class EnkryonApp(MDApp):
         Builder.load_file('kv/transactions.kv')
         Builder.load_file('kv/date_time_pickers.kv')
         Builder.load_file('kv/input_dialog.kv')
+        Builder.load_file('kv/interest_dialog.kv')
 
         initialize_database()
 

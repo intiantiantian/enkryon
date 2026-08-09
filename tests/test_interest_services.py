@@ -17,6 +17,7 @@ from services.interest_services import (
     generate_missing_interest_accruals,
     get_interest_estimate_summary,
     round_exact_interest_centavos,
+    save_interest_profile,
     summarize_interest_accruals,
 )
 
@@ -254,3 +255,43 @@ def test_estimate_summary_can_limit_date_range_without_rounding_daily_rows():
 
     assert summary.exact_amount == ExactInterestAmount(1, 3_500_000_000)
     assert summary.rounded_centavos == 1
+
+
+def test_save_interest_profile_creates_enabled_effective_rate():
+    seed_ledger()
+
+    result = save_interest_profile(
+        1,
+        3_650_000,
+        "2026-08-09",
+        enabled=True,
+    )
+
+    assert result.success is True
+    rows = get_interest_accruals(1)
+    assert rows == []
+
+
+def test_save_interest_profile_rejects_duplicate_effective_date():
+    seed_ledger()
+    assert save_interest_profile(1, 3_650_000, "2026-08-09").success
+
+    result = save_interest_profile(1, 4_000_000, "2026-08-09")
+
+    assert result.success is False
+    assert "effective date" in result.message
+
+
+def test_save_interest_profile_can_effectively_disable_future_accruals():
+    seed_ledger()
+    assert save_interest_profile(1, 3_650_000, "2026-08-09").success
+
+    result = save_interest_profile(
+        1,
+        0,
+        "2026-08-10",
+        enabled=False,
+    )
+
+    assert result.success is True
+    assert "disabled" in result.message.lower()

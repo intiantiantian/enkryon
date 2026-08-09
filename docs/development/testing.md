@@ -864,3 +864,12 @@ neutrality, effective-dated APR snapshots, disabled periods, missed-date
 idempotency, exact sub-centavo accumulation, and presentation-only
 `ROUND_HALF_UP` rounding. Intermediate checkpoints use this focused gate rather
 than repeating the complete regression suite.
+
+### Update 4 Task 4 focused interface gate
+
+Daily Bank Interest account-interface coverage includes exact APR text parsing,
+six-decimal validation, canonical effective dates, enabled/disabled view state,
+account-card summary text, overlay population, enable/disable persistence calls,
+invalid-input behavior, fixed Actual/365 disclosure, non-posting disclosure,
+and small-screen scroll/touch-target structure. Intermediate Task 4 verification
+uses focused tests rather than the complete regression suite.

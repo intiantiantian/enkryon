@@ -8,11 +8,19 @@ from services.account_services import (
     remove_account as remove_account_workflow,
     rename_account as rename_account_workflow,
 )
+from services.interest_services import save_interest_profile
+
+from .account_interest_state import (
+    load_account_interest_view,
+    parse_apr_micros,
+    parse_effective_date,
+)
 
 from widgets.account_card import AccountCard
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
 from widgets.overlays import EnkryonConfirmationDialog
+from widgets.interest_dialog import InterestSettingsDialog
 
 
 class AccountsScreen(Screen):
@@ -60,7 +68,74 @@ class AccountsScreen(Screen):
             card = AccountCard()
             card.screen = self
             card.set_account(account)
+            interest_state = load_account_interest_view(account.account_id)
+            card.set_interest_summary(interest_state.summary_text)
             self.ids.accounts_container.add_widget(card)
+
+
+    def open_interest_dialog(self, account_id, account_name):
+        state = load_account_interest_view(account_id)
+        self.interest_dialog = InterestSettingsDialog(
+            account_name=account_name,
+            apr_text=state.apr_text,
+            effective_date_text=state.effective_date_text,
+            day_count_text=state.day_count_text,
+            today_estimate_text=state.today_estimate_text,
+            accumulated_estimate_text=state.accumulated_estimate_text,
+            is_enabled=state.enabled,
+            save_callback=lambda apr, effective_date: self.save_interest_settings(
+                account_id, apr, effective_date
+            ),
+            disable_callback=lambda effective_date: self.disable_interest_settings(
+                account_id, effective_date
+            ),
+        )
+        self.interest_dialog.open()
+
+
+    def save_interest_settings(self, account_id, apr_text, effective_date_text):
+        try:
+            annual_rate_micros = parse_apr_micros(apr_text)
+            effective_date = parse_effective_date(effective_date_text)
+        except ValueError as error:
+            from utils.snackbar import show_snackbar
+            show_snackbar(str(error))
+            return False
+
+        result = save_interest_profile(
+            account_id,
+            annual_rate_micros,
+            effective_date,
+            enabled=True,
+        )
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
+        return result.success
+
+
+    def disable_interest_settings(self, account_id, effective_date_text):
+        try:
+            effective_date = parse_effective_date(effective_date_text)
+        except ValueError as error:
+            from utils.snackbar import show_snackbar
+            show_snackbar(str(error))
+            return False
+
+        result = save_interest_profile(
+            account_id,
+            0,
+            effective_date,
+            enabled=False,
+        )
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
+        return result.success
 
 
     def add_account(self):

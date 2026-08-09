@@ -43,6 +43,30 @@
                 on_release:
                     root.delete_account()
 
+        BoxLayout:
+            size_hint_y: None
+            height: '48dp'
+            padding: '10dp', 0
+            spacing: '10dp'
+
+            MDLabel:
+                id: interest_summary
+                text: root.interest_summary_text
+                text_size: self.size
+                valign: 'middle'
+                font_size: '12sp'
+                theme_text_color: 'Custom'
+                text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
+                max_lines: 2
+                shorten: True
+                shorten_from: 'right'
+
+            EnkryonSecondaryButton:
+                text: "INTEREST"
+                size_hint_x: None
+                width: dp(112)
+                on_release: root.manage_interest()
+
 <AccountsScreen>
     BoxLayout:
         orientation: 'vertical'

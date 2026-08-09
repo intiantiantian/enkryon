@@ -208,3 +208,27 @@ compatibility for existing formats 1 through 4 remains required.
 - automatic background posting of interest;
 - silently creating an Income transaction because a date elapsed; and
 - silently altering a reconciled historical credit when estimates change.
+
+## Task 4 account interface
+
+Task 4 exposes interest configuration from each Account card without adding a
+second account-management navigation hierarchy.
+
+- Every account shows an explicit textual interest status.
+- The interest overlay supports APR entry with up to six decimal places,
+  effective-date entry in `YYYY-MM-DD`, and effective-dated disabling.
+- `Actual/365` is displayed as a fixed v1.4.0 rule rather than an editable bank
+  setting.
+- The overlay shows today's rounded estimate and the accumulated unreconciled
+  estimate while retaining exact arithmetic underneath.
+- The interface labels estimates as **non-posting** and explains that they do
+  not alter account balances or Income until an actual bank credit is
+  reconciled.
+- Saving or disabling adds a new effective-dated profile row; it never rewrites
+  prior profile history.
+- Revisiting the Accounts screen may idempotently generate missing estimate
+  rows through the current date, but it cannot create a posted transaction.
+- Disabling interest stops future estimate generation from the selected date
+  while preserving previously accumulated unreconciled estimates for display.
+- The interest overlay follows the global overlay Back behavior, so Android Back
+  dismisses it before leaving the Accounts screen.

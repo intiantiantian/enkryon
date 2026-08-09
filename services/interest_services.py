@@ -191,3 +191,49 @@ def get_interest_estimate_summary(
         ]
 
     return summarize_interest_accruals(accruals)
+
+
+class InterestProfileActionResult(NamedTuple):
+    success: bool
+    message: str
+
+
+def save_interest_profile(
+    account_id,
+    annual_rate_micros,
+    effective_from,
+    enabled=True,
+):
+    if type(annual_rate_micros) is not int or annual_rate_micros < 0:
+        return InterestProfileActionResult(
+            False,
+            "APR must be a non-negative percentage.",
+        )
+    try:
+        effective_from = _coerce_date(effective_from).isoformat()
+    except ValueError as error:
+        return InterestProfileActionResult(False, str(error))
+
+    from database.interest_repository import insert_interest_profile
+
+    profile_id = insert_interest_profile(
+        account_id,
+        annual_rate_micros,
+        effective_from,
+        enabled=enabled,
+    )
+    if profile_id is False:
+        return InterestProfileActionResult(
+            False,
+            "Interest settings could not be saved. Check that the effective date is not already used.",
+        )
+
+    if enabled:
+        return InterestProfileActionResult(
+            True,
+            "Daily interest settings saved.",
+        )
+    return InterestProfileActionResult(
+        True,
+        "Daily interest disabled from the selected date.",
+    )
