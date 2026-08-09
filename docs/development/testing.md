@@ -790,3 +790,37 @@ The final v1.3.0 Android gate requires all of the following:
 
 Task 7 advances the remaining 10% only after those final artifact and device
 checks pass.
+
+## Update 4 Daily Bank Interest Task 1 contract gate
+
+Update 4 starts from the released `v1.3.0` source on branch
+`update-4-daily-bank-interest`. The first local baseline exposed two stale
+release-document assertion strings left behind by final v1.3.0 wording changes:
+`docs/releases/README.md` now correctly says Update 3 **releases** v1.3.0, and
+the root README now describes Income/Expense exclusion across Internal and
+Pass-through transfers. The tests are aligned to the released wording before
+new interest implementation begins.
+
+Task 1 then locks the Daily Bank Interest contract in
+`docs/development/daily-bank-interest.md`: APR (not APY), Actual/365, prior
+end-of-day posted balance, Pending exclusion, directional Internal Transfer
+effects, Pass-through neutrality, exact integer/rational sub-centavo carry,
+ROUND_HALF_UP presentation rounding, effective-dated rates, idempotent missed-day
+generation, zero accrual for non-positive balances, and explicit actual-credit
+reconciliation to one posted Income transaction.
+
+Run the focused contract gate:
+
+```bat
+python -m pytest -q ^
+tests/test_update4_contract.py ^
+tests/test_phase_release_version.py ^
+tests/test_update1_closeout.py ^
+tests/test_update2_contract.py ^
+tests/test_update3_contract.py
+```
+
+Then run the complete suite with branch coverage, Python compilation, and
+`git diff --check`. Task 1 advances its 10% only after the contract reference
+cases and all regression gates pass. Migration 10 and backup format 5 remain
+reserved for later tasks and are not implemented at this checkpoint.

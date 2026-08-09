@@ -33,6 +33,6 @@ def test_current_release_candidate_uses_version_1_3_identity():
         in normalized_guide
     )
     assert (
-        "Update 3 prepares `v1.3.0` from official `v1.2.0`"
+        "Update 3 releases `v1.3.0` from official `v1.2.0`"
         in normalized_guide
     )

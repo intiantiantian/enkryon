@@ -34,7 +34,7 @@ def test_update_1_documents_transfer_financial_invariants():
     for document in (transfer_contract, database, release_notes):
         assert "integer centavos" in document or "integer-centavo" in document
 
-    assert "combined-account income and expenses unchanged" in readme
+    assert "Keep Internal and Pass-through principal out of Income and Expenses" in readme
     assert "all-accounts transfer contribution" in database
     assert "all-accounts balance, Income, Expenses" in release_notes
 
