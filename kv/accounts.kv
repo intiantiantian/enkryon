@@ -1,6 +1,6 @@
 <AccountCard>
     size_hint_y: None
-    height: self.minimum_height
+    height: dp(72)
 
     canvas.after:
         Color:
@@ -14,16 +14,13 @@
             width: 1.2
 
     BoxLayout:
-        id: group_content
-        orientation: 'vertical'
-        size_hint_y: None
-        height: self.minimum_height 
+        orientation: 'horizontal'
+        padding: '12dp', '8dp'
+        spacing: '8dp'
 
         BoxLayout:
-            size_hint_y: None
-            height: '56dp'
-            padding: '10dp', 0
-            spacing: '10dp'
+            orientation: 'vertical'
+            spacing: '2dp'
 
             MDLabel:
                 id: account_name
@@ -33,39 +30,43 @@
                 shorten: True
                 shorten_from: 'right'
 
-            MDIconButton:
-                icon: "pencil"
-                on_release:
-                    root.edit_account()
-
-            MDIconButton:
-                icon: "delete"
-                on_release:
-                    root.delete_account()
-
-        BoxLayout:
-            size_hint_y: None
-            height: '48dp'
-            padding: '10dp', 0
-            spacing: '10dp'
-
             MDLabel:
                 id: interest_summary
                 text: root.interest_summary_text
                 text_size: self.size
                 valign: 'middle'
-                font_size: '12sp'
+                font_size: '11sp'
                 theme_text_color: 'Custom'
                 text_color: get_color_from_hex(Colors.TEXT_SECONDARY)
-                max_lines: 2
+                max_lines: 1
                 shorten: True
                 shorten_from: 'right'
 
-            EnkryonSecondaryButton:
-                text: "INTEREST"
-                size_hint_x: None
-                width: dp(112)
-                on_release: root.manage_interest()
+        MDRectangleFlatButton:
+            text: "INTEREST"
+            size_hint_x: None
+            size_hint_y: None
+            width: dp(96)
+            height: dp(48)
+            radius: [dp(14), dp(14), dp(14), dp(14)]
+            line_width: 1.2
+            line_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+            md_bg_color: get_color_from_hex(Colors.SURFACE)
+            text_color: get_color_from_hex(Colors.BRAND_PRIMARY)
+            pos_hint: {'center_y': .5}
+            on_release: root.manage_interest()
+
+        MDIconButton:
+            icon: "pencil"
+            pos_hint: {'center_y': .5}
+            on_release:
+                root.edit_account()
+
+        MDIconButton:
+            icon: "delete"
+            pos_hint: {'center_y': .5}
+            on_release:
+                root.delete_account()
 
 <AccountsScreen>
     BoxLayout:

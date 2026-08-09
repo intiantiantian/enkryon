@@ -11,10 +11,10 @@ def test_interest_overlay_exposes_locked_v14_inputs_and_disclosures():
 
     assert 'text: "Daily Bank Interest"' in layout
     assert 'hint_text: "APR (%)"' in layout
-    assert 'helper_text: "Nominal APR; up to 6 decimal places"' in layout
+    assert 'text: "Nominal APR · up to 6 decimal places"' in layout
     assert 'hint_text: "Effective date"' in layout
-    assert 'helper_text: "YYYY-MM-DD; existing profile dates cannot be reused"' in layout
-    assert 'root.day_count_text + " (fixed for v1.4.0)"' in layout
+    assert 'text: "YYYY-MM-DD · profile dates cannot be reused"' in layout
+    assert 'root.day_count_text + " · fixed for v1.4.0"' in layout
     assert 'text: "ESTIMATE ONLY · NON-POSTING"' in layout
     assert 'text: "TODAY\'S ESTIMATE"' in layout
     assert 'text: "UNPOSTED ACCRUED"' in layout
@@ -27,8 +27,14 @@ def test_interest_overlay_is_scrollable_and_uses_touch_target_buttons():
 
     assert "ScrollView:" in layout
     assert "do_scroll_x: False" in layout
+    assert "scroll_y: 1" in layout
+    assert "adaptive_height: True" in layout
+    assert "padding: [dp(6), dp(4), dp(8), dp(24)]" in layout
+    assert "width: self.texture_size[0]" not in layout
     assert "height: dp(48)" in layout
-    assert "EnkryonSecondaryButton:" in layout
+    assert layout.count("MDRectangleFlatButton:") == 2
+    assert "line_color: get_color_from_hex(Colors.BRAND_PRIMARY)" in layout
+    assert "line_color: get_color_from_hex(Colors.ERROR)" in layout
     assert "EnkryonPrimaryButton:" in layout
 
 
@@ -39,6 +45,9 @@ def test_account_card_has_text_interest_status_and_named_action():
     assert "id: interest_summary" in layout
     assert "text: root.interest_summary_text" in layout
     assert 'text: "INTEREST"' in layout
+    assert "MDRectangleFlatButton:" in layout
+    assert "EnkryonSecondaryButton:" not in layout
+    assert "line_color: get_color_from_hex(Colors.BRAND_PRIMARY)" in layout
     assert "on_release: root.manage_interest()" in layout
     assert 'StringProperty("Interest: Off")' in card_source
 

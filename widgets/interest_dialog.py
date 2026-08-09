@@ -21,8 +21,8 @@ class InterestSettingsDialog(EnkryonOverlay):
     save_callback = ObjectProperty(None, allownone=True)
     disable_callback = ObjectProperty(None, allownone=True)
 
-    max_height = NumericProperty(dp(620))
-    vertical_margin = NumericProperty(dp(16))
+    max_height = NumericProperty(dp(640))
+    vertical_margin = NumericProperty(dp(12))
 
     def calculate_height(self, available_height):
         usable_height = max(
