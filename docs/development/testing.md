@@ -883,3 +883,12 @@ failure, removal of reconciled amounts from the unposted estimate summary, and
 the account reconciliation overlay workflow. This remains a focused checkpoint;
 the complete regression/coverage suite is deferred to the major integration and
 release gates.
+
+
+### Update 4 interest removal refinement
+
+Focused removal tests verify that **Remove Interest** purges account-specific
+interest profiles and accrual/reconciliation metadata while preserving any
+already-posted bank-interest Income transaction and its account-balance effect.
+The UI workflow also distinguishes destructive removal from effective-dated
+Disable and requires an explicit confirmation.

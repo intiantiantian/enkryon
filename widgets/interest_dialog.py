@@ -17,10 +17,12 @@ class InterestSettingsDialog(EnkryonOverlay):
     today_estimate_text = StringProperty("₱ 0.00")
     accumulated_estimate_text = StringProperty("₱ 0.00")
     is_enabled = BooleanProperty(False)
+    can_remove = BooleanProperty(False)
 
     save_callback = ObjectProperty(None, allownone=True)
     disable_callback = ObjectProperty(None, allownone=True)
     reconcile_callback = ObjectProperty(None, allownone=True)
+    remove_callback = ObjectProperty(None, allownone=True)
 
     max_height = NumericProperty(dp(640))
     vertical_margin = NumericProperty(dp(12))
@@ -59,6 +61,13 @@ class InterestSettingsDialog(EnkryonOverlay):
         )
         if success:
             self.dismiss()
+
+    def remove(self):
+        if not self.remove_callback:
+            return
+
+        self.dismiss()
+        self.remove_callback()
 
 
 class InterestReconciliationDialog(EnkryonOverlay):

@@ -19,6 +19,7 @@ def test_interest_overlay_exposes_locked_v14_inputs_and_disclosures():
     assert 'text: "TODAY\'S ESTIMATE"' in layout
     assert 'text: "UNPOSTED ACCRUED"' in layout
     assert 'text: "DISABLE"' in layout
+    assert 'text: "REMOVE INTEREST"' in layout
     assert 'text: "SAVE"' in layout
 
 
@@ -49,7 +50,7 @@ def test_account_card_has_text_interest_status_and_named_action():
     assert "EnkryonSecondaryButton:" not in layout
     assert "line_color: get_color_from_hex(Colors.BRAND_PRIMARY)" in layout
     assert "on_release: root.manage_interest()" in layout
-    assert 'StringProperty("Interest: Off")' in card_source
+    assert 'StringProperty("Interest: Not configured")' in card_source
 
 
 def test_app_loads_interest_overlay_definition():
@@ -66,3 +67,14 @@ def test_interface_copy_keeps_estimates_non_posting():
     assert "explicitly reconcile a bank credit" in layout
     assert "effective-dated disabling" in contract
     assert "Android Back dismisses it" in " ".join(contract.split())
+
+
+def test_remove_interest_is_distinct_from_effective_dated_disable():
+    layout = read("kv/interest_dialog.kv")
+    contract = " ".join(read("docs/development/daily-bank-interest.md").split())
+
+    assert 'text: "REMOVE INTEREST"' in layout
+    assert "root.can_remove" in layout
+    assert layout.count("disabled: not root.can_remove") >= 2
+    assert "Disable** is effective-dated" in contract
+    assert "Posted bank-interest Income transactions are preserved" in contract

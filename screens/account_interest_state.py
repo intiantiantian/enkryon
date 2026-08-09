@@ -10,6 +10,7 @@ RATE_MICROS_PER_PERCENT = Decimal("1000000")
 
 class AccountInterestViewState(NamedTuple):
     enabled: bool
+    configured: bool
     apr_text: str
     effective_date_text: str
     day_count_text: str
@@ -98,17 +99,22 @@ def build_interest_view_state(
     today_text = format_money(today_summary.rounded_centavos)
     accumulated_text = format_money(accumulated_summary.rounded_centavos)
 
+    configured = enabled or accumulated_summary.rounded_centavos != 0
+
     if enabled:
         summary_text = (
             f"Interest: {apr_text}% APR · accrued {accumulated_text}"
         )
     elif accumulated_summary.rounded_centavos:
         summary_text = f"Interest: Off · accrued {accumulated_text}"
-    else:
+    elif configured:
         summary_text = "Interest: Off"
+    else:
+        summary_text = "Interest: Not configured"
 
     return AccountInterestViewState(
         enabled=enabled,
+        configured=configured,
         apr_text=apr_text,
         effective_date_text=effective_date_text,
         day_count_text="Actual/365",
@@ -159,7 +165,8 @@ def load_account_interest_view(account_id, as_of_date=None):
             as_of_date,
         )
         return state._replace(
-            effective_date_text=next_effective_date
+            configured=bool(profiles),
+            effective_date_text=next_effective_date,
         )
 
     today_summary = get_interest_estimate_summary(
@@ -174,5 +181,6 @@ def load_account_interest_view(account_id, as_of_date=None):
         as_of_date,
     )
     return state._replace(
-        effective_date_text=next_effective_date
+        configured=bool(profiles),
+        effective_date_text=next_effective_date,
     )

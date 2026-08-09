@@ -239,6 +239,42 @@ def save_interest_profile(
     )
 
 
+class InterestRemovalResult(NamedTuple):
+    success: bool
+    message: str
+    removed_profiles: int = 0
+    removed_accruals: int = 0
+
+
+def remove_interest_tracking(account_id):
+    """Permanently remove interest-only tracking data for an account.
+
+    Reconciled posted Income transactions remain normal financial records.
+    """
+    from database.interest_repository import remove_interest_tracking_data
+
+    removed = remove_interest_tracking_data(account_id)
+    if removed is False:
+        return InterestRemovalResult(
+            False,
+            "Interest tracking could not be removed. No changes were saved.",
+        )
+
+    profile_count, accrual_count = removed
+    if profile_count == 0:
+        return InterestRemovalResult(
+            False,
+            "This account has no interest tracking to remove.",
+        )
+
+    return InterestRemovalResult(
+        True,
+        "Daily interest tracking removed. Posted interest Income was kept.",
+        removed_profiles=profile_count,
+        removed_accruals=accrual_count,
+    )
+
+
 class InterestReconciliationPreview(NamedTuple):
     accrual_count: int
     estimated_centavos: int

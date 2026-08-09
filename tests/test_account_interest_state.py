@@ -63,6 +63,7 @@ def test_enabled_view_state_has_textual_rate_and_estimates():
     )
 
     assert state.enabled is True
+    assert state.configured is True
     assert state.apr_text == "3.65"
     assert state.day_count_text == "Actual/365"
     assert state.today_estimate_text == "₱ 0.12"
@@ -79,9 +80,10 @@ def test_disabled_view_state_is_explicit_and_defaults_date_to_today():
     )
 
     assert state.enabled is False
+    assert state.configured is False
     assert state.apr_text == ""
     assert state.effective_date_text == "2026-08-09"
-    assert state.summary_text == "Interest: Off"
+    assert state.summary_text == "Interest: Not configured"
 
 
 def test_next_available_effective_date_skips_existing_profile_dates():

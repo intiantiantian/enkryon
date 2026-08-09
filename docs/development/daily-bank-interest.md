@@ -259,3 +259,12 @@ non-posting nature of estimates.
 - After reconciliation, the actual posted credit behaves exactly like normal
   Income for balances and totals, while the reconciled estimate leaves the
   unposted-accrued total.
+
+
+## Disable versus Remove Interest
+
+- **Disable** is effective-dated and preserves interest settings/history so
+  tracking can resume later without rewriting prior estimates.
+- **Remove Interest** deletes the account's interest profiles and all interest
+  accrual/reconciliation metadata. Posted bank-interest Income transactions are
+  preserved and remain normal financial history.

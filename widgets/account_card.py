@@ -3,7 +3,7 @@ from kivymd.uix.card import MDCard
 
 
 class AccountCard(MDCard):
-    interest_summary_text = StringProperty("Interest: Off")
+    interest_summary_text = StringProperty("Interest: Not configured")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

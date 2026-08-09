@@ -13,6 +13,7 @@ from services.account_services import (
 from services.interest_services import (
     get_interest_reconciliation_preview,
     reconcile_interest_credit,
+    remove_interest_tracking,
     save_interest_profile,
 )
 
@@ -57,6 +58,7 @@ class AccountsScreen(Screen):
     def on_pre_enter(self):
         self.load_accounts()
         self.delete_dialog = None
+        self.interest_remove_dialog = None
 
 
     def load_accounts(self):
@@ -97,6 +99,7 @@ class AccountsScreen(Screen):
             today_estimate_text=state.today_estimate_text,
             accumulated_estimate_text=state.accumulated_estimate_text,
             is_enabled=state.enabled,
+            can_remove=state.configured,
             save_callback=lambda apr, effective_date: self.save_interest_settings(
                 account_id, apr, effective_date
             ),
@@ -104,6 +107,9 @@ class AccountsScreen(Screen):
                 account_id, effective_date
             ),
             reconcile_callback=lambda: self.open_interest_reconciliation(
+                account_id, account_name
+            ),
+            remove_callback=lambda: self.confirm_remove_interest(
                 account_id, account_name
             ),
         )
@@ -153,6 +159,39 @@ class AccountsScreen(Screen):
             refresh_required=result.success,
         )
         return result.success
+
+
+    def confirm_remove_interest(self, account_id, account_name):
+        self.interest_remove_dialog = EnkryonConfirmationDialog(
+            title="Remove Interest?",
+            message=(
+                f"Remove all Daily Bank Interest settings and estimate "
+                f"history for {account_name}? Reconciliation metadata will "
+                "be removed, but posted bank-interest Income transactions "
+                "will remain."
+            ),
+            confirm_text="Remove",
+            confirm_callback=lambda: self.perform_remove_interest(account_id),
+            cancel_callback=self.close_interest_remove_dialog,
+        )
+        self.interest_remove_dialog.open()
+
+
+    def perform_remove_interest(self, account_id):
+        self.close_interest_remove_dialog()
+        result = remove_interest_tracking(account_id)
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
+        return result.success
+
+
+    def close_interest_remove_dialog(self, *args):
+        if self.interest_remove_dialog:
+            self.interest_remove_dialog.dismiss()
+            self.interest_remove_dialog = None
 
 
     def open_interest_reconciliation(self, account_id, account_name):

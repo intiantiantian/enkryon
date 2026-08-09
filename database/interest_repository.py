@@ -248,6 +248,35 @@ def delete_interest_profile(profile_id):
         return False
 
 
+
+def remove_interest_tracking_data(account_id):
+    """Remove all interest-only data for one account atomically.
+
+    Posted transactions created by reconciliation are intentionally preserved.
+    Accrual rows are deleted first because they reference profile rows.
+    """
+    try:
+        with managed_connection() as connection:
+            profile_count = connection.execute(
+                "SELECT COUNT(*) FROM account_interest_profiles WHERE account_id = ?",
+                (account_id,),
+            ).fetchone()[0]
+            if profile_count == 0:
+                return (0, 0)
+
+            accrual_cursor = connection.execute(
+                "DELETE FROM account_interest_accruals WHERE account_id = ?",
+                (account_id,),
+            )
+            profile_cursor = connection.execute(
+                "DELETE FROM account_interest_profiles WHERE account_id = ?",
+                (account_id,),
+            )
+            connection.commit()
+            return (profile_cursor.rowcount, accrual_cursor.rowcount)
+    except sqlite3.Error:
+        return False
+
 def insert_interest_accrual(
     account_id,
     interest_profile_id,
