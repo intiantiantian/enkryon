@@ -1,13 +1,10 @@
 # Enkryon Development Roadmap
 
 Updated: August 9, 2026
-Current release: `v1.3.0`
-Release candidate: `v1.4.0`
-Next planned release after v1.4.0: `v1.5.0`
-Current position: Update 4 Daily Bank Interest implementation and all automated,
-desktop, signed-Android, clean-install, official v1.3.0-to-v1.4.0 upgrade, and
-backup/recovery verification gates are complete. Merge, tag, and publication
-remain before v1.4.0 becomes the current released version.
+Current release: `v1.4.0`
+Next planned release: `v1.5.0`
+Current position: Update 4 Daily Bank Interest is released as `v1.4.0`.
+Update 5 Statistical Visualizations is the next planned release.
 
 ## Purpose
 
@@ -30,15 +27,15 @@ The phases are ordered by risk. Enkryon must first protect financial data, calcu
 
 | Area | Current project state | What it means for the roadmap |
 |---|---|---|
-| Core product | Accounts, categories, posted income and expenses, Pending Transactions, Internal Transfers, Pass-through Transfers, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add Daily Bank Interest next without weakening posted/Pending or transfer semantics. |
-| Financial accuracy | Transaction and transfer amounts remain integer centavos; Internal transfer effects remain exact while Pass-through changes no participating account balance while Income and Expenses remain unchanged. | Keep balance movement separate from earned income and spending as interest estimation is added. |
-| Database upgrades | A `schema_migrations` table and nine ordered, transactional migrations are present; migration 7 adds Internal/Pass-through kind, migration 8 is superseded development history, and migration 9 removes its temporary movement artifacts. | Preserve the released migration history while adding future features. |
+| Core product | Accounts, categories, posted income and expenses, Pending Transactions, Internal Transfers, Pass-through Transfers, Daily Bank Interest, editing, deletion/undo, dashboard totals, unified activity history, collapsible advanced filters, and local storage are implemented. | Add Statistical Visualizations next without weakening posted/Pending, transfer, or interest semantics. |
+| Financial accuracy | Transaction and transfer amounts remain integer centavos; Internal transfer effects remain exact, Pass-through changes no participating account balance, and Daily Bank Interest uses exact integer/rational sub-centavo carry until explicit reconciliation posts one actual Income credit. | Keep estimated interest and balance movement separate from posted income and spending in future statistics. |
+| Database upgrades | A `schema_migrations` table and ten ordered, transactional migrations are present; migration 10 adds effective-dated Daily Bank Interest profiles and exact accrual records. | Preserve migrations 1 through 10 unchanged while adding future features. |
 | Data rules | The database rejects invalid transaction and transfer amounts, invalid dates, same-account transfers, invalid transaction types, blank or untrimmed names, duplicates, and missing relationships. Foreign keys remain enabled. | Important data rules are enforced even if a screen-level check is missed. |
-| Automated tests | The final v1.3.0 Windows gate contains `830` passing tests at `84%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.4.0. |
-| Android release | The corrected signed `v1.3.0` artifact passed clean-install, official v1.2.0 upgrade, balance-neutral Pass-through, backup/restore, and relaunch checks. The older v1.0.0-to-v1.1.0 waiver remains historical. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.4.0. |
+| Automated tests | The final v1.4.0 Windows release gate contains `918` passing tests at `82%` total branch coverage. | Keep the same focused-test, complete-suite, compilation, whitespace, CI, and device gates for v1.5.0. |
+| Android release | The signed `v1.4.0` artifact passed certificate/alignment verification, clean installation, official v1.3.0 in-place upgrade, controlled interest/reconciliation, format-5 backup/restore, and relaunch/idempotency checks. | Continue recommending a pre-upgrade backup and preserve the permanent signing identity for v1.5.0. |
 | Architecture | Focused transfer components, status-aware persistence, UI-independent pending workflows, explicit form actions, and status-aware activity/filter records now feed the existing service boundaries. | Keep backup validation and restore rules in the recovery layer without moving SQL or posting rules into UI code. |
 | User experience | The transaction form, activity cards, Dashboard, and Activity History expose non-color-only Pending status, guarded posting, explicit Pending filtering, and posted-only Income/Expense views. | Preserve these semantics through backup, restore, relaunch, and Android upgrade checks. |
-| Backup and recovery | Backup format 4 preserves transaction posting status plus Internal/Pass-through transfer kind and counterparty; formats 1 through 3 remain compatible and older transfers normalize to Internal. | Preserve this compatibility through Daily Bank Interest and the next official upgrade. |
+| Backup and recovery | Backup format 5 preserves transaction posting status, Internal/Pass-through transfer kind and counterparty, Daily Bank Interest profiles/accruals, exact remainder state, and reconciliation links; formats 1 through 4 remain compatible. | Preserve this compatibility through Statistical Visualizations and the next official upgrade. |
 | Search and advanced filters | Unified activity search and filters cover posted Income, posted Expenses, Pending records, Internal and Pass-through Transfers, counterparties, accounts, notes, groups, categories, and inclusive dates with stable newest-first ordering. | Preserve exact status, transfer-kind, and filter behavior as later financial capabilities are added. |
 
 ## Phase Overview
@@ -644,7 +641,7 @@ history. Disable preserves history prospectively; Remove Interest deletes
 interest-only profiles/accrual metadata while preserving any already-posted
 bank-interest Income.
 
-The final release-candidate gate contains `918` passing tests at `82%` branch
+The final v1.4.0 release gate contains `918` passing tests at `82%` branch
 coverage. Desktop configuration, reconciliation, removal, backup/restore, and
 relaunch checks passed. The signed Android artifact then passed certificate and
 alignment verification, clean installation, official v1.3.0-to-v1.4.0 in-place
@@ -694,12 +691,10 @@ roadmaps must not erase previously verified release evidence:
    installation, official v1.2.0-to-v1.3.0 upgrade, balance-neutral
    Pass-through workflow, backup/restore, relaunch, and main-branch merge.
 
-Update 4 Tasks 1 through 6 are completed. Task 7 has passed its automated, CI,
-artifact, clean-install, official-upgrade, controlled-interest, and recovery
-gates. The only remaining closeout work is to record this evidence, merge to
-`main`, run the main-branch sanity gate, finalize release-status records, tag
-`v1.4.0`, and publish it. Statistical Visualizations remain deferred until
-this release is complete.
+Update 4 is completed and released as `v1.4.0`. Its automated, CI, signed
+artifact, clean-install, official-upgrade, controlled-interest, recovery,
+main-branch merge, and post-merge sanity gates all passed. Update 5 Statistical
+Visualizations (`v1.5.0`) is now the next planned feature release.
 
 ## Rule for Completing Every Phase
 

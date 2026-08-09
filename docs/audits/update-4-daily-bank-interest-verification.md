@@ -20,8 +20,8 @@
 | 5. Add posting and reconciliation workflow | 13% | Completed — `d9acb4c` |
 | Refinement: Remove Interest | 0% | Completed — `5f1b64e` |
 | 6. Integrate history, backup, and performance | 10% | Completed — `6c618e4` |
-| 7. Close and release Update 4 | 10% | In progress — verification complete; merge/tag/publication pending |
-| **Total completed before publication** | **90%** | **Verified release candidate** |
+| 7. Close and release Update 4 | 10% | Completed — verified release source finalized on `main` |
+| **Total** | **100%** | **Released as v1.4.0** |
 
 ## Locked Financial Contract
 
@@ -67,7 +67,7 @@ for one account while preserving any already-posted Income transaction.
 - Python compilation: passed.
 - Git whitespace check: passed.
 
-## Final Android and Release-Candidate Evidence
+## Final Android and Release Evidence
 
 - Release-candidate commit: `fe34913`.
 - GitHub Actions: passed on the release-candidate branch.
@@ -95,13 +95,13 @@ for one account while preserving any already-posted Income transaction.
 - Backup format 5 export, Clear All Data, replacement restore, force-stop/relaunch,
   interest-profile preservation, and no-duplicate checks: passed.
 
-## Remaining Publication Steps
+## Main-Branch Closeout
 
-Task 7 remains open only for repository publication steps:
-
-1. Commit these observed release-evidence records.
-2. Merge the verified branch into `main`.
-3. Run the main-branch sanity gate.
-4. Finalize release-status records on `main`.
-5. Create annotated tag `v1.4.0`.
-6. Publish the GitHub Release with the verified APK, checksum, and release notes.
+- The verified Update 4 branch was fast-forward merged into `main` at `d99af7d`.
+- `origin/main` was synchronized successfully.
+- Post-merge release sanity gate: `16 passed`.
+- Python compilation: passed.
+- Git whitespace check: passed.
+- Working tree after the merge sanity gate: clean.
+- The source tree is finalized for the annotated `v1.4.0` tag and GitHub Release
+  publication with the already-verified APK, checksum, and release notes.

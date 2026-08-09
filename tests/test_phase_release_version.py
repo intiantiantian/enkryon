@@ -7,7 +7,7 @@ README_FILE = PROJECT_ROOT / "README.md"
 RELEASE_GUIDE = PROJECT_ROOT / "docs" / "releases" / "README.md"
 
 
-def test_current_release_candidate_uses_version_1_4_identity():
+def test_current_release_uses_version_1_4_identity():
     main_source = MAIN_FILE.read_text(encoding="utf-8")
     readme = README_FILE.read_text(encoding="utf-8")
     release_guide = RELEASE_GUIDE.read_text(encoding="utf-8")
@@ -37,6 +37,6 @@ def test_current_release_candidate_uses_version_1_4_identity():
         in normalized_guide
     )
     assert (
-        "Update 4 prepares the verified `v1.4.0` candidate from official `v1.3.0`"
+        "Update 4 releases `v1.4.0` from official `v1.3.0`"
         in normalized_guide
     )

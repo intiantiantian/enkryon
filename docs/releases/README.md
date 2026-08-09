@@ -23,7 +23,7 @@ first database migration and backup-format expansion after the stable release.
 Update 2 prepares `v1.2.0` from official `v1.1.0`, adds Pending Transactions,
 migration 6, and backup format 3. Update 3 releases `v1.3.0` from official
 `v1.2.0`, adds Pass-through Transfers, migrations 7 through 9, and backup
-format 4. Update 4 prepares the verified `v1.4.0` candidate from official `v1.3.0`, adds Daily Bank
+format 4. Update 4 releases `v1.4.0` from official `v1.3.0`, adds Daily Bank
 Interest, migration 10, and backup format 5.
 
 `main.py` is the version source. The secure release helper reads that value,

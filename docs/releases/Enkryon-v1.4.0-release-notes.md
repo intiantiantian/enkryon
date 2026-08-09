@@ -2,7 +2,7 @@
 
 Release date: `2026-08-09`
 
-Release status: `VERIFIED RELEASE CANDIDATE`
+Release status: `RELEASED`
 
 ## Summary
 
@@ -106,9 +106,11 @@ explicitly reconciles an actual bank credit.
 - Restore replaces current data; it does not merge backup and current records.
 
 
-## Publication state
+## Release finalization
 
 All automated, desktop, artifact, clean-install, official-upgrade, interest, and
-recovery verification gates are complete. Merge to `main`, the annotated
-`v1.4.0` tag, and GitHub Release publication remain before this candidate is
-marked released.
+recovery verification gates are complete. The verified Update 4 branch was
+fast-forward merged to `main` at `d99af7d`; the post-merge sanity gate passed
+`16` focused release tests, Python compilation, and Git whitespace checks.
+This source is finalized as Enkryon `v1.4.0` for the annotated release tag and
+GitHub Release publication.
