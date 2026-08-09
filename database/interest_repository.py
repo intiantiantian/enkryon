@@ -439,3 +439,112 @@ def delete_interest_accrual(accrual_id):
             return True
     except sqlite3.Error:
         return False
+
+
+def get_reconcilable_interest_accruals(account_id, through_date):
+    with managed_connection() as connection:
+        rows = connection.execute(
+            ACCRUAL_SELECT
+            + '''
+                WHERE account_id = ?
+                  AND status = 'estimated'
+                  AND accrual_date <= ?
+                ORDER BY accrual_date ASC, id ASC
+            ''',
+            (account_id, through_date),
+        ).fetchall()
+
+    return [InterestAccrualRecord(*row) for row in rows]
+
+
+def reconcile_interest_accruals_transaction(
+    *,
+    account_id,
+    through_date,
+    amount_centavos,
+    category_id,
+    credit_date_time,
+    notes,
+):
+    if type(amount_centavos) is not int or amount_centavos <= 0:
+        return False
+
+    try:
+        with managed_connection() as connection:
+            account = connection.execute(
+                "SELECT id FROM accounts WHERE id = ?",
+                (account_id,),
+            ).fetchone()
+            if account is None:
+                return False
+
+            category = connection.execute(
+                '''
+                SELECT category_groups.transaction_type
+                FROM categories
+                INNER JOIN category_groups
+                    ON categories.group_id = category_groups.group_id
+                WHERE categories.category_id = ?
+                ''',
+                (category_id,),
+            ).fetchone()
+            if category is None or category[0] != "income":
+                return False
+
+            rows = connection.execute(
+                '''
+                SELECT id
+                FROM account_interest_accruals
+                WHERE account_id = ?
+                  AND status = 'estimated'
+                  AND accrual_date <= ?
+                ORDER BY accrual_date ASC, id ASC
+                ''',
+                (account_id, through_date),
+            ).fetchall()
+            accrual_ids = [row[0] for row in rows]
+            if not accrual_ids:
+                return False
+
+            cursor = connection.execute(
+                '''
+                INSERT INTO transactions (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    date_time,
+                    notes,
+                    posting_status
+                )
+                VALUES (?, ?, ?, ?, ?, 'posted')
+                ''',
+                (
+                    account_id,
+                    amount_centavos,
+                    category_id,
+                    credit_date_time,
+                    notes,
+                ),
+            )
+            transaction_id = cursor.lastrowid
+
+            placeholders = ", ".join("?" for _ in accrual_ids)
+            cursor = connection.execute(
+                f'''
+                UPDATE account_interest_accruals
+                SET status = 'reconciled',
+                    posted_transaction_id = ?
+                WHERE id IN ({placeholders})
+                  AND status = 'estimated'
+                ''',
+                (transaction_id, *accrual_ids),
+            )
+            if cursor.rowcount != len(accrual_ids):
+                raise sqlite3.IntegrityError(
+                    "Interest reconciliation changed concurrently."
+                )
+
+            connection.commit()
+            return transaction_id, len(accrual_ids)
+    except (sqlite3.Error, TypeError, ValueError, OverflowError):
+        return False

@@ -32,7 +32,7 @@ def test_interest_overlay_is_scrollable_and_uses_touch_target_buttons():
     assert "padding: [dp(6), dp(4), dp(8), dp(24)]" in layout
     assert "width: self.texture_size[0]" not in layout
     assert "height: dp(48)" in layout
-    assert layout.count("MDRectangleFlatButton:") == 2
+    assert layout.count("MDRectangleFlatButton:") >= 4
     assert "line_color: get_color_from_hex(Colors.BRAND_PRIMARY)" in layout
     assert "line_color: get_color_from_hex(Colors.ERROR)" in layout
     assert "EnkryonPrimaryButton:" in layout

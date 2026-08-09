@@ -232,3 +232,30 @@ second account-management navigation hierarchy.
   while preserving previously accumulated unreconciled estimates for display.
 - The interest overlay follows the global overlay Back behavior, so Android Back
   dismisses it before leaving the Accounts screen.
+
+## Task 5 reconciliation workflow
+
+Task 5 implements explicit bank-credit reconciliation without changing the
+non-posting nature of estimates.
+
+- The user opens **Reconcile Bank Credit** from the account interest overlay.
+- The reconciliation form shows the rounded estimate through the selected
+  credit date, the number of unreconciled estimate days, the actual credited
+  amount, an existing Income category, and the presentation-only variance.
+- The covered estimate period is every still-`estimated` accrual for the
+  selected account on or before the confirmed credit date.
+- Confirming creates exactly one normal `posting_status = 'posted'` Income
+  transaction dated on the bank credit date and links every covered accrual to
+  that transaction.
+- The stored accrual snapshots are not rewritten when the bank's actual credit
+  differs from the estimate; variance remains informational.
+- A repeated confirmation for an already reconciled period cannot create a
+  second transaction because no eligible `estimated` rows remain.
+- Account/category validation, transaction insertion, accrual status changes,
+  and transaction linking are committed as one SQLite transaction. Any failure
+  rolls back the complete reconciliation.
+- The created transaction uses the note `Bank interest credit` and the confirmed
+  date. v1.4.0 does not claim to know the bank's intraday posting time.
+- After reconciliation, the actual posted credit behaves exactly like normal
+  Income for balances and totals, while the reconciled estimate leaves the
+  unposted-accrued total.

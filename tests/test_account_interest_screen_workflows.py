@@ -1,6 +1,6 @@
 from importlib import import_module
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from screens.accounts import AccountsScreen
 from services.interest_services import InterestProfileActionResult
@@ -31,6 +31,7 @@ def test_open_interest_dialog_populates_account_state(monkeypatch):
     screen = SimpleNamespace(
         save_interest_settings=Mock(),
         disable_interest_settings=Mock(),
+        open_interest_reconciliation=Mock(),
     )
 
     AccountsScreen.open_interest_dialog(screen, 7, "Savings")
@@ -47,11 +48,15 @@ def test_open_interest_dialog_populates_account_state(monkeypatch):
 
     kwargs["save_callback"]("4.25", "2026-09-01")
     kwargs["disable_callback"]("2026-10-01")
+    kwargs["reconcile_callback"]()
     screen.save_interest_settings.assert_called_once_with(
         7, "4.25", "2026-09-01"
     )
     screen.disable_interest_settings.assert_called_once_with(
         7, "2026-10-01"
+    )
+    screen.open_interest_reconciliation.assert_called_once_with(
+        7, "Savings"
     )
 
 
@@ -129,3 +134,78 @@ def test_invalid_apr_keeps_dialog_open_and_does_not_persist(monkeypatch):
     show_snackbar.assert_called_once_with(
         "APR can use at most six decimal places."
     )
+
+
+def test_open_reconciliation_populates_preview_and_callbacks(monkeypatch):
+    from services.interest_services import InterestReconciliationPreview
+
+    dialog = SimpleNamespace(open=Mock())
+    dialog_factory = Mock(return_value=dialog)
+    preview = InterestReconciliationPreview(3, 425)
+    monkeypatch.setattr(
+        accounts_module,
+        "InterestReconciliationDialog",
+        dialog_factory,
+    )
+    monkeypatch.setattr(
+        accounts_module,
+        "get_interest_reconciliation_preview",
+        Mock(return_value=preview),
+    )
+    screen = SimpleNamespace(
+        reconcile_interest_credit=Mock(),
+        open_interest_category_menu=Mock(),
+        refresh_interest_reconciliation_preview=Mock(),
+    )
+
+    with patch("screens.accounts.date") as mocked_date:
+        mocked_date.today.return_value.isoformat.return_value = "2026-08-09"
+        AccountsScreen.open_interest_reconciliation(screen, 7, "Savings")
+
+    dialog.open.assert_called_once_with()
+    kwargs = dialog_factory.call_args.kwargs
+    assert kwargs["account_name"] == "Savings"
+    assert kwargs["estimated_text"] == "₱ 4.25"
+    assert kwargs["accrual_count_text"] == "3 estimated days"
+    assert kwargs["credit_date_text"] == "2026-08-09"
+    kwargs["save_callback"]("4.21", "2026-08-09", 9)
+    screen.reconcile_interest_credit.assert_called_once_with(
+        7, "4.21", "2026-08-09", 9
+    )
+
+
+def test_reconcile_interest_credit_parses_amount_and_refreshes(monkeypatch):
+    from services.interest_services import InterestReconciliationResult
+
+    result = InterestReconciliationResult(
+        True,
+        "Posted.",
+        posted_transaction_id=42,
+        accrual_count=3,
+        estimated_centavos=425,
+        actual_centavos=421,
+        variance_centavos=-4,
+    )
+    reconcile = Mock(return_value=result)
+    show_snackbar = Mock()
+    monkeypatch.setattr(accounts_module, "reconcile_interest_credit", reconcile)
+    monkeypatch.setattr(action_results_module, "show_snackbar", show_snackbar)
+    screen = SimpleNamespace(load_accounts=Mock())
+
+    success = AccountsScreen.reconcile_interest_credit(
+        screen,
+        7,
+        "4.21",
+        "2026-08-09",
+        9,
+    )
+
+    assert success is True
+    reconcile.assert_called_once_with(
+        account_id=7,
+        actual_amount_centavos=421,
+        credit_date="2026-08-09",
+        category_id=9,
+    )
+    screen.load_accounts.assert_called_once_with()
+    show_snackbar.assert_called_once_with("Posted.")

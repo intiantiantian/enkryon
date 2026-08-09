@@ -1,7 +1,9 @@
 from theme.tokens import Colors, ComponentSize, Radius, hex_to_rgba
 from widgets.buttons import (
+    FILTER_BUTTON_RADIUS,
     PRIMARY_BUTTON_STYLE,
     SECONDARY_BUTTON_STYLE,
+    EnkryonFilterButton,
     get_filter_button_style,
 )
 
@@ -44,3 +46,13 @@ def test_unselected_filter_button_uses_outlined_surface():
     assert style["background_color"] == hex_to_rgba(Colors.SURFACE)
     assert style["text_color"] == hex_to_rgba(Colors.BRAND_PRIMARY)
     assert style["line_width"] == 1.5
+
+
+def test_filter_button_repairs_missing_radius_before_ripple():
+    import inspect
+
+    source = inspect.getsource(EnkryonFilterButton.on_touch_down)
+
+    assert "if self.radius is None" in source
+    assert "self.radius = FILTER_BUTTON_RADIUS.copy()" in source
+    assert "return super().on_touch_down(touch)" in source

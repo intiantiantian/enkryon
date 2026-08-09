@@ -237,3 +237,108 @@ def save_interest_profile(
         True,
         "Daily interest disabled from the selected date.",
     )
+
+
+class InterestReconciliationPreview(NamedTuple):
+    accrual_count: int
+    estimated_centavos: int
+
+
+class InterestReconciliationResult(NamedTuple):
+    success: bool
+    message: str
+    posted_transaction_id: int | None = None
+    accrual_count: int = 0
+    estimated_centavos: int = 0
+    actual_centavos: int = 0
+    variance_centavos: int = 0
+
+
+def get_interest_reconciliation_preview(account_id, through_date):
+    from database.interest_repository import (
+        get_reconcilable_interest_accruals,
+    )
+
+    through_date = _coerce_date(through_date)
+    if through_date > date.today():
+        raise ValueError("Credit date cannot be in the future.")
+    generate_missing_interest_accruals(account_id, through_date)
+    accruals = get_reconcilable_interest_accruals(
+        account_id,
+        through_date.isoformat(),
+    )
+    summary = summarize_interest_accruals(accruals)
+    return InterestReconciliationPreview(
+        accrual_count=len(accruals),
+        estimated_centavos=summary.rounded_centavos,
+    )
+
+
+def reconcile_interest_credit(
+    *,
+    account_id,
+    actual_amount_centavos,
+    credit_date,
+    category_id,
+    notes="Bank interest credit",
+):
+    from database.interest_repository import (
+        reconcile_interest_accruals_transaction,
+    )
+
+    if type(actual_amount_centavos) is not int or actual_amount_centavos <= 0:
+        return InterestReconciliationResult(
+            False,
+            "Actual credited interest must be greater than zero.",
+        )
+    if type(category_id) is not int or category_id <= 0:
+        return InterestReconciliationResult(
+            False,
+            "Please select an Income category.",
+        )
+
+    try:
+        credit_date = _coerce_date(credit_date)
+        if credit_date > date.today():
+            raise ValueError("Credit date cannot be in the future.")
+    except ValueError as error:
+        return InterestReconciliationResult(False, str(error))
+
+    preview = get_interest_reconciliation_preview(
+        account_id,
+        credit_date,
+    )
+    if preview.accrual_count == 0:
+        return InterestReconciliationResult(
+            False,
+            "There are no estimated interest days to reconcile through this date.",
+        )
+
+    result = reconcile_interest_accruals_transaction(
+        account_id=account_id,
+        through_date=credit_date.isoformat(),
+        amount_centavos=actual_amount_centavos,
+        category_id=category_id,
+        credit_date_time=f"{credit_date.isoformat()} 12:00:00",
+        notes=(notes or "Bank interest credit").strip()
+        or "Bank interest credit",
+    )
+    if result is False:
+        return InterestReconciliationResult(
+            False,
+            "Interest credit could not be reconciled. No financial changes were saved.",
+        )
+
+    transaction_id, accrual_count = result
+    variance_centavos = (
+        actual_amount_centavos - preview.estimated_centavos
+    )
+    return InterestReconciliationResult(
+        True,
+        "Interest credit reconciled and posted as Income.",
+        posted_transaction_id=transaction_id,
+        accrual_count=accrual_count,
+        estimated_centavos=preview.estimated_centavos,
+        actual_centavos=actual_amount_centavos,
+        variance_centavos=variance_centavos,
+    )

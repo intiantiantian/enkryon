@@ -1,3 +1,5 @@
+from datetime import date
+
 from kivy.uix.screenmanager import Screen
 
 from .action_results import render_action_result
@@ -8,7 +10,11 @@ from services.account_services import (
     remove_account as remove_account_workflow,
     rename_account as rename_account_workflow,
 )
-from services.interest_services import save_interest_profile
+from services.interest_services import (
+    get_interest_reconciliation_preview,
+    reconcile_interest_credit,
+    save_interest_profile,
+)
 
 from .account_interest_state import (
     load_account_interest_view,
@@ -19,8 +25,16 @@ from .account_interest_state import (
 from widgets.account_card import AccountCard
 from widgets.input_dialog import InputDialog
 from widgets.empty_state import EmptyState
-from widgets.overlays import EnkryonConfirmationDialog
-from widgets.interest_dialog import InterestSettingsDialog
+from widgets.overlays import (
+    EnkryonConfirmationDialog,
+    EnkryonSelectionPanel,
+)
+from widgets.interest_dialog import (
+    InterestReconciliationDialog,
+    InterestSettingsDialog,
+)
+from database.category_repository import get_categories_by_type
+from utils.money import format_money, pesos_to_centavos
 
 
 class AccountsScreen(Screen):
@@ -89,6 +103,9 @@ class AccountsScreen(Screen):
             disable_callback=lambda effective_date: self.disable_interest_settings(
                 account_id, effective_date
             ),
+            reconcile_callback=lambda: self.open_interest_reconciliation(
+                account_id, account_name
+            ),
         )
         self.interest_dialog.open()
 
@@ -129,6 +146,128 @@ class AccountsScreen(Screen):
             0,
             effective_date,
             enabled=False,
+        )
+        render_action_result(
+            result,
+            refresh=self.load_accounts,
+            refresh_required=result.success,
+        )
+        return result.success
+
+
+    def open_interest_reconciliation(self, account_id, account_name):
+        credit_date = date.today().isoformat()
+        preview = get_interest_reconciliation_preview(
+            account_id,
+            credit_date,
+        )
+        count_text = (
+            f"{preview.accrual_count} estimated day"
+            if preview.accrual_count == 1
+            else f"{preview.accrual_count} estimated days"
+        )
+        self.reconciliation_dialog = InterestReconciliationDialog(
+            account_name=account_name,
+            estimated_text=format_money(preview.estimated_centavos),
+            accrual_count_text=count_text,
+            credit_date_text=credit_date,
+            save_callback=lambda amount, credit, category: self.reconcile_interest_credit(
+                account_id, amount, credit, category
+            ),
+            category_callback=self.open_interest_category_menu,
+            preview_callback=lambda credit: self.refresh_interest_reconciliation_preview(
+                account_id, credit
+            ),
+        )
+        self.reconciliation_dialog.open()
+
+
+    def refresh_interest_reconciliation_preview(self, account_id, credit_date_text):
+        text = (credit_date_text or "").strip()
+        try:
+            parsed = date.fromisoformat(text)
+        except ValueError:
+            return None
+        if parsed.isoformat() != text:
+            return None
+
+        try:
+            preview = get_interest_reconciliation_preview(account_id, text)
+        except ValueError:
+            return None
+        return (
+            preview.accrual_count,
+            format_money(preview.estimated_centavos),
+        )
+
+
+    def open_interest_category_menu(self, dialog):
+        categories = get_categories_by_type("income")
+        if not categories:
+            from utils.snackbar import show_snackbar
+            show_snackbar(
+                "Create an Income category before reconciling interest."
+            )
+            return
+
+        options = [
+            {
+                "text": f"{category.group_name} · {category.name}",
+                "selected": category.category_id == dialog.category_id,
+                "on_release": lambda item=category: self.select_interest_category(
+                    dialog, item
+                ),
+            }
+            for category in categories
+        ]
+        self.interest_category_menu = EnkryonSelectionPanel(
+            title="Select Income Category",
+            selected_text=dialog.category_name,
+            options=options,
+        )
+        self.interest_category_menu.open()
+
+
+    def select_interest_category(self, dialog, category):
+        dialog.set_category(category.category_id, category.name)
+        if getattr(self, "interest_category_menu", None):
+            self.interest_category_menu.dismiss()
+            self.interest_category_menu = None
+
+
+    def reconcile_interest_credit(
+        self,
+        account_id,
+        actual_amount_text,
+        credit_date_text,
+        category_id,
+    ):
+        try:
+            actual_amount_centavos = pesos_to_centavos(
+                (actual_amount_text or "").strip()
+            )
+        except (ValueError, OverflowError) as error:
+            from utils.snackbar import show_snackbar
+            show_snackbar(str(error))
+            return False
+
+        text = (credit_date_text or "").strip()
+        try:
+            parsed_date = date.fromisoformat(text)
+        except ValueError:
+            from utils.snackbar import show_snackbar
+            show_snackbar("Credit date must use YYYY-MM-DD.")
+            return False
+        if parsed_date.isoformat() != text:
+            from utils.snackbar import show_snackbar
+            show_snackbar("Credit date must use YYYY-MM-DD.")
+            return False
+
+        result = reconcile_interest_credit(
+            account_id=account_id,
+            actual_amount_centavos=actual_amount_centavos,
+            credit_date=text,
+            category_id=category_id,
         )
         render_action_result(
             result,

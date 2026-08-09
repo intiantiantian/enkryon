@@ -873,3 +873,13 @@ account-card summary text, overlay population, enable/disable persistence calls,
 invalid-input behavior, fixed Actual/365 disclosure, non-posting disclosure,
 and small-screen scroll/touch-target structure. Intermediate Task 4 verification
 uses focused tests rather than the complete regression suite.
+
+### Update 4 Task 5 focused reconciliation gate
+
+Interest reconciliation coverage verifies actual-versus-estimated variance,
+Income-category validation, one atomic posted Income transaction, exact links
+from the covered accrual period, duplicate-post prevention, rollback on database
+failure, removal of reconciled amounts from the unposted estimate summary, and
+the account reconciliation overlay workflow. This remains a focused checkpoint;
+the complete regression/coverage suite is deferred to the major integration and
+release gates.

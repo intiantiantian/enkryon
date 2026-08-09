@@ -17,6 +17,8 @@ SECONDARY_BUTTON_STYLE = {
     "radius": [Radius.MD, Radius.MD, Radius.MD, Radius.MD],
 }
 
+FILTER_BUTTON_RADIUS = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
+
 
 def get_filter_button_style(selected):
     return {
@@ -53,11 +55,19 @@ class EnkryonFilterButton(MDRectangleFlatButton):
     def __init__(self, selected=False, **kwargs):
         super().__init__(**kwargs)
         self.height = ComponentSize.TOUCH_TARGET
-        self.radius = [Radius.MD, Radius.MD, Radius.MD, Radius.MD]
+        self.radius = FILTER_BUTTON_RADIUS.copy()
         self.ripple_alpha = 0.12
         self.line_color = hex_to_rgba(Colors.BRAND_PRIMARY)
         self.set_selected(selected)
-        
+
+    def on_touch_down(self, touch):
+        # KivyMD 1.2 can leave MDRectangleFlatButton.radius as None after
+        # KV styling. Its ripple path copies radius into a non-null
+        # ListProperty, so repair the radius immediately before the ripple.
+        if self.radius is None:
+            self.radius = FILTER_BUTTON_RADIUS.copy()
+        return super().on_touch_down(touch)
+
     def set_selected(self, selected):
         style = get_filter_button_style(selected)
         self.md_bg_color = style["background_color"]
