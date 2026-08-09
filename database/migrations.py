@@ -2,6 +2,7 @@ from .account_repository import create_accounts_table
 from .category_group_repository import create_category_groups_table
 from .category_repository import create_categories_table
 from .connection import connect_database
+from .interest_repository import create_interest_tables
 from .transfer_repository import create_account_transfers_table
 from .transaction_repository import create_transactions_table
 from utils.money import pesos_to_centavos
@@ -680,6 +681,11 @@ MIGRATIONS = (
         9,
         "pass_through_balance_neutrality",
         remove_pass_through_movements,
+    ),
+    (
+        10,
+        "daily_bank_interest",
+        create_interest_tables,
     ),
 )
 

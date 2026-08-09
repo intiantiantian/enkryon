@@ -174,6 +174,35 @@ v1.3.0 schema stores Pass-through only as the parent `account_transfers` row.
 Pass-through contributes zero to every account balance; Internal Transfers keep
 their released source-negative/destination-positive behavior.
 
+## Daily Bank Interest Persistence
+
+Migration 10 adds the first Update 4 interest persistence without changing any
+posted ledger balance. Interest configuration is stored as effective-dated
+history in `account_interest_profiles`; a new effective date creates a new row
+instead of overwriting an earlier rate. The first release constrains every
+profile snapshot to Actual/365 and stores APR as integer `annual_rate_micros`.
+
+`account_interest_accruals` stores one row per account and accrual date. The
+unique `(account_id, accrual_date)` constraint makes date generation idempotent.
+Each row snapshots its profile, closing posted balance, APR, day-count basis,
+whole-centavo accrual, and exact remainder numerator. The remainder is bounded
+below the fixed `36_500_000_000` denominator defined by the Update 4 contract,
+so sub-centavo value can be reconstructed without binary floating point.
+
+Accruals may be `estimated`, `ignored`, or `reconciled`. A reconciled row must
+reference a real transaction; an estimated or ignored row cannot carry a
+posted-transaction reference. Profile/account foreign keys prevent an accrual
+from being attached to a profile belonging to another account. Accounts with
+interest history remain referenced and cannot be deleted until that history is
+removed. Clear All Data deletes accruals before profiles and then follows the
+existing child-to-parent deletion order.
+
+Backup format 4 remains the active format during Tasks 2 through 5. Its
+validator accepts live database migration 10 so existing non-interest backup
+regressions remain valid on the development branch. Interest profile/accrual
+payloads are deliberately deferred to backup format 5 in Task 6; no v1.4.0
+release may occur before that recovery work is complete.
+
 ## Adding a Future Migration
 
 When the schema changes:

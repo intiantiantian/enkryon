@@ -100,6 +100,7 @@ MIGRATION_ROWS = [
     (7, "account_transfer_kinds"),
     (8, "pass_through_movements"),
     (9, "pass_through_balance_neutrality"),
+    (10, "daily_bank_interest"),
 ]
 
 

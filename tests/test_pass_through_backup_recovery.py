@@ -230,7 +230,7 @@ def test_format_4_export_preserves_transfer_kind_and_counterparty():
     document = export_mixed_document()
 
     assert document["format_version"] == BACKUP_FORMAT_VERSION == 4
-    assert document["metadata"]["database_version"] == 9
+    assert document["metadata"]["database_version"] == 10
     assert document["metadata"]["record_counts"]["account_transfers"] == 2
     assert document["records"]["account_transfers"] == [
         {

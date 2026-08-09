@@ -824,3 +824,33 @@ Then run the complete suite with branch coverage, Python compilation, and
 `git diff --check`. Task 1 advances its 10% only after the contract reference
 cases and all regression gates pass. Migration 10 and backup format 5 remain
 reserved for later tasks and are not implemented at this checkpoint.
+
+
+## Update 4 Daily Bank Interest Task 2 persistence gate
+
+Task 2 introduces migration 10 plus `database/interest_repository.py` and keeps
+interest estimates non-posting. Focused tests cover migration recording and
+rollback compatibility, profile constraints and effective-date ordering,
+duplicate-date idempotency, exact remainder persistence, profile/account foreign
+keys, accrual status constraints, account-deletion protection, Clear All Data,
+and the existing format-4 backup/recovery path while the live database version
+is 10.
+
+Use focused checkpoint verification rather than the complete coverage suite:
+
+```bat
+python -m pytest -q ^
+tests/test_interest_repository.py ^
+tests/test_update4_interest_migration.py ^
+tests/test_migrations.py ^
+tests/test_account_repository.py ^
+tests/test_settings_repository.py ^
+tests/test_backup_exporter.py ^
+tests/test_backup_restorer.py ^
+tests/test_backup_validator.py
+```
+
+Then run Python compilation and `git diff --check`. The complete regression and
+coverage suite is reserved for major integration/release gates unless a broad
+cross-cutting failure makes it necessary earlier. Task 2 advances 18% only after
+this focused persistence gate passes and the checkpoint is committed.

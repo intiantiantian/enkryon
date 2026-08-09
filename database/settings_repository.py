@@ -8,6 +8,8 @@ def clear_database():
         with managed_connection() as connection:
             cursor = connection.cursor()
 
+            cursor.execute("DELETE FROM account_interest_accruals")
+            cursor.execute("DELETE FROM account_interest_profiles")
             cursor.execute("DELETE FROM account_transfers")
             cursor.execute("DELETE FROM transactions")
             cursor.execute("DELETE FROM categories")

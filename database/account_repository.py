@@ -141,8 +141,24 @@ def delete_account(account_id):
                         WHERE source_account_id = ?
                            OR destination_account_id = ?
                     )
+                    OR EXISTS(
+                        SELECT 1
+                        FROM account_interest_profiles
+                        WHERE account_id = ?
+                    )
+                    OR EXISTS(
+                        SELECT 1
+                        FROM account_interest_accruals
+                        WHERE account_id = ?
+                    )
                 ''',
-                (account_id, account_id, account_id),
+                (
+                    account_id,
+                    account_id,
+                    account_id,
+                    account_id,
+                    account_id,
+                ),
             )
 
             is_referenced = bool(cursor.fetchone()[0])

@@ -8,6 +8,7 @@ from database import category_group_repository
 from database import category_repository
 from database import transaction_repository
 from database.schema import initialize_database
+from database import interest_repository
 from database import migrations
 from database import transfer_repository
 
@@ -26,6 +27,7 @@ def test_database(tmp_path, monkeypatch):
         account_repository,
         category_group_repository,
         category_repository,
+        interest_repository,
         migrations,
         transfer_repository,
         transaction_repository,

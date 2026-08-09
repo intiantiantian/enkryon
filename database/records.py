@@ -60,6 +60,29 @@ class TransferRecord(NamedTuple):
     counterparty: str | None = None
 
 
+class InterestProfileRecord(NamedTuple):
+    profile_id: int
+    account_id: int
+    annual_rate_micros: int
+    day_count_basis: int
+    effective_from: str
+    enabled: bool
+
+
+class InterestAccrualRecord(NamedTuple):
+    accrual_id: int
+    account_id: int
+    interest_profile_id: int
+    accrual_date: str
+    closing_balance_centavos: int
+    annual_rate_micros: int
+    day_count_basis: int
+    accrued_whole_centavos: int
+    accrued_remainder_numerator: int
+    status: str
+    posted_transaction_id: int | None
+
+
 class ActivityRecord(NamedTuple):
     record_id: int
     record_type: str

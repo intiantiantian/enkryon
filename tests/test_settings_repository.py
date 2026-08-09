@@ -33,3 +33,34 @@ def test_clear_database_deletes_all_user_data():
     assert get_all_categories() == []
     assert get_all_category_groups() == []
     assert get_all_accounts() == []
+
+
+def test_clear_database_deletes_interest_profiles_and_accruals():
+    from database.interest_repository import (
+        get_interest_accruals,
+        get_interest_profiles,
+        insert_interest_accrual,
+        insert_interest_profile,
+    )
+
+    insert_account("Savings")
+    profile_id = insert_interest_profile(
+        account_id=1,
+        annual_rate_micros=1_000_000,
+        effective_from="2026-08-01",
+    )
+    assert profile_id is not False
+    assert insert_interest_accrual(
+        account_id=1,
+        interest_profile_id=profile_id,
+        accrual_date="2026-08-02",
+        closing_balance_centavos=10_000,
+        annual_rate_micros=1_000_000,
+        accrued_whole_centavos=0,
+        accrued_remainder_numerator=10_000_000_000,
+    ) is not False
+
+    assert clear_database() is True
+    assert get_interest_accruals(1) == []
+    assert get_interest_profiles(1) == []
+    assert get_all_accounts() == []
