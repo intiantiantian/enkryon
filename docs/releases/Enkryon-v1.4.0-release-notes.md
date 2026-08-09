@@ -2,7 +2,7 @@
 
 Release date: `2026-08-09`
 
-Release status: `RELEASE CANDIDATE`
+Release status: `VERIFIED RELEASE CANDIDATE`
 
 ## Summary
 
@@ -55,9 +55,9 @@ explicitly reconciles an actual bank credit.
 - Backup formats 1 through 4 remain restorable and restore with empty interest
   tables because those formats never contained interest records.
 
-## Verification completed before Android closeout
+## Verification
 
-- Windows release-candidate suite: `913 passed in 31.26s`.
+- Final Windows release-candidate suite: `918 passed in 31.14s`.
 - Total branch coverage: `82%`.
 - Python compilation: `PASSED`.
 - Git whitespace check: `PASSED`.
@@ -68,21 +68,22 @@ explicitly reconciles an actual bank credit.
 
 ## Android release evidence
 
-The following evidence must be replaced with observed results before publication:
-
-- GitHub Actions: `PENDING FINAL`.
-- Signed APK verification: `PENDING FINAL`.
-- APK alignment: `PENDING FINAL`.
-- Clean install and launch: `PENDING FINAL`.
-- Official v1.3.0-to-v1.4.0 in-place upgrade: `PENDING FINAL`.
-- Migration 10 / controlled Daily Bank Interest device workflow: `PENDING FINAL`.
-- Backup format 5 replacement restore and relaunch: `PENDING FINAL`.
+- GitHub Actions on release-candidate commit `fe34913`: `PASSED`.
+- Signed APK verification with the permanent Enkryon certificate: `PASSED`.
+- APK alignment verification: `PASSED`.
+- Clean install, launch, and persistence checks on a physical Android device: `PASSED`.
+- Official v1.3.0-to-v1.4.0 in-place upgrade with `adb install -r`: `PASSED`.
+- Migration 10 and controlled Daily Bank Interest device workflow: `PASSED`.
+- Pending/Internal/Pass-through semantics after upgrade: `PASSED`.
+- Actual-credit reconciliation and duplicate prevention after upgrade: `PASSED`.
+- Backup format 5 export, Clear All Data, replacement restore, force-stop/relaunch,
+  and no-duplicate verification: `PASSED`.
 
 ## Android compatibility
 
 - Package: `com.intian.enkryon`
 - Version name: `1.4.0`
-- Version code: `PENDING FINAL BUILD VERIFICATION`
+- Version code: `102410400`
 - Minimum Android API: `24`
 - Target Android API: `36`
 - Architectures: `arm64-v8a`, `armeabi-v7a`
@@ -90,10 +91,10 @@ The following evidence must be replaced with observed results before publication
 ## Artifact
 
 - Filename: `Enkryon-v1.4.0.apk`
-- Size: `PENDING FINAL BUILD VERIFICATION`
-- SHA-256: `PENDING FINAL BUILD VERIFICATION`
-- Signing certificate SHA-256: permanent Enkryon release certificate; verify
-  against the release checklist before publication.
+- Size: `45,802,212` bytes
+- SHA-256: `7f58a722423eb736772534dc83832061e779a52578ec1471e7471084a2ab45e9`
+- Signing certificate SHA-256:
+  `E3:D2:9B:10:8A:69:4A:ED:75:87:FD:99:5F:00:B0:22:64:97:B5:66:A6:53:3A:E8:47:EF:23:71:A0:12:C4:3D`.
 
 ## Known limitations
 
@@ -103,3 +104,11 @@ The following evidence must be replaced with observed results before publication
 - Automatic background posting is intentionally not supported.
 - Financial data remains local unless the user exports a backup.
 - Restore replaces current data; it does not merge backup and current records.
+
+
+## Publication state
+
+All automated, desktop, artifact, clean-install, official-upgrade, interest, and
+recovery verification gates are complete. Merge to `main`, the annotated
+`v1.4.0` tag, and GitHub Release publication remain before this candidate is
+marked released.

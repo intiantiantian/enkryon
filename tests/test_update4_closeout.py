@@ -8,7 +8,7 @@ def read_project_file(relative_path):
     return (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_v1_4_release_candidate_identity_is_consistent():
+def test_v1_4_verified_release_candidate_identity_is_consistent():
     main_source = read_project_file("main.py")
     readme = read_project_file("README.md")
     changelog = read_project_file("CHANGELOG.md")
@@ -20,7 +20,7 @@ def test_v1_4_release_candidate_identity_is_consistent():
     assert "Enkryon-v1.4.0.apk" in readme
     assert "## [1.4.0] - 2026-08-09" in changelog
     assert "# Enkryon v1.4.0" in release_notes
-    assert "Release status: `RELEASE CANDIDATE`" in release_notes
+    assert "Release status: `VERIFIED RELEASE CANDIDATE`" in release_notes
 
 
 def test_v1_4_docs_lock_interest_financial_semantics():
@@ -73,7 +73,7 @@ def test_v1_4_android_checklist_requires_official_upgrade_and_recovery():
     assert "Remove Interest clears interest-only tracking" in checklist
 
 
-def test_v1_4_verification_records_windows_gate_without_inventing_android_evidence():
+def test_v1_4_verification_records_observed_release_candidate_evidence():
     verification = read_project_file(
         "docs/audits/update-4-daily-bank-interest-verification.md"
     )
@@ -81,9 +81,14 @@ def test_v1_4_verification_records_windows_gate_without_inventing_android_eviden
         "docs/releases/Enkryon-v1.4.0-release-notes.md"
     )
 
-    assert "913 passed in 31.26s" in verification
+    assert "918 passed in 31.14s" in verification
     assert "82%" in verification
-    assert "6c618e4" in verification
-    assert "Android/release evidence pending" in verification
-    assert "PENDING FINAL" in release_notes
+    assert "fe34913" in verification
+    assert "45,802,212" in verification
+    assert "102410400" in verification
+    assert "7f58a722423eb736772534dc83832061e779a52578ec1471e7471084a2ab45e9" in verification
+    assert "GitHub Actions: passed" in verification
+    assert "in-place upgrade with `adb install -r`: passed" in verification
+    assert "PENDING FINAL" not in release_notes
+    assert "Release status: `VERIFIED RELEASE CANDIDATE`" in release_notes
     assert "Release status: `RELEASED`" not in release_notes

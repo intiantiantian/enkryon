@@ -20,8 +20,8 @@
 | 5. Add posting and reconciliation workflow | 13% | Completed — `d9acb4c` |
 | Refinement: Remove Interest | 0% | Completed — `5f1b64e` |
 | 6. Integrate history, backup, and performance | 10% | Completed — `6c618e4` |
-| 7. Close and release Update 4 | 10% | In progress — Android/release evidence pending |
-| **Total verified before final Android gate** | **90%** | **Release candidate** |
+| 7. Close and release Update 4 | 10% | In progress — verification complete; merge/tag/publication pending |
+| **Total completed before publication** | **90%** | **Verified release candidate** |
 
 ## Locked Financial Contract
 
@@ -63,24 +63,45 @@ for one account while preserving any already-posted Income transaction.
 - Remove Interest app checks passed; already-posted interest Income remained.
 - Task 6 focused backup/performance checks passed after aligning two stale test
   assumptions with SQLite planner freedom and new Clear All Data wording.
-- Final Windows pre-Android suite: `913 passed in 31.26s`, `82%` branch coverage.
+- Final Windows release-candidate suite: `918 passed in 31.14s`, `82%` branch coverage.
 - Python compilation: passed.
 - Git whitespace check: passed.
 
-## Remaining Final Release Evidence
+## Final Android and Release-Candidate Evidence
 
-Task 7 cannot be marked complete until all of the following are observed and
-recorded:
+- Release-candidate commit: `fe34913`.
+- GitHub Actions: passed on the release-candidate branch.
+- APK: `Enkryon-v1.4.0.apk`.
+- APK size: `45,802,212` bytes.
+- APK SHA-256:
+  `7f58a722423eb736772534dc83832061e779a52578ec1471e7471084a2ab45e9`.
+- Android package: `com.intian.enkryon`.
+- Android version name: `1.4.0`.
+- Android version code: `102410400`.
+- Minimum API: `24`; target API: `36`.
+- Native architectures: `arm64-v8a`, `armeabi-v7a`.
+- `android:allowBackup=false` verified in the packaged manifest.
+- APK Signature Scheme v2 verification: passed.
+- Permanent signing certificate SHA-256:
+  `E3:D2:9B:10:8A:69:4A:ED:75:87:FD:99:5F:00:B0:22:64:97:B5:66:A6:53:3A:E8:47:EF:23:71:A0:12:C4:3D`.
+- `zipalign -c -P 16 -v 4`: passed.
+- Clean installation and launch on the supported physical Android device: passed.
+- Clean-install core transaction/filter/interest/persistence checks: passed.
+- Official v1.3.0 (`versionCode=102410300`) to v1.4.0
+  (`versionCode=102410400`) in-place upgrade with `adb install -r`: passed.
+- Controlled post-upgrade Pending/Internal/Pass-through preservation checks: passed.
+- Controlled Daily Bank Interest configuration and estimate-basis checks: passed.
+- Actual-credit reconciliation and duplicate-prevention checks: passed.
+- Backup format 5 export, Clear All Data, replacement restore, force-stop/relaunch,
+  interest-profile preservation, and no-duplicate checks: passed.
 
-1. Green GitHub Actions on the release-candidate branch/commit.
-2. Signed/aligned `Enkryon-v1.4.0.apk` built with the permanent certificate.
-3. Clean installation and launch on the supported physical Android device.
-4. Official `v1.3.0` to `v1.4.0` in-place upgrade with migration 10 applied once.
-5. Controlled on-device interest estimate, reconciliation, Disable/Remove, and
-   old Pending/Internal/Pass-through semantic checks.
-6. Backup format 5 export, Clear All Data, replacement restore, relaunch, and no
-   duplicate accrual/Income evidence.
-7. Final APK `versionName`, `versionCode`, size, SHA-256, and certificate
-   fingerprint recorded.
-8. Release records finalized, branch merged, annotated `v1.4.0` tag created, and
-   GitHub release published.
+## Remaining Publication Steps
+
+Task 7 remains open only for repository publication steps:
+
+1. Commit these observed release-evidence records.
+2. Merge the verified branch into `main`.
+3. Run the main-branch sanity gate.
+4. Finalize release-status records on `main`.
+5. Create annotated tag `v1.4.0`.
+6. Publish the GitHub Release with the verified APK, checksum, and release notes.

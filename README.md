@@ -143,8 +143,7 @@ The verified version 1.3 Android release uses:
 Enkryon-v1.3.0.apk
 ```
 
-The version 1.4 release candidate uses this artifact name after the final
-Android release checks pass:
+The verified version 1.4 release candidate uses this artifact name:
 
 ```
 Enkryon-v1.4.0.apk

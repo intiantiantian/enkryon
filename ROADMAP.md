@@ -4,9 +4,9 @@ Updated: August 9, 2026
 Current release: `v1.3.0`
 Release candidate: `v1.4.0`
 Next planned release after v1.4.0: `v1.5.0`
-Current position: Update 4 Daily Bank Interest implementation is complete and
-its Windows release-candidate gate is green. Final Android clean-install,
-official v1.3.0-to-v1.4.0 upgrade, recovery, artifact, and publication evidence
+Current position: Update 4 Daily Bank Interest implementation and all automated,
+desktop, signed-Android, clean-install, official v1.3.0-to-v1.4.0 upgrade, and
+backup/recovery verification gates are complete. Merge, tag, and publication
 remain before v1.4.0 becomes the current released version.
 
 ## Purpose
@@ -644,11 +644,12 @@ history. Disable preserves history prospectively; Remove Interest deletes
 interest-only profiles/accrual metadata while preserving any already-posted
 bank-interest Income.
 
-The pre-Android release gate contains `913` passing tests at `82%` branch
+The final release-candidate gate contains `918` passing tests at `82%` branch
 coverage. Desktop configuration, reconciliation, removal, backup/restore, and
-relaunch checks passed. Final signed Android clean-install, official
-v1.3.0-to-v1.4.0 upgrade, controlled interest/recovery checks, and artifact
-evidence are still required before release.
+relaunch checks passed. The signed Android artifact then passed certificate and
+alignment verification, clean installation, official v1.3.0-to-v1.4.0 in-place
+upgrade, controlled interest/reconciliation checks, format-5 replacement
+restore, and relaunch/idempotency verification.
 
 ### Update 5 — Statistical Visualizations (`v1.5.0`)
 
@@ -693,12 +694,12 @@ roadmaps must not erase previously verified release evidence:
    installation, official v1.2.0-to-v1.3.0 upgrade, balance-neutral
    Pass-through workflow, backup/restore, relaunch, and main-branch merge.
 
-Update 4 Tasks 1 through 6 are completed. Task 7 release closeout is in
-progress: finish release-candidate records, require green CI, build/sign the
-Android artifact, verify clean install and the official v1.3.0-to-v1.4.0
-in-place upgrade, repeat controlled interest/recovery checks, then tag and
-publish v1.4.0. Statistical Visualizations remain deferred until this release
-is complete.
+Update 4 Tasks 1 through 6 are completed. Task 7 has passed its automated, CI,
+artifact, clean-install, official-upgrade, controlled-interest, and recovery
+gates. The only remaining closeout work is to record this evidence, merge to
+`main`, run the main-branch sanity gate, finalize release-status records, tag
+`v1.4.0`, and publish it. Statistical Visualizations remain deferred until
+this release is complete.
 
 ## Rule for Completing Every Phase
 
