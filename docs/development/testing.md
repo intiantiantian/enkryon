@@ -892,3 +892,26 @@ interest profiles and accrual/reconciliation metadata while preserving any
 already-posted bank-interest Income transaction and its account-balance effect.
 The UI workflow also distinguishes destructive removal from effective-dated
 Disable and requires an explicit confirmation.
+
+
+### Update 4 Task 6 — interest history, backup, and performance
+
+Task 6 advances new exports to backup format 5. Focused recovery coverage proves
+that effective-dated interest profiles, exact accrual remainder values,
+reconciliation status, and posted-transaction links survive export, Clear All
+Data, replacement restore, and relaunch-equivalent reads. Formats 1 through 4
+remain accepted and normalize with no interest records.
+
+Interest range reads are constrained in SQLite instead of loading an account's
+complete accrual history into Python. Missed-day generation batches posted daily
+balance movements and accrual inserts, so a controlled ten-year history can be
+generated and repeated idempotently without opening thousands of database
+connections. Query-plan coverage requires an existing interest history/status
+index and rejects a full accrual-table scan for bounded history reads.
+
+Reconciled bank interest continues to appear in ordinary Transaction History as
+a normal posted Income transaction; unreconciled estimates remain interest-only
+context and never enter Income, Expenses, or posted financial aggregates. No
+separate transaction-history filter is added because the existing Income filter
+already exposes posted interest credits without creating a second financial
+record type.

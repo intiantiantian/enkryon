@@ -139,10 +139,14 @@ class SettingsScreen(Screen):
                 f"Categories: {counts['categories']}\n"
                 f"Transactions: {counts['transactions']}\n"
                 f"Transfers: {counts['account_transfers']}\n"
+                f"Interest profiles: "
+                f"{counts['account_interest_profiles']}\n"
+                f"Interest accruals: "
+                f"{counts['account_interest_accruals']}\n"
                 f"Total records: {preview.total_records}\n\n"
                 "Restoring permanently replaces all accounts, "
-                "categories, transactions, and transfers currently "
-                "stored on this device."
+                "categories, transactions, transfers, and interest "
+                "tracking records currently stored on this device."
             ),
             confirm_text="Restore",
             confirm_callback=self.perform_restore,
@@ -187,7 +191,8 @@ class SettingsScreen(Screen):
             title="Back Up Before Deleting?",
             message=(
                 "Clear All Data permanently deletes every account, "
-                "category, transaction, and transfer. Export a backup "
+                "category, transaction, transfer, and interest record. "
+                "Export a backup "
                 "before continuing so these records can be restored "
                 "later, or skip the backup to continue to the final "
                 "deletion confirmation."
@@ -227,8 +232,8 @@ class SettingsScreen(Screen):
         self._open_confirmation_dialog(
             title="Clear All Data?",
             message=(
-                "This permanently deletes all accounts, "
-                "categories, transactions, and transfers. "
+                "This permanently deletes all accounts, categories, "
+                "transactions, transfers, and interest records. "
                 "This action cannot be undone."
             ),
             confirm_text="Delete All",

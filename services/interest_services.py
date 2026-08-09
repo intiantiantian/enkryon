@@ -154,18 +154,85 @@ def generate_missing_interest_accruals(account_id, through_date):
     if not profiles:
         return []
 
-    current_date = _coerce_date(profiles[0].effective_from)
-    if current_date > through_date:
+    start_date = _coerce_date(profiles[0].effective_from)
+    if start_date > through_date:
         return []
 
-    generated_or_existing = []
+    from database.interest_repository import (
+        get_posted_daily_balance_movements_centavos,
+        insert_interest_accruals_batch,
+    )
+
+    existing = get_interest_accruals(
+        account_id,
+        start_date=start_date.isoformat(),
+        end_date=through_date.isoformat(),
+    )
+    existing_dates = {row.accrual_date for row in existing}
+
+    opening_balance = get_posted_closing_balance_centavos(
+        account_id,
+        (start_date - timedelta(days=1)).isoformat(),
+    )
+    if opening_balance is False:
+        return []
+
+    movements = get_posted_daily_balance_movements_centavos(
+        account_id,
+        start_date.isoformat(),
+        through_date.isoformat(),
+    )
+    if movements is False:
+        return []
+
+    profile_index = -1
+    current_profile = None
+    current_balance = opening_balance
+    rows_to_insert = []
+    current_date = start_date
+
     while current_date <= through_date:
-        accrual = generate_interest_accrual(account_id, current_date)
-        if accrual is not None:
-            generated_or_existing.append(accrual)
+        current_text = current_date.isoformat()
+        while (
+            profile_index + 1 < len(profiles)
+            and profiles[profile_index + 1].effective_from <= current_text
+        ):
+            profile_index += 1
+            current_profile = profiles[profile_index]
+
+        if (
+            current_profile is not None
+            and current_profile.enabled
+            and current_text not in existing_dates
+        ):
+            exact_amount = calculate_daily_interest_exact(
+                current_balance,
+                current_profile.annual_rate_micros,
+            )
+            rows_to_insert.append(
+                (
+                    account_id,
+                    current_profile.profile_id,
+                    current_text,
+                    current_balance,
+                    current_profile.annual_rate_micros,
+                    exact_amount.whole_centavos,
+                    exact_amount.remainder_numerator,
+                )
+            )
+
+        current_balance += movements.get(current_text, 0)
         current_date += timedelta(days=1)
 
-    return generated_or_existing
+    inserted = insert_interest_accruals_batch(rows_to_insert)
+    if inserted is False:
+        return []
+
+    return get_interest_accruals(
+        account_id,
+        start_date=start_date.isoformat(),
+        end_date=through_date.isoformat(),
+    )
 
 
 def get_interest_estimate_summary(
@@ -174,22 +241,22 @@ def get_interest_estimate_summary(
     end_date=None,
     status="estimated",
 ):
-    accruals = get_interest_accruals(account_id, status=status)
-
-    if start_date is not None:
-        start_text = _coerce_date(start_date).isoformat()
-        accruals = [
-            accrual for accrual in accruals
-            if accrual.accrual_date >= start_text
-        ]
-
-    if end_date is not None:
-        end_text = _coerce_date(end_date).isoformat()
-        accruals = [
-            accrual for accrual in accruals
-            if accrual.accrual_date <= end_text
-        ]
-
+    start_text = (
+        _coerce_date(start_date).isoformat()
+        if start_date is not None
+        else None
+    )
+    end_text = (
+        _coerce_date(end_date).isoformat()
+        if end_date is not None
+        else None
+    )
+    accruals = get_interest_accruals(
+        account_id,
+        status=status,
+        start_date=start_text,
+        end_date=end_text,
+    )
     return summarize_interest_accruals(accruals)
 
 

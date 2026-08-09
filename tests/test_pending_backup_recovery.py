@@ -13,6 +13,8 @@ from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
     POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION,
+    INTEREST_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     serialize_backup_document,
 )
@@ -132,6 +134,8 @@ def read_statuses_and_integrity():
                 "categories",
                 "transactions",
                 "account_transfers",
+                "account_interest_profiles",
+                "account_interest_accruals",
             )
         }
         sequences = dict(
@@ -144,7 +148,9 @@ def read_statuses_and_integrity():
                     'category_groups',
                     'categories',
                     'transactions',
-                    'account_transfers'
+                    'account_transfers',
+                    'account_interest_profiles',
+                    'account_interest_accruals'
                 )
                 ORDER BY name
                 """
@@ -177,10 +183,20 @@ def convert_to_older_format(document, format_version):
         for transaction in document["records"]["transactions"]:
             transaction.pop("posting_status")
 
-    if format_version < BACKUP_FORMAT_VERSION:
+    if format_version < PASS_THROUGH_BACKUP_FORMAT_VERSION:
         for transfer in document["records"]["account_transfers"]:
             transfer.pop("transfer_kind", None)
             transfer.pop("counterparty", None)
+
+    if format_version < INTEREST_BACKUP_FORMAT_VERSION:
+        document["records"].pop("account_interest_profiles", None)
+        document["records"].pop("account_interest_accruals", None)
+        document["metadata"]["record_counts"].pop(
+            "account_interest_profiles", None
+        )
+        document["metadata"]["record_counts"].pop(
+            "account_interest_accruals", None
+        )
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -202,6 +218,8 @@ def test_format_3_export_preserves_exact_posting_status():
         "categories": 2,
         "transactions": 2,
         "account_transfers": 1,
+        "account_interest_profiles": 0,
+        "account_interest_accruals": 0,
     }
     assert [
         transaction["posting_status"]
@@ -312,6 +330,8 @@ def test_clear_restore_relaunch_preserves_sequences_and_statuses():
         "categories": 12,
         "category_groups": 9,
         "transactions": 21,
+        "account_interest_profiles": 0,
+        "account_interest_accruals": 0,
     }
     assert foreign_keys == []
     assert integrity == [("ok",)]

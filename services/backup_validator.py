@@ -4,11 +4,14 @@ from datetime import datetime
 from typing import NamedTuple
 
 from database import migrations
+from database.interest_repository import EXACT_ACCRUAL_DENOMINATOR
 from services.backup_format import (
     BACKUP_FORMAT,
     BACKUP_FORMAT_VERSION,
     BACKUP_RECORD_COLUMNS_BY_VERSION,
     POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION,
+    INTEREST_BACKUP_FORMAT_VERSION,
     BACKUP_TABLES,
 )
 
@@ -34,6 +37,32 @@ class ValidatedBackup(NamedTuple):
 
 def _is_positive_integer(value):
     return type(value) is int and value > 0
+
+
+
+
+def _is_non_negative_integer(value):
+    return type(value) is int and value >= 0
+
+
+def _is_integer(value):
+    return type(value) is int
+
+
+def _is_boolean_integer(value):
+    return type(value) is int and value in {0, 1}
+
+
+def _is_interest_status(value):
+    return type(value) is str and value in {
+        "estimated",
+        "reconciled",
+        "ignored",
+    }
+
+
+def _is_nullable_positive_integer(value):
+    return value is None or _is_positive_integer(value)
 
 
 def _is_trimmed_text(value):
@@ -118,6 +147,36 @@ RECORD_VALUE_RULES = {
         "notes": _is_nullable_text,
         "transfer_kind": _is_transfer_kind,
         "counterparty": _is_counterparty,
+    },
+    "account_interest_profiles": {
+        "id": _is_positive_integer,
+        "account_id": _is_positive_integer,
+        "annual_rate_micros": _is_non_negative_integer,
+        "day_count_basis": lambda value: value == 365,
+        "effective_from": lambda value: _matches_datetime(
+            value,
+            "%Y-%m-%d",
+        ),
+        "enabled": _is_boolean_integer,
+    },
+    "account_interest_accruals": {
+        "id": _is_positive_integer,
+        "account_id": _is_positive_integer,
+        "interest_profile_id": _is_positive_integer,
+        "accrual_date": lambda value: _matches_datetime(
+            value,
+            "%Y-%m-%d",
+        ),
+        "closing_balance_centavos": _is_integer,
+        "annual_rate_micros": _is_non_negative_integer,
+        "day_count_basis": lambda value: value == 365,
+        "accrued_whole_centavos": _is_non_negative_integer,
+        "accrued_remainder_numerator": lambda value: (
+            _is_non_negative_integer(value)
+            and value < EXACT_ACCRUAL_DENOMINATOR
+        ),
+        "status": _is_interest_status,
+        "posted_transaction_id": _is_nullable_positive_integer,
     },
 }
 
@@ -374,9 +433,14 @@ def _normalize_backup_document(document):
         for transaction in normalized_records["transactions"]:
             transaction["posting_status"] = "posted"
 
-    for transfer in normalized_records["account_transfers"]:
-        transfer["transfer_kind"] = "internal"
-        transfer["counterparty"] = None
+    if format_version < PASS_THROUGH_BACKUP_FORMAT_VERSION:
+        for transfer in normalized_records["account_transfers"]:
+            transfer["transfer_kind"] = "internal"
+            transfer["counterparty"] = None
+
+    if format_version < INTEREST_BACKUP_FORMAT_VERSION:
+        normalized_records["account_interest_profiles"] = []
+        normalized_records["account_interest_accruals"] = []
 
     normalized_metadata = dict(document["metadata"])
     normalized_metadata["record_counts"] = {

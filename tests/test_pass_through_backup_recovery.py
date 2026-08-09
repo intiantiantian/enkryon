@@ -15,6 +15,8 @@ from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
     POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION,
+    INTEREST_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     serialize_backup_document,
 )
@@ -149,7 +151,7 @@ def convert_to_older_format(document, format_version):
     document = deepcopy(document)
     document["format_version"] = format_version
 
-    if format_version < BACKUP_FORMAT_VERSION:
+    if format_version < PASS_THROUGH_BACKUP_FORMAT_VERSION:
         for transfer in document["records"]["account_transfers"]:
             transfer.pop("transfer_kind", None)
             transfer.pop("counterparty", None)
@@ -157,6 +159,16 @@ def convert_to_older_format(document, format_version):
     if format_version < POSTING_STATUS_BACKUP_FORMAT_VERSION:
         for transaction in document["records"]["transactions"]:
             transaction.pop("posting_status", None)
+
+    if format_version < INTEREST_BACKUP_FORMAT_VERSION:
+        document["records"].pop("account_interest_profiles", None)
+        document["records"].pop("account_interest_accruals", None)
+        document["metadata"]["record_counts"].pop(
+            "account_interest_profiles", None
+        )
+        document["metadata"]["record_counts"].pop(
+            "account_interest_accruals", None
+        )
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -229,7 +241,7 @@ def financial_snapshot():
 def test_format_4_export_preserves_transfer_kind_and_counterparty():
     document = export_mixed_document()
 
-    assert document["format_version"] == BACKUP_FORMAT_VERSION == 4
+    assert document["format_version"] == BACKUP_FORMAT_VERSION == 5
     assert document["metadata"]["database_version"] == 10
     assert document["metadata"]["record_counts"]["account_transfers"] == 2
     assert document["records"]["account_transfers"] == [

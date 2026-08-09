@@ -10,6 +10,8 @@ from services.backup_format import (
     BACKUP_RECORD_COLUMNS,
     LEGACY_BACKUP_FORMAT_VERSION,
     POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION,
+    INTEREST_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
@@ -111,10 +113,20 @@ def convert_to_format(document, format_version):
         for transaction in document["records"]["transactions"]:
             transaction.pop("posting_status", None)
 
-    if format_version < BACKUP_FORMAT_VERSION:
+    if format_version < PASS_THROUGH_BACKUP_FORMAT_VERSION:
         for transfer in document["records"]["account_transfers"]:
             transfer.pop("transfer_kind", None)
             transfer.pop("counterparty", None)
+
+    if format_version < INTEREST_BACKUP_FORMAT_VERSION:
+        document["records"].pop("account_interest_profiles", None)
+        document["records"].pop("account_interest_accruals", None)
+        document["metadata"]["record_counts"].pop(
+            "account_interest_profiles", None
+        )
+        document["metadata"]["record_counts"].pop(
+            "account_interest_accruals", None
+        )
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -512,6 +524,8 @@ def test_restore_normalizes_autoincrement_sequences():
         "categories": 12,
         "transactions": 21,
         "account_transfers": 30,
+        "account_interest_profiles": 0,
+        "account_interest_accruals": 0,
     }
     assert insert_next_records() == (9, 10, 13, 22, 31)
 

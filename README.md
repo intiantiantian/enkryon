@@ -197,11 +197,12 @@ connections protect commits, rollbacks, and cleanup, while account,
 category, transaction, transfer, and unified-activity services own workflow
 rules and return explicit, testable results to the interface.
 
-User-created backups are stored as versioned JSON documents. Backup format 4
-preserves each transaction's posted or Pending status plus transfer kind and
-counterparty metadata. Compatible formats 1 through 3 remain restorable; older
-transfers normalize to Internal and formats predating posting status normalize
-their transactions to posted.
+User-created backups are stored as versioned JSON documents. Backup format 5
+preserves each transaction's posted or Pending status, transfer kind and
+counterparty metadata, and Daily Bank Interest profiles/accruals including
+reconciliation links. Compatible formats 1 through 4 remain restorable; older
+formats normalize missing posting, transfer, or interest fields without
+inventing financial effects.
 Enkryon validates the complete backup, shows its metadata and record counts,
 and requires explicit confirmation before replacing current data inside a
 database transaction.

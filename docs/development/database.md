@@ -197,11 +197,12 @@ interest history remain referenced and cannot be deleted until that history is
 removed. Clear All Data deletes accruals before profiles and then follows the
 existing child-to-parent deletion order.
 
-Backup format 4 remains the active format during Tasks 2 through 5. Its
-validator accepts live database migration 10 so existing non-interest backup
-regressions remain valid on the development branch. Interest profile/accrual
-payloads are deliberately deferred to backup format 5 in Task 6; no v1.4.0
-release may occur before that recovery work is complete.
+Backup format 5 is the active Update 4 format. It preserves both
+`account_interest_profiles` and `account_interest_accruals`, including exact
+rate snapshots, whole-centavo/remainder accrual values, reconciliation status,
+and links to posted Income transactions. Formats 1 through 4 remain restorable;
+older formats normalize with empty interest tables because those formats never
+contained interest data.
 
 ## Adding a Future Migration
 

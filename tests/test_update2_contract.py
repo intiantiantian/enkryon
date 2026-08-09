@@ -285,7 +285,7 @@ def test_update_2_task_6_records_backup_format_3_recovery_evidence():
     )
     assert "Completed: add backup format 3" in roadmap
     assert "TRANSFER_BACKUP_FORMAT_VERSION = 2" in backup_format
-    assert "BACKUP_FORMAT_VERSION = 3" in backup_format
+    assert "POSTING_STATUS_BACKUP_FORMAT_VERSION = 3" in backup_format
     assert '"posting_status"' in backup_format
     assert 'transaction["posting_status"] = "posted"' in (
         backup_validator

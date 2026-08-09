@@ -40,6 +40,8 @@ def make_records():
             },
         ],
         "account_transfers": [],
+        "account_interest_profiles": [],
+        "account_interest_accruals": [],
     }
 
 
@@ -73,6 +75,8 @@ def test_create_backup_document_defines_versioned_metadata():
                 "categories": 1,
                 "transactions": 1,
                 "account_transfers": 0,
+                "account_interest_profiles": 0,
+                "account_interest_accruals": 0,
             },
         },
         "records": records,
@@ -86,6 +90,8 @@ def test_create_backup_document_counts_empty_tables():
         "categories": [],
         "transactions": [],
         "account_transfers": [],
+        "account_interest_profiles": [],
+        "account_interest_accruals": [],
     }
 
     document = create_backup_document(
@@ -106,6 +112,8 @@ def test_create_backup_document_counts_empty_tables():
         "categories": 0,
         "transactions": 0,
         "account_transfers": 0,
+        "account_interest_profiles": 0,
+        "account_interest_accruals": 0,
     }
 
 

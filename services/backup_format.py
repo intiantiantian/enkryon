@@ -6,7 +6,8 @@ LEGACY_BACKUP_FORMAT_VERSION = 1
 TRANSFER_BACKUP_FORMAT_VERSION = 2
 POSTING_STATUS_BACKUP_FORMAT_VERSION = 3
 PASS_THROUGH_BACKUP_FORMAT_VERSION = 4
-BACKUP_FORMAT_VERSION = PASS_THROUGH_BACKUP_FORMAT_VERSION
+INTEREST_BACKUP_FORMAT_VERSION = 5
+BACKUP_FORMAT_VERSION = INTEREST_BACKUP_FORMAT_VERSION
 LEGACY_BACKUP_RECORD_COLUMNS = {
     "accounts": (
         "id",
@@ -49,7 +50,7 @@ POSTING_STATUS_BACKUP_RECORD_COLUMNS = {
         "posting_status",
     ),
 }
-BACKUP_RECORD_COLUMNS = {
+PASS_THROUGH_BACKUP_RECORD_COLUMNS = {
     **POSTING_STATUS_BACKUP_RECORD_COLUMNS,
     "account_transfers": (
         *TRANSFER_BACKUP_RECORD_COLUMNS["account_transfers"],
@@ -57,11 +58,37 @@ BACKUP_RECORD_COLUMNS = {
         "counterparty",
     ),
 }
+INTEREST_BACKUP_RECORD_COLUMNS = {
+    **PASS_THROUGH_BACKUP_RECORD_COLUMNS,
+    "account_interest_profiles": (
+        "id",
+        "account_id",
+        "annual_rate_micros",
+        "day_count_basis",
+        "effective_from",
+        "enabled",
+    ),
+    "account_interest_accruals": (
+        "id",
+        "account_id",
+        "interest_profile_id",
+        "accrual_date",
+        "closing_balance_centavos",
+        "annual_rate_micros",
+        "day_count_basis",
+        "accrued_whole_centavos",
+        "accrued_remainder_numerator",
+        "status",
+        "posted_transaction_id",
+    ),
+}
+BACKUP_RECORD_COLUMNS = INTEREST_BACKUP_RECORD_COLUMNS
 BACKUP_RECORD_COLUMNS_BY_VERSION = {
     LEGACY_BACKUP_FORMAT_VERSION: LEGACY_BACKUP_RECORD_COLUMNS,
     TRANSFER_BACKUP_FORMAT_VERSION: TRANSFER_BACKUP_RECORD_COLUMNS,
     POSTING_STATUS_BACKUP_FORMAT_VERSION: POSTING_STATUS_BACKUP_RECORD_COLUMNS,
-    PASS_THROUGH_BACKUP_FORMAT_VERSION: BACKUP_RECORD_COLUMNS,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION: PASS_THROUGH_BACKUP_RECORD_COLUMNS,
+    INTEREST_BACKUP_FORMAT_VERSION: INTEREST_BACKUP_RECORD_COLUMNS,
 }
 BACKUP_TABLES = tuple(BACKUP_RECORD_COLUMNS)
 
@@ -78,7 +105,7 @@ def create_backup_document(
 
     exported_at = exported_at.astimezone(timezone.utc)
     backup_records = {
-        table_name: list(records[table_name])
+        table_name: list(records.get(table_name, ()))
         for table_name in BACKUP_TABLES
     }
 

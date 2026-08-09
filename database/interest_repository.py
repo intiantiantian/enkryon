@@ -403,6 +403,111 @@ def get_posted_closing_balance_centavos(account_id, closing_date):
     except (sqlite3.Error, TypeError, ValueError, OverflowError):
         return False
 
+def get_posted_daily_balance_movements_centavos(
+    account_id,
+    start_date,
+    end_date,
+):
+    """Return posted per-day account balance movements for a date range."""
+    try:
+        start = date.fromisoformat(start_date)
+        end = date.fromisoformat(end_date)
+        if end < start:
+            return {}
+        start_text = f"{start.isoformat()} 00:00:00"
+        end_exclusive = f"{(end + timedelta(days=1)).isoformat()} 00:00:00"
+
+        with managed_connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT movement_date, SUM(net_centavos)
+                FROM (
+                    SELECT
+                        substr(transactions.date_time, 1, 10) AS movement_date,
+                        CASE category_groups.transaction_type
+                            WHEN 'income' THEN transactions.amount_centavos
+                            WHEN 'expense' THEN -transactions.amount_centavos
+                            ELSE 0
+                        END AS net_centavos
+                    FROM transactions
+                    INNER JOIN categories
+                        ON transactions.category_id = categories.category_id
+                    INNER JOIN category_groups
+                        ON categories.group_id = category_groups.group_id
+                    WHERE transactions.account_id = ?
+                      AND transactions.posting_status = 'posted'
+                      AND transactions.date_time >= ?
+                      AND transactions.date_time < ?
+
+                    UNION ALL
+
+                    SELECT
+                        substr(date_time, 1, 10) AS movement_date,
+                        -amount_centavos AS net_centavos
+                    FROM account_transfers
+                    WHERE source_account_id = ?
+                      AND transfer_kind = 'internal'
+                      AND date_time >= ?
+                      AND date_time < ?
+
+                    UNION ALL
+
+                    SELECT
+                        substr(date_time, 1, 10) AS movement_date,
+                        amount_centavos AS net_centavos
+                    FROM account_transfers
+                    WHERE destination_account_id = ?
+                      AND transfer_kind = 'internal'
+                      AND date_time >= ?
+                      AND date_time < ?
+                )
+                GROUP BY movement_date
+                ORDER BY movement_date
+                """,
+                (
+                    account_id, start_text, end_exclusive,
+                    account_id, start_text, end_exclusive,
+                    account_id, start_text, end_exclusive,
+                ),
+            ).fetchall()
+        return {row[0]: int(row[1]) for row in rows}
+    except (sqlite3.Error, TypeError, ValueError, OverflowError):
+        return False
+
+
+def insert_interest_accruals_batch(rows):
+    rows = list(rows)
+    if not rows:
+        return 0
+
+    try:
+        with managed_connection() as connection:
+            before = connection.total_changes
+            connection.executemany(
+                """
+                INSERT OR IGNORE INTO account_interest_accruals (
+                    account_id,
+                    interest_profile_id,
+                    accrual_date,
+                    closing_balance_centavos,
+                    annual_rate_micros,
+                    day_count_basis,
+                    accrued_whole_centavos,
+                    accrued_remainder_numerator,
+                    status,
+                    posted_transaction_id
+                )
+                VALUES (?, ?, ?, ?, ?, 365, ?, ?, 'estimated', NULL)
+                """,
+                rows,
+            )
+            inserted = connection.total_changes - before
+            connection.commit()
+            return inserted
+    except (sqlite3.Error, TypeError, ValueError, OverflowError):
+        return False
+
+
 def get_interest_accrual(account_id, accrual_date):
     with managed_connection() as connection:
         row = connection.execute(
@@ -417,7 +522,13 @@ def get_interest_accrual(account_id, accrual_date):
     return InterestAccrualRecord(*row)
 
 
-def get_interest_accruals(account_id, status=None):
+def get_interest_accruals(
+    account_id,
+    status=None,
+    start_date=None,
+    end_date=None,
+    limit=None,
+):
     with managed_connection() as connection:
         query = ACCRUAL_SELECT + " WHERE account_id = ?"
         params = [account_id]
@@ -425,8 +536,20 @@ def get_interest_accruals(account_id, status=None):
         if status is not None:
             query += " AND status = ?"
             params.append(status)
+        if start_date is not None:
+            query += " AND accrual_date >= ?"
+            params.append(start_date)
+        if end_date is not None:
+            query += " AND accrual_date <= ?"
+            params.append(end_date)
 
         query += " ORDER BY accrual_date ASC, id ASC"
+        if limit is not None:
+            if type(limit) is not int or limit <= 0:
+                return []
+            query += " LIMIT ?"
+            params.append(limit)
+
         rows = connection.execute(query, tuple(params)).fetchall()
 
     return [InterestAccrualRecord(*row) for row in rows]

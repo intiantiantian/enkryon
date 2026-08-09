@@ -122,6 +122,8 @@ def test_export_backup_document_reads_exact_relational_rows():
             "categories": 2,
             "transactions": 2,
             "account_transfers": 1,
+            "account_interest_profiles": 0,
+            "account_interest_accruals": 0,
         },
     }
     assert document["records"] == {
@@ -185,6 +187,8 @@ def test_export_backup_document_reads_exact_relational_rows():
                 "counterparty": "Alex Rivera",
             },
         ],
+        "account_interest_profiles": [],
+        "account_interest_accruals": [],
     }
 
 

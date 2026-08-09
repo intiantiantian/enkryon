@@ -6,6 +6,8 @@ from services.backup_format import (
     BACKUP_FORMAT_VERSION,
     LEGACY_BACKUP_FORMAT_VERSION,
     POSTING_STATUS_BACKUP_FORMAT_VERSION,
+    PASS_THROUGH_BACKUP_FORMAT_VERSION,
+    INTEREST_BACKUP_FORMAT_VERSION,
     TRANSFER_BACKUP_FORMAT_VERSION,
     create_backup_document,
     serialize_backup_document,
@@ -93,10 +95,20 @@ def convert_to_format(document, format_version):
         for transaction in document["records"]["transactions"]:
             transaction.pop("posting_status", None)
 
-    if format_version < BACKUP_FORMAT_VERSION:
+    if format_version < PASS_THROUGH_BACKUP_FORMAT_VERSION:
         for transfer in document["records"]["account_transfers"]:
             transfer.pop("transfer_kind", None)
             transfer.pop("counterparty", None)
+
+    if format_version < INTEREST_BACKUP_FORMAT_VERSION:
+        document["records"].pop("account_interest_profiles", None)
+        document["records"].pop("account_interest_accruals", None)
+        document["metadata"]["record_counts"].pop(
+            "account_interest_profiles", None
+        )
+        document["metadata"]["record_counts"].pop(
+            "account_interest_accruals", None
+        )
 
     if format_version == LEGACY_BACKUP_FORMAT_VERSION:
         del document["records"]["account_transfers"]
@@ -134,6 +146,8 @@ def test_valid_backup_returns_restore_preview():
             "categories": 2,
             "transactions": 1,
             "account_transfers": 1,
+            "account_interest_profiles": 0,
+            "account_interest_accruals": 0,
         },
         total_records=8,
     )
@@ -239,7 +253,7 @@ def test_rejects_invalid_identity_and_metadata():
 
     for path, value in (
         (("format",), "other-backup"),
-        (("format_version",), 5),
+        (("format_version",), 6),
         (("metadata", "database_version"), 11),
         (("metadata", "app_version"), ""),
         (("metadata", "exported_at"), "July 24, 2026"),
