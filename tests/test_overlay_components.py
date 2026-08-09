@@ -654,7 +654,7 @@ def test_confirmation_prompts_use_custom_overlay():
 
     assert sources["accounts"].count(
         "EnkryonConfirmationDialog("
-    ) == 1
+    ) == 2
     assert sources["categories"].count(
         "EnkryonConfirmationDialog("
     ) == 2

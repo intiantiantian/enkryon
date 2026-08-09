@@ -1,12 +1,13 @@
 # Enkryon Development Roadmap
 
-Updated: August 8, 2026
+Updated: August 9, 2026
 Current release: `v1.3.0`
-Next planned release: `v1.4.0`
-Current position: Update 3 Pass-through Transfers is released. The final model
-represents the complete counterparty exchange and changes neither participating
-account balance, Income, Expenses, nor category totals. Update 4 Daily Bank
-Interest is next.
+Release candidate: `v1.4.0`
+Next planned release after v1.4.0: `v1.5.0`
+Current position: Update 4 Daily Bank Interest implementation is complete and
+its Windows release-candidate gate is green. Final Android clean-install,
+official v1.3.0-to-v1.4.0 upgrade, recovery, artifact, and publication evidence
+remain before v1.4.0 becomes the current released version.
 
 ## Purpose
 
@@ -556,7 +557,7 @@ version 1.x feature updates below.
 
 ## Phase 10 — Version 1.x Feature Expansion
 
-**Status:** In progress - Update 4 planned
+**Status:** In progress - Update 4 release candidate
 
 ### Objective
 
@@ -567,7 +568,7 @@ Add major financial capabilities without weakening the accurate, upgrade-safe, r
 1. Account transfers (`v1.1.0`) — released.
 2. Pending Transactions (`v1.2.0`) — released.
 3. Pass-through Transfers (`v1.3.0`) — released.
-4. Daily Bank Interest (`v1.4.0`) — planned after transfer semantics are stable.
+4. Daily Bank Interest (`v1.4.0`) — release candidate; final Android/release evidence pending.
 5. Statistical Visualizations (`v1.5.0`) — planned after pending, pass-through, and interest records are defined.
 6. Budget tracking, recurring transactions, CSV import/export, dark mode, and optional synchronization.
 
@@ -624,9 +625,30 @@ and relaunch checks.
 
 ### Update 4 — Daily Bank Interest (`v1.4.0`)
 
-Daily bank interest will provide deterministic, float-free estimated accruals
-for configured accounts. Estimates remain non-posting; only explicit
-reconciliation creates a normal posted Income transaction.
+Daily Bank Interest is implemented as deterministic, float-free estimated
+accruals for configured accounts. Estimates remain non-posting; only explicit
+reconciliation creates one normal posted Income transaction.
+
+The locked first-release contract uses nominal APR, Actual/365, the applicable
+prior end-of-day posted account balance, exact integer/rational sub-centavo
+carry, presentation-only `ROUND_HALF_UP`, effective-dated rate history, and zero
+positive accrual for non-positive balances. Pending records are excluded,
+Internal Transfers affect the account basis directionally, and balance-neutral
+Pass-through Transfers contribute zero.
+
+Migration 10 stores effective-dated interest profiles and idempotent daily
+accrual rows. Backup format 5 preserves profile snapshots, exact whole-centavo
+and remainder values, reconciliation status, and links to the posted Income
+transaction. Formats 1 through 4 remain restorable with no synthetic interest
+history. Disable preserves history prospectively; Remove Interest deletes
+interest-only profiles/accrual metadata while preserving any already-posted
+bank-interest Income.
+
+The pre-Android release gate contains `913` passing tests at `82%` branch
+coverage. Desktop configuration, reconciliation, removal, backup/restore, and
+relaunch checks passed. Final signed Android clean-install, official
+v1.3.0-to-v1.4.0 upgrade, controlled interest/recovery checks, and artifact
+evidence are still required before release.
 
 ### Update 5 — Statistical Visualizations (`v1.5.0`)
 
@@ -671,8 +693,12 @@ roadmaps must not erase previously verified release evidence:
    installation, official v1.2.0-to-v1.3.0 upgrade, balance-neutral
    Pass-through workflow, backup/restore, relaunch, and main-branch merge.
 
-Next: begin Update 4 Daily Bank Interest planning. Statistical Visualizations
-remain after the interest model is defined.
+Update 4 Tasks 1 through 6 are completed. Task 7 release closeout is in
+progress: finish release-candidate records, require green CI, build/sign the
+Android artifact, verify clean install and the official v1.3.0-to-v1.4.0
+in-place upgrade, repeat controlled interest/recovery checks, then tag and
+publish v1.4.0. Statistical Visualizations remain deferred until this release
+is complete.
 
 ## Rule for Completing Every Phase
 

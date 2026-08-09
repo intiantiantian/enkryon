@@ -7,14 +7,14 @@ README_FILE = PROJECT_ROOT / "README.md"
 RELEASE_GUIDE = PROJECT_ROOT / "docs" / "releases" / "README.md"
 
 
-def test_current_release_candidate_uses_version_1_3_identity():
+def test_current_release_candidate_uses_version_1_4_identity():
     main_source = MAIN_FILE.read_text(encoding="utf-8")
     readme = README_FILE.read_text(encoding="utf-8")
     release_guide = RELEASE_GUIDE.read_text(encoding="utf-8")
     normalized_guide = " ".join(release_guide.split())
 
-    assert '__version__ = "1.3.0"' in main_source
-    assert "Enkryon-v1.3.0.apk" in readme
+    assert '__version__ = "1.4.0"' in main_source
+    assert "Enkryon-v1.4.0.apk" in readme
     assert (
         "versions used `major.phase.subphase` as the roadmap reference"
         in normalized_guide
@@ -34,5 +34,9 @@ def test_current_release_candidate_uses_version_1_3_identity():
     )
     assert (
         "Update 3 releases `v1.3.0` from official `v1.2.0`"
+        in normalized_guide
+    )
+    assert (
+        "Update 4 prepares `v1.4.0` from official `v1.3.0`"
         in normalized_guide
     )

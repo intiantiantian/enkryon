@@ -64,6 +64,7 @@ The current migrations are:
 | 7 | `account_transfer_kinds` | Add constrained Internal/Pass-through transfer kind plus optional counterparty metadata. |
 | 8 | `pass_through_movements` | Add explicit linked Pass-through inflow/outflow records. |
 | 9 | `pass_through_balance_neutrality` | Remove temporary Pass-through movement artifacts and lock per-account balance neutrality. |
+| 10 | `daily_bank_interest` | Add effective-dated interest profiles plus exact idempotent daily accrual/reconciliation records. |
 
 The runner applies all pending migrations inside one SQLite transaction.
 If any migration fails, the complete attempt is rolled back. Running the

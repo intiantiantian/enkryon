@@ -4,9 +4,10 @@ A modern **offline-first personal finance tracker** built with **Python**, **Kiv
 
 Enkryon is an offline-first personal finance tracker that helps users record
 income and expenses, hold planned activity as Pending until it is posted,
-move funds between accounts, record linked Pass-through exchanges, organize
-accounts and categories, and monitor financial activity through a clean and
-intuitive interface.
+move funds between accounts, record linked Pass-through exchanges, estimate
+daily bank interest, reconcile actual bank credits, organize accounts and
+categories, and monitor financial activity through a clean and intuitive
+interface.
 
 The application focuses on simplicity, local data privacy, and responsive mobile design.
 
@@ -81,6 +82,11 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 - Rename accounts
 - Delete accounts
 - Duplicate name validation
+- Configure optional Daily Bank Interest with effective-dated APR history
+- View non-posting daily and accumulated interest estimates
+- Reconcile an actual bank interest credit as one posted Income transaction
+- Disable interest prospectively or remove interest-only tracking data without
+  deleting already-posted Income
 
 ### Categories
 
@@ -109,9 +115,11 @@ The application focuses on simplicity, local data privacy, and responsive mobile
 
 ### Settings
 
-- Export a versioned JSON backup including transfer kind, counterparty, and Pending status
+- Export backup format 5 with transfer kind, counterparty, Pending status, and
+  Daily Bank Interest profiles/accruals
 - Preview and restore a validated backup
-- Restore formats 1 through 3 with older transfers normalized to Internal
+- Restore formats 1 through 4 with older backups normalized safely and no
+  synthetic interest history
 - Clear all application data
 - Export a backup before clearing data
 - View application, local-data, and privacy information
@@ -133,6 +141,13 @@ The verified version 1.3 Android release uses:
 
 ```
 Enkryon-v1.3.0.apk
+```
+
+The version 1.4 release candidate uses this artifact name after the final
+Android release checks pass:
+
+```
+Enkryon-v1.4.0.apk
 ```
 
 ---

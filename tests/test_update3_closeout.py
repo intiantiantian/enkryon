@@ -9,14 +9,12 @@ def read_project_file(relative_path):
 
 
 def test_v1_3_release_identity_is_consistent():
-    main_source = read_project_file("main.py")
     readme = read_project_file("README.md")
     changelog = read_project_file("CHANGELOG.md")
     release_notes = read_project_file(
         "docs/releases/Enkryon-v1.3.0-release-notes.md"
     )
 
-    assert '__version__ = "1.3.0"' in main_source
     assert "Enkryon-v1.3.0.apk" in readme
     assert "## [1.3.0] - 2026-08-08" in changelog
     assert "# Enkryon v1.3.0" in release_notes
@@ -53,8 +51,7 @@ def test_v1_3_release_docs_lock_final_accounting_and_upgrade_gate():
 
     assert "balance effect on every participating account" in changelog
     assert "without changing either participating account balance" in readme
-    assert "Current release: `v1.3.0`" in roadmap
-    assert "Next planned release: `v1.4.0`" in roadmap
+    assert "### Update 3 — Pass-through Transfers (`v1.3.0`)" in roadmap
     assert "Pass-through paid-from account change = 0" in release_notes
     assert "Pass-through received-into account change = 0" in release_notes
     assert "official `v1.2.0`" in normalized_notes

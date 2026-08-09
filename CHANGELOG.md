@@ -9,6 +9,43 @@ version reference.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-09
+
+### Added
+
+- Optional Daily Bank Interest configuration per account using effective-dated
+  nominal APR snapshots and a fixed Actual/365 basis.
+- Deterministic non-posting daily accrual estimates with exact sub-centavo carry
+  and presentation-only `ROUND_HALF_UP` rounding.
+- Explicit reconciliation of actual bank credits into one normal posted Income
+  transaction with estimate-versus-actual variance.
+- Separate Disable and Remove Interest workflows; removal keeps any already
+  posted bank-interest Income transaction intact.
+- Database migration 10 for interest profiles and daily accrual history.
+- Backup format 5 with exact interest profile, accrual, reconciliation, and
+  posted-transaction-link preservation.
+
+### Changed
+
+- Interest estimates use the applicable prior end-of-day posted account balance.
+  Pending records remain excluded, Internal Transfers affect the basis
+  directionally, and Pass-through Transfers contribute zero.
+- Clear All Data and replacement restore include interest-only records in their
+  dependency-safe recovery paths.
+- Account cards expose interest configuration and estimates without treating
+  estimates as account money or Income.
+- Application release-candidate identity uses version `1.4.0`.
+
+### Fixed
+
+- Repeated accrual generation is idempotent and does not duplicate a date.
+- Reconciliation rejects repeat posting for the same covered accrual period and
+  rolls back fully on database failure.
+- Shared outlined filter buttons retain a valid ripple radius under KivyMD 1.2.0.
+- Interest history queries use indexed bounded access and long-range accrual
+  generation batches history reads/inserts instead of opening thousands of
+  SQLite connections.
+
 ## [1.3.0] - 2026-08-08
 
 ### Added

@@ -915,3 +915,19 @@ context and never enter Income, Expenses, or posted financial aggregates. No
 separate transaction-history filter is added because the existing Income filter
 already exposes posted interest credits without creating a second financial
 record type.
+
+
+## Update 4 Task 7 — v1.4.0 release-candidate gate
+
+The Windows pre-Android release gate reported `913 passed in 31.26s` at `82%`
+total branch coverage. Python compilation and `git diff --check` passed. The
+working tree was otherwise clean at Task 6 commit `6c618e4`; the only release
+gate correction was aligning the historical overlay-component test with the
+second legitimate Accounts confirmation dialog introduced by Remove Interest.
+
+The remaining release gate is intentionally device-specific: require green CI,
+build and verify the signed/aligned Android artifact, perform a clean install,
+perform the official v1.3.0-to-v1.4.0 in-place upgrade, verify migration 10 and
+interest semantics on device, complete backup-format-5 replacement recovery and
+relaunch, then record the final APK size/checksum/version code and publish only
+after all required evidence passes.

@@ -89,6 +89,24 @@ the evidence in the release notes or the phase verification report.
   preserve transfer kind, counterparty, posted/Pending status, IDs, amounts,
   notes, dates, relationships, and exact totals.
 
+### Current v1.4.0 upgrade additions
+
+- [ ] An official v1.3.0 installation upgrades through migration 10 exactly once.
+- [ ] Pre-upgrade posted/Pending transactions and Internal/Pass-through transfers
+  preserve exact IDs, statuses, metadata, balances, and totals.
+- [ ] An account can enable Daily Bank Interest after upgrade with the expected
+  APR/effective date and a non-posting estimate.
+- [ ] Pending records remain excluded from the interest balance basis; an
+  Internal Transfer changes the participating account basis directionally; a
+  Pass-through record changes neither participating account basis.
+- [ ] Reconciliation creates exactly one posted Income transaction for the
+  actual bank credit and does not post the estimate.
+- [ ] Disable is effective-dated; Remove Interest clears interest-only tracking
+  data while preserving already-posted bank-interest Income and account balance.
+- [ ] Backup format 5 export, Clear All Data, replacement restore, and relaunch
+  preserve interest profiles, exact accrual/remainder data, reconciliation
+  status/links, and all older records without duplication.
+
 ## 7. Core workflow smoke test
 
 - [ ] Dashboard balances and income/expense totals are correct.
@@ -99,9 +117,10 @@ the evidence in the release notes or the phase verification report.
   restored with exact outgoing/incoming balance effects.
 - [ ] Transfers leave the all-accounts balance, Income, Expenses, and category
   totals unchanged.
-- [ ] Backup format 3 export, Clear All Data, and replacement restore preserve
-  transfer data plus posted/Pending transaction status, IDs, relationships,
-  amounts, notes, and record counts.
+- Historical v1.2.0 release evidence includes Backup format 3 export, Clear All Data, replacement restore, and relaunch verification.
+- [ ] Backup format 5 export, Clear All Data, and replacement restore preserve
+  interest records plus transfer data, posted/Pending transaction status, IDs,
+  relationships, amounts, notes, and record counts.
 - [ ] Centavo values display and total exactly.
 - [ ] Empty states, validation messages, and destructive confirmations work.
 - [ ] Clearing all data is tested only on disposable test data.

@@ -315,6 +315,28 @@ Update 3 extends the existing transfer path rather than adding a second ledger:
 6. Backup format 4 preserves kind and counterparty; formats 1 through 3 normalize
    older transfers to Internal during validated replacement restore.
 
+Update 4 keeps estimated interest outside the posted transaction ledger until
+reconciliation:
+
+1. `database/interest_repository.py` owns effective-dated profile persistence,
+   idempotent accrual rows, bounded history access, reconciliation links, and
+   interest-only removal.
+2. `services/interest_services.py` owns Actual/365 calculation, exact
+   sub-centavo carry, posted closing-balance selection, missed-day generation,
+   reconciliation, and removal results without importing Kivy.
+3. `screens/account_interest_state.py` owns UI-independent APR/effective-date
+   parsing and account interest presentation state.
+4. `screens/accounts.py` coordinates the settings, reconciliation, Disable, and
+   Remove Interest overlays without owning SQL or interest arithmetic.
+5. `widgets/interest_dialog.py` and `kv/interest_dialog.kv` remain presentation
+   components; estimates are visibly non-posting and actual credits require an
+   explicit reconciliation action.
+6. Reconciled credits deliberately reuse the normal posted Income transaction
+   path, so balances, Income totals, Activity History, and later statistics have
+   one canonical financial record.
+7. Backup format 5 preserves interest profiles/accruals while formats 1 through
+   4 restore with empty interest tables and keep all older financial semantics.
+
 ## Rule for Future Commits
 
 Each refactor commit should be small and reversible.
